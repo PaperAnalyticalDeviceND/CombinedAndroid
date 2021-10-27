@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">PaperAnalyticalDevices</string>
+    <string name="stored_drug_string">Stated Drug (Unknown if not known)</string>
+    <string name="brand_string">Drug %</string>
+    <string name="batch_string">Predicted Drug</string>
+    <string name="upload">Save</string>
+    <string name="cancel">Retry</string>
+</resources>

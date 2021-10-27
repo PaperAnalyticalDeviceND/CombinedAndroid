@@ -1,0 +1,1 @@
+/Users/crc/AndroidStudioProjects/CallbackTestApp/OpenCV454/sdk/build/intermediates/cxx/Debug/661l3y50/obj/armeabi-v7a

@@ -1,0 +1,14 @@
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        jcenter() // Warning: this repository is going to shut down soon
+    }
+}
+rootProject.name = "PaperAnalyticalDevices"
+def opencvsdk='/Users/crc/AndroidStudioProjects/PaperAnalyticalDevices/OpenCV454'
+
+include ':app'
+include ':OpenCV454'
+project(':OpenCV454').projectDir = new File(opencvsdk + '/sdk')

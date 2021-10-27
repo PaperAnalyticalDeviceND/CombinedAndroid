@@ -1,0 +1,7 @@
+Executable : /Users/crc/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja
+arguments : 
+-C
+/Users/crc/AndroidStudioProjects/CallbackTestApp/OpenCV454/sdk/.cxx/Debug/661l3y50/armeabi-v7a
+opencv_jni_shared
+jvmArgs : 
+
