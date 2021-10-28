@@ -80,6 +80,10 @@ import static java.lang.Math.sqrt;
 
 public class CameraActivity extends AppCompatActivity implements CvCameraViewListener2 {
 
+    //Activity to open the camera and aquire a preview image after the PAD fiducials are located
+    //uses the OpenCV 4.5.4 JavaCameraView class
+    //@TODO update to JavaCamera2View
+
     private int REQUEST_CODE_PERMISSIONS = 1001;
     private final String[] REQUIRED_PERMISSIONS = new String[] {"android.permission.CAMERA", "android.permission.WRITE_EXTERNAL_STORAGE"};
 

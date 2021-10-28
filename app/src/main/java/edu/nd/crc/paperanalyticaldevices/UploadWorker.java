@@ -42,13 +42,13 @@ public class UploadWorker extends Worker {
         super(context, params);
         notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
     }
-
+/*
     @Override
     public Result doWork(){
         return Result.success();
     }
+*/
 
-/*
     @Override
     public Result doWork() {
         // Build Request
@@ -69,6 +69,8 @@ public class UploadWorker extends Worker {
         try {
             sbParams.append("api_key").append("=").append(URLEncoder.encode("D5HDZG76N3ICA3GBUYWC", "UTF-8")).append("&");
             sbParams.append("category_name").append("=").append(URLEncoder.encode("JCSTest", "UTF-8")).append("&");
+            //@TODO make this a settings parameter
+            //sbParams.append("category_name").append("=").append(URLEncoder.encode("MattTest", "UTF-8")).append("&");
             sbParams.append("camera1").append("=").append(URLEncoder.encode(Build.MANUFACTURER + " " + Build.MODEL, "UTF-8")).append("&");
             sbParams.append("test_name").append("=").append(URLEncoder.encode("12LanePADKenya2015", "UTF-8")).append("&");
 
@@ -181,7 +183,7 @@ public class UploadWorker extends Worker {
         // Indicate whether the work finished successfully with the Result
         return Result.success();
     }
-*/
+
 
     @NonNull
     private ForegroundInfo createForegroundInfo(int current, int max) {

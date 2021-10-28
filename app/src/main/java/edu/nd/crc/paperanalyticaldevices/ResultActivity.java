@@ -48,6 +48,7 @@ public class ResultActivity extends AppCompatActivity {
         mPreferences = getSharedPreferences(MainActivity.PROJECT, MODE_PRIVATE);
 
         // Setup compatability toolbar
+        // 10-27-21 Removed, causes exception, toolbar already present
         //Toolbar myToolbar = findViewById(R.id.my_toolbar);
         //setSupportActionBar(myToolbar);
 
@@ -127,13 +128,14 @@ public class ResultActivity extends AppCompatActivity {
                             .putString("NOTES", compressedNotes)
                             .putString("QUANTITY", getPercentage(getBrand()))
                             .putString("TIMESTAMP", this.timestamp)
-                            .putString("ORIGINAL_IMAGE", FileProvider.getUriForFile(this, this.getApplicationContext().getPackageName() + ".provider", new File(new File(this.getFilesDir(), timestamp), "original.png")).toString())
-                            .putString("RECTIFIED_IMAGE", FileProvider.getUriForFile(this, this.getApplicationContext().getPackageName() + ".provider", new File(new File(this.getFilesDir(), timestamp), "rectified.png")).toString())
+                            .putString("ORIGINAL_IMAGE", FileProvider.getUriForFile(this, this.getApplicationContext().getPackageName() + ".fileprovider", new File(new File(this.getFilesDir(), timestamp), "original.png")).toString())
+                            .putString("RECTIFIED_IMAGE", FileProvider.getUriForFile(this, this.getApplicationContext().getPackageName() + ".fileprovider", new File(new File(this.getFilesDir(), timestamp), "rectified.png")).toString())
                         .build()
                 )
                 .build();
 
         WorkManager.getInstance(this).enqueue(myUploadWork);
+        Log.d("PAD", "Results added to upload queue.");
 
         Toast.makeText(this, "Results added to upload queue", Toast.LENGTH_SHORT).show();
         new Handler().postDelayed(new Runnable() {
@@ -200,7 +202,7 @@ public class ResultActivity extends AppCompatActivity {
             file.flush();
             file.close();
 
-            ret = FileProvider.getUriForFile(this, this.getApplicationContext().getPackageName() + ".provider", outputFile);
+            ret = FileProvider.getUriForFile(this, this.getApplicationContext().getPackageName() + ".fileprovider", outputFile);
         } catch (IOException e) {
             e.printStackTrace();
         }
