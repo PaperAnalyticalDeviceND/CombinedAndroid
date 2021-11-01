@@ -1,8 +1,11 @@
 <resources>
-    <string name="app_name">PaperAnalyticalDevices</string>
+    <string name="app_name">Paper Analytical Devices</string>
+    <string name="app_description">Paper analytical devices (PADs) are test cards that can quickly determine whether a drug tablet contains the correct medicines. They are cheap and easy to use. They don\'t require power, chemicals, solvents, or any expensive instruments, so they can be deployed rapidly at large scale whereever a problem with pharmaceutical quality is suspected.</string>
     <string name="stored_drug_string">Stated Drug (Unknown if not known)</string>
     <string name="brand_string">Drug %</string>
     <string name="batch_string">Predicted Drug</string>
     <string name="upload">Save</string>
     <string name="cancel">Retry</string>
+    <string name="cont">Continue</string>
+    <string name="maininstructions">Use the alignment squares to center the image and hold the phone very steady.  When a clear image is possible you will be notified.</string>
 </resources>

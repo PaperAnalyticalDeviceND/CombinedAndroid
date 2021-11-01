@@ -183,7 +183,7 @@
         protected void onResume() {
             super.onResume();
             if( !HoldCamera ) {
-                startImageCapture(null);
+                //startImageCapture(null);
             }
         }
 

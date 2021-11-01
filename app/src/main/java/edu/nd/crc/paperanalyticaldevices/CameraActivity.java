@@ -26,6 +26,8 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -183,6 +185,8 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
 
         mOpenCvCameraView = (JavaCamResView) findViewById(R.id.activity_surface_view);
         analyzeButton = (FloatingActionButton) findViewById(R.id.floatingAnalyze);
+
+        //Toast.makeText(this, this.getString(R.string.maininstructions), Toast.LENGTH_LONG).show();
     }
 
 
@@ -204,6 +208,7 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
             Log.d(LOG_TAG, "Calling Intent NOT found in CameraActivity.onResume");
         }
 
+        Toast.makeText(this, this.getString(R.string.maininstructions), Toast.LENGTH_LONG).show();
 
         if (!OpenCVLoader.initDebug()) {
             Log.d("PADs", "Internal OpenCV library not found. Using OpenCV Manager for initialization");
