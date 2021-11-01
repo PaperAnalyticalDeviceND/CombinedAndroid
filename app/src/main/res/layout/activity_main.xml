@@ -36,10 +36,11 @@
         android:layout_marginStart="64dp"
         android:layout_marginTop="64dp"
         android:layout_marginEnd="64dp"
+        android:background="@drawable/veryroundcornerslight"
         android:gravity="center_horizontal"
         android:text="@string/app_description"
         android:textColor="@color/black"
-
+        android:padding="20dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/appName" />
@@ -61,7 +62,7 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/pillbutton"
+        android:background="@drawable/veryroundcornerslight"
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme"
         app:layout_constraintBottom_toTopOf="@id/appName"

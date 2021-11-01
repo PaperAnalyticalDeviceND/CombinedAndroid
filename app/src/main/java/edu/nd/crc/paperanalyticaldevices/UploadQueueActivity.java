@@ -5,16 +5,17 @@ import androidx.lifecycle.LiveData;
 import androidx.work.Data;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
-import androidx.work.WorkQuery;
+//import androidx.work.WorkQuery;
 
 import android.os.Bundle;
-import android.util.Log;
+//import android.util.Log;
+import android.widget.TextView;
 
-import com.google.common.util.concurrent.ListenableFuture;
+//import com.google.common.util.concurrent.ListenableFuture;
 
-import java.util.Arrays;
+//import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
+//import java.util.concurrent.ExecutionException;
 
 public class UploadQueueActivity extends AppCompatActivity {
 
@@ -26,36 +27,9 @@ public class UploadQueueActivity extends AppCompatActivity {
         setContentView(R.layout.activity_upload_queue);
 
         WorkManager manager = WorkManager.getInstance(this);
-        //WorkInfo.State state = WorkInfo.State.ENQUEUED;
-        //stateList.add(state);
-        // =
-        //WorkQuery query = new WorkQuery.Builder.addStates(Arrays.asList(WorkInfo.State.ENQUEUED)).build();
-        /*
-        WorkQuery query = new WorkQuery.Builder.fromStates(Arrays.asList(WorkInfo.State.ENQUEUED, WorkInfo.State.FAILED)).build();
 
 
-        ListenableFuture<List<WorkInfo>> workInfosListenable = manager.getWorkInfos(query);
-
-        if(workInfosListenable != null){
-
-            //for( work : workInfos){
-            //    Data workData = work.get
-            //}
-            try {
-                List<WorkInfo> workInfos = workInfosListenable.get();
-
-                for(WorkInfo work : workInfos){
-                    Data workData = work.getOutputData();
-                    String tag = workData.getString("SAMPLE_NAME");
-                    Log.d("Queue TAG", tag);
-
-                }
-
-            }catch(InterruptedException | ExecutionException e){
-                e.printStackTrace();
-            }
-        }
-*/
+        TextView queueText = findViewById(R.id.queueTextView);
 
         LiveData<List<WorkInfo>> workInfos = manager.getWorkInfosByTagLiveData("result_upload");
 
@@ -64,8 +38,12 @@ public class UploadQueueActivity extends AppCompatActivity {
                 return;
             }
 
+
+            int countInQueue = 0;
+
             for(WorkInfo workInfo : listOfWorkInfo){
                 Data workData = workInfo.getOutputData();
+/*
                 String tag = workData.getString("SAMPLE_NAME");
                 if(tag == null){
                     Log.d("Queue TAG", "Null SAMPLE.");
@@ -86,6 +64,24 @@ public class UploadQueueActivity extends AppCompatActivity {
                 }else{
                     Log.d("Queue TAG", workString);
                 }
+
+                String workInfoString = workInfo.toString();
+                if(workInfoString == null){
+                    Log.d("Queue TAG", "Null Info String.");
+                }else {
+                    Log.d("Queue TAG", workInfoString);
+                }*/
+
+                //int countInQueue = listOfWorkInfo.size();
+
+                //There's no viewable data in ENQUEUED work, so for now just count them
+                //@TODO Maybe store some data as they go into the worker so it can be referenced later by id?
+
+                if(!workInfo.getState().isFinished()){
+                    countInQueue++;
+                }
+                String queueStatus = "Queue Size: " + countInQueue;
+                queueText.setText(queueStatus);
             }
 
         });
