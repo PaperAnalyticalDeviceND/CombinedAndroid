@@ -49,8 +49,8 @@ public class ResultActivity extends AppCompatActivity {
 
         // Setup compatability toolbar
         // 10-27-21 Removed, causes exception, toolbar already present
-        //Toolbar myToolbar = findViewById(R.id.my_toolbar);
-        //setSupportActionBar(myToolbar);
+        Toolbar myToolbar = findViewById(R.id.my_toolbar);
+        setSupportActionBar(myToolbar);
 
         // Handle calling intent
         Intent intent = getIntent();

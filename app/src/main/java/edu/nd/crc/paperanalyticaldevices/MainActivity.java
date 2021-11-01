@@ -8,10 +8,14 @@
     import android.net.Uri;
     import android.os.Bundle;
     import android.util.Log;
+    import android.view.Menu;
+    import android.view.MenuInflater;
+    import android.view.MenuItem;
     import android.view.View;
 
     import androidx.activity.result.ActivityResultLauncher;
     import androidx.appcompat.app.AppCompatActivity;
+    import androidx.appcompat.widget.Toolbar;
     import androidx.core.app.ActivityCompat;
     import androidx.core.content.ContextCompat;
 
@@ -81,6 +85,8 @@
                 // Handle initialization error
                 Log.i("GBT", "Opencv not loaded");
             }
+
+
 
             // Initialization code for TensorFlow Lite
             // Initialise the models
@@ -156,9 +162,45 @@
 
             // setup remainder
             setContentView(R.layout.activity_main);
+
+            //put in a top toolbar with a menu dropdown
+            Toolbar myToolbar = findViewById(R.id.toolbar);
+            setSupportActionBar(myToolbar);
         }
 
-        public void startImageCapture(View view){
+        @Override
+        public boolean onCreateOptionsMenu(Menu menu){
+
+            //attach the menu for settings and queue to the app bar
+            MenuInflater inflater = getMenuInflater();
+            inflater.inflate(R.menu.maintoolbarmenu, menu);
+            return true;
+        }
+
+        @Override
+        public boolean onOptionsItemSelected(MenuItem item) {
+
+            //main screen app bar overflow menu
+            switch (item.getItemId()) {
+
+                case R.id.app_settings:
+                    Intent i = new Intent(this, SettingsActivity.class);
+                    startActivity(i);
+                    return true;
+                case R.id.upload_queue:
+                    Intent iq = new Intent(this, UploadQueueActivity.class);
+                    startActivity(iq);
+                    return true;
+                default:
+                    // If we got here, the user's action was not recognized.
+                    // Invoke the superclass to handle it.
+                    return super.onOptionsItemSelected(item);
+
+            }
+            //return true;
+        }
+
+            public void startImageCapture(View view){
             Log.i("GBR", "Image capture starting");
             if ((ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)  != PackageManager.PERMISSION_GRANTED)
                     | (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)) {
