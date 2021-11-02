@@ -1,7 +1,9 @@
 package edu.nd.crc.paperanalyticaldevices;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -35,6 +37,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.UUID;
 
 public class ResultActivity extends AppCompatActivity {
     SharedPreferences mPreferences = null;
@@ -172,7 +175,26 @@ public class ResultActivity extends AppCompatActivity {
         WorkManager.getInstance(this).enqueue(myUploadWork);
         Log.d("PAD", "Results added to upload queue.");
 
+        UUID workId = myUploadWork.getId();
+
+        Log.d("ENQUEUED WORK", workId.toString());
+
+        //write to a SQLite table so we can get the info out for the Queue activity
+        ContentValues dbValues = new ContentValues();
+        dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_WORKID, workId.toString());
+        dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLENAME, getDrug());
+        dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLEID, parseQR(this.qr));
+        dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_QUANTITY, getPercentage(getBrand()));
+        dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_NOTES, compressedNotes);
+        dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP, this.timestamp);
+
+        WorkInfoDbHelper dbHelper = new WorkInfoDbHelper(getBaseContext());
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        db.insert(WorkInfoContract.WorkInfoEntry.TABLE_NAME, null, dbValues);
+
         Toast.makeText(this, "Results added to upload queue", Toast.LENGTH_SHORT).show();
+
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {

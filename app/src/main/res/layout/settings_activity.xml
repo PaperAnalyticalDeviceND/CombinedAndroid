@@ -23,6 +23,7 @@
         android:layout_height="wrap_content"
         android:background="@drawable/pillbutton"
         android:onClick="finish"
+        android:padding="10dp"
         android:layout_weight="1"
         android:layout_gravity="center"
         android:text="@string/donetext" />
