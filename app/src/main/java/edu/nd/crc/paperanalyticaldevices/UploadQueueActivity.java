@@ -9,6 +9,7 @@ import androidx.work.WorkManager;
 
 import android.os.Bundle;
 //import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 
 //import com.google.common.util.concurrent.ListenableFuture;
@@ -87,5 +88,12 @@ public class UploadQueueActivity extends AppCompatActivity {
         });
 
 
+    }
+
+    /*
+    Set as onClick for the Done button so that this activity can be reached from Main and Result activities and always return to the calling activity on close
+     */
+    public void finish(View view){
+        finish();
     }
 }

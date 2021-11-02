@@ -7,6 +7,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -48,7 +51,7 @@ public class ResultActivity extends AppCompatActivity {
         mPreferences = getSharedPreferences(MainActivity.PROJECT, MODE_PRIVATE);
 
         // Setup compatability toolbar
-        // 10-27-21 Removed, causes exception, toolbar already present
+        // make sure the manifest specifies a NoAppBar theme or this will create an exception
         Toolbar myToolbar = findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
 
@@ -104,6 +107,38 @@ public class ResultActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         MainActivity.HoldCamera = false;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+
+        //attach the menu for settings and queue to the app bar
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.maintoolbarmenu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        //main screen app bar overflow menu
+        switch (item.getItemId()) {
+
+            case R.id.app_settings:
+                Intent i = new Intent(this, SettingsActivity.class);
+                startActivity(i);
+                return true;
+            case R.id.upload_queue:
+                Intent iq = new Intent(this, UploadQueueActivity.class);
+                startActivity(iq);
+                return true;
+            default:
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                return super.onOptionsItemSelected(item);
+
+        }
+        //return true;
     }
 
     public void saveData(View view) {

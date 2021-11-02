@@ -269,6 +269,14 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
         setResult(RESULT_OK, mResultIntent);
         super.finish();
     }
+/*
+Function to return to MainActivity with no actionable result
+Set as onClick for the floatingBack button
+ */
+    public void goHome(View view){
+        setResult(RESULT_CANCELED, mResultIntent);
+        super.finish();
+    }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         mRgbaModified = inputFrame.rgba();

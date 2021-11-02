@@ -330,6 +330,8 @@
                         e.printStackTrace();
                     }
                 }
+            }else if(resultCode == RESULT_CANCELED){
+                // do nothing for now
             }
 
             Log.i("GBR", String.valueOf(resultCode));
