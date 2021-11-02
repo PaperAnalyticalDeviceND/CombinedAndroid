@@ -55,7 +55,7 @@ dependencies {
         exclude group: 'com.google.guava' , module: 'listenablefuture'
     }
 
-    def work_version = "2.5.0"
+    def work_version = "2.7.0"
     implementation "androidx.work:work-runtime:$work_version", {
         exclude group: 'com.google.guava' , module: 'listenablefuture'
     }
