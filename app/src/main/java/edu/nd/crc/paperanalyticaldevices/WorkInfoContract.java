@@ -11,7 +11,7 @@ public final class WorkInfoContract {
             " (" + WorkInfoEntry._ID + " INTEGER PRIMARY KEY, " + WorkInfoEntry.COLUMN_NAME_WORKID + " TEXT, " +
             WorkInfoEntry.COLUMN_NAME_SAMPLEID + " TEXT, " + WorkInfoEntry.COLUMN_NAME_SAMPLENAME + " TEXT, " +
             WorkInfoEntry.COLUMN_NAME_QUANTITY + " TEXT, " + WorkInfoEntry.COLUMN_NAME_NOTES + " TEXT, " +
-            WorkInfoEntry.COLUMN_NAME_TIMESTAMP + " TEXT)";
+            WorkInfoEntry.COLUMN_NAME_TIMESTAMP + " INTEGER)";
 
     private static final String SQL_DELETE_ENTRIES =
             "DROP TABLE IF EXISTS " + WorkInfoEntry.TABLE_NAME;

@@ -46,6 +46,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:onClick="discardData"
+            android:background="@drawable/pillbutton"
             android:text="@string/cancel" />
 
         <Button
@@ -54,6 +55,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:onClick="saveData"
+            android:background="@drawable/pillbutton"
             android:text="@string/upload" />
     </LinearLayout>
 

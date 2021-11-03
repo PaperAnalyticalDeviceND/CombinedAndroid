@@ -35,6 +35,8 @@ public class UploadQueueActivity extends AppCompatActivity {
 
     ListView queueListView;
 
+    WorkInfoDbHelper dbHelper;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,6 +54,9 @@ public class UploadQueueActivity extends AppCompatActivity {
             if (listOfWorkInfo == null || listOfWorkInfo.isEmpty()) {
                 return;
             }
+
+            dbHelper = new WorkInfoDbHelper(getBaseContext());
+            SQLiteDatabase db = dbHelper.getReadableDatabase();
 
 
             int countInQueue = 0;
@@ -76,8 +81,8 @@ public class UploadQueueActivity extends AppCompatActivity {
                 queueText.setText(queueStatus);*/
 
                 if(!workInfo.getState().isFinished()) {
-                    WorkInfoDbHelper dbHelper = new WorkInfoDbHelper(getBaseContext());
-                    SQLiteDatabase db = dbHelper.getReadableDatabase();
+                    //WorkInfoDbHelper dbHelper = new WorkInfoDbHelper(getBaseContext());
+                    //SQLiteDatabase db = dbHelper.getReadableDatabase();
 
                     String[] projection = {
                             BaseColumns._ID,
@@ -97,12 +102,14 @@ public class UploadQueueActivity extends AppCompatActivity {
                     List items = new ArrayList<>();
                     while(cursor.moveToNext()){
                         String drugName = cursor.getString(cursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLENAME));
-                        String timestamp = cursor.getString(cursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP));
+                        //String timestamp = cursor.getString(cursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP));
+                        Long timestamp = cursor.getLong(cursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP));
 
-                        Timestamp javaTimestamp = new Timestamp(Long.parseLong(timestamp));
+                        //Timestamp javaTimestamp = new Timestamp(Long.parseLong(timestamp));
+                        Timestamp javaTimestamp = new Timestamp(timestamp);
                         Date date = new Date(javaTimestamp.getTime());
 
-                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
                         String newDate = sdf.format(date);
                         workMessage = newDate  + " - " + drugName;
                     }
@@ -110,6 +117,13 @@ public class UploadQueueActivity extends AppCompatActivity {
                     workList.add(workMessage);
                     //queueText.setText(workMessage);
 
+                }else{
+                    //Delete finished records from the SQLite db
+
+                    String deleteSelection = WorkInfoContract.WorkInfoEntry.COLUMN_NAME_WORKID + " = ?";
+                    String[] deleteSelectionArgs = { workId.toString() };
+                    int deletedRows = db.delete(WorkInfoContract.WorkInfoEntry.TABLE_NAME, deleteSelection, deleteSelectionArgs);
+                    Log.d("Queue TAG", "Rows deleted from WorkInfo Table: " + deletedRows);
                 }
             }
 
@@ -126,6 +140,12 @@ public class UploadQueueActivity extends AppCompatActivity {
      */
     public void finish(View view){
         finish();
+    }
+
+    @Override
+    public void onDestroy(){
+        dbHelper.close();
+        super.onDestroy();
     }
 
 }

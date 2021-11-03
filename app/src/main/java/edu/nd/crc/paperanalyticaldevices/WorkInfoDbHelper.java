@@ -13,7 +13,7 @@ public class WorkInfoDbHelper extends SQLiteOpenHelper {
             " (" + WorkInfoContract.WorkInfoEntry._ID + " INTEGER PRIMARY KEY, " + WorkInfoContract.WorkInfoEntry.COLUMN_NAME_WORKID + " TEXT, " +
             WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLEID + " TEXT, " + WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLENAME + " TEXT, " +
             WorkInfoContract.WorkInfoEntry.COLUMN_NAME_QUANTITY + " TEXT, " + WorkInfoContract.WorkInfoEntry.COLUMN_NAME_NOTES + " TEXT, " +
-            WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP + " TEXT)";
+            WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP + " INTEGER)";
 
     private static final String SQL_DELETE_ENTRIES =
             "DROP TABLE IF EXISTS " + WorkInfoContract.WorkInfoEntry.TABLE_NAME;
