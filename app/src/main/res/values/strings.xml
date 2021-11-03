@@ -25,7 +25,7 @@
     <string name="attachment_summary_on">Save images for upload later
     </string>
     <string name="attachment_summary_off">Only send images when connected</string>
-    <string name="category_name">Category</string>
+    <string name="category_name">Project</string>
     <string name="title_activity_queue">Upload Queue</string>
     <string name="donetext">Done</string>
     <string name="large_text">

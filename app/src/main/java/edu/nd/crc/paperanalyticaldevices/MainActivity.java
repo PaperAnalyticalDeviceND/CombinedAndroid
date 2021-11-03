@@ -7,11 +7,13 @@
     import android.graphics.BitmapFactory;
     import android.net.Uri;
     import android.os.Bundle;
+    import android.os.Handler;
     import android.util.Log;
     import android.view.Menu;
     import android.view.MenuInflater;
     import android.view.MenuItem;
     import android.view.View;
+    import android.widget.ProgressBar;
 
     import androidx.activity.result.ActivityResultLauncher;
     import androidx.appcompat.app.AppCompatActivity;
@@ -75,6 +77,10 @@
 
         // pls class
         Partial_least_squares pls = null;
+
+        ProgressBar progressBar;
+        private int progressStatus = 0;
+        private Handler handler = new Handler();
 
         @Override
         protected void onCreate(Bundle savedInstanceState) {
@@ -166,6 +172,9 @@
             //put in a top toolbar with a menu dropdown
             Toolbar myToolbar = findViewById(R.id.toolbar);
             setSupportActionBar(myToolbar);
+
+            //progressBar = findViewById(R.id.indeterminateBar2);
+            //progressBar.setVisibility(View.INVISIBLE);
         }
 
         @Override
@@ -206,6 +215,28 @@
                     | (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)) {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 90);
             } else {
+                //progressBar.setVisibility(View.VISIBLE);
+/*
+                new Thread(new Runnable() {
+                    public void run(){
+                        while( progressStatus < 100){
+                            progressStatus += 1;
+
+                            handler.post(new Runnable(){
+                                public void run(){
+                                    progressBar.setProgress(progressStatus);
+                                }
+                            });
+                            try{
+                                Thread.sleep(5);
+                            }catch(InterruptedException e){
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }).start();
+*/
+
                 //Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("pads://capture"));
                 Intent intent = new Intent(this, CameraActivity.class);
                 startActivityForResult(intent, 10);
@@ -349,5 +380,11 @@
             }
             return maxIdx;
         };
+
+        @Override
+        public void onDestroy(){
+            progressBar.setVisibility(View.INVISIBLE);
+            super.onDestroy();
+        }
 
     }

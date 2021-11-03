@@ -60,7 +60,7 @@ public class UploadQueueActivity extends AppCompatActivity {
 
 
             int countInQueue = 0;
-            ArrayList<String> workList = new ArrayList<String>();
+            ArrayList<PADDataObject> workList = new ArrayList<PADDataObject>();
 
 
             for(WorkInfo workInfo : listOfWorkInfo){
@@ -87,6 +87,7 @@ public class UploadQueueActivity extends AppCompatActivity {
                     String[] projection = {
                             BaseColumns._ID,
                             WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLENAME,
+                            WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLEID,
                             WorkInfoContract.WorkInfoEntry.COLUMN_NAME_QUANTITY,
                             WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP,
 
@@ -98,24 +99,37 @@ public class UploadQueueActivity extends AppCompatActivity {
 
                     Cursor cursor = db.query(WorkInfoContract.WorkInfoEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
 
-                    String workMessage = "";
+                    //String workMessage = "";
+                    String newDate = "";
+                    String drugName = "";
+                    String padId = "";
+
                     List items = new ArrayList<>();
                     while(cursor.moveToNext()){
-                        String drugName = cursor.getString(cursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLENAME));
+                        drugName = cursor.getString(cursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLENAME));
                         //String timestamp = cursor.getString(cursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP));
                         Long timestamp = cursor.getLong(cursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP));
+
+                        padId = "PAD ID: " + cursor.getString(cursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLEID));
 
                         //Timestamp javaTimestamp = new Timestamp(Long.parseLong(timestamp));
                         Timestamp javaTimestamp = new Timestamp(timestamp);
                         Date date = new Date(javaTimestamp.getTime());
 
                         SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-                        String newDate = sdf.format(date);
-                        workMessage = newDate  + " - " + drugName;
+                        newDate = sdf.format(date);
+                        //workMessage = newDate  + " - " + drugName;
                     }
 
-                    workList.add(workMessage);
+                    //workList.add(workMessage);
                     //queueText.setText(workMessage);
+
+                    PADDataObject padInfo = new PADDataObject();
+                    padInfo.setDatetime(newDate);
+                    padInfo.setPadId(padId);
+                    padInfo.setDrugName(drugName);
+
+                    workList.add(padInfo);
 
                 }else{
                     //Delete finished records from the SQLite db
@@ -127,8 +141,11 @@ public class UploadQueueActivity extends AppCompatActivity {
                 }
             }
 
-            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, R.layout.queue_listview, R.id.queue_item, workList);
-            queueListView.setAdapter(arrayAdapter);
+            //ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, R.layout.queue_listview, R.id.queue_item, workList);
+            //queueListView.setAdapter(arrayAdapter);
+
+            //ArrayAdapter<PADDataObject> arrayAdapter = new ArrayAdapter<PADDataObject>(this, R.layout.queue_listview, workList);
+            queueListView.setAdapter(new QueueListBaseAdapter(this, workList));
 
         });
 

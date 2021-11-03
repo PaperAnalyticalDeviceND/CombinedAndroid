@@ -25,6 +25,7 @@ import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -111,6 +112,8 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
 
     private Intent mResultIntent = new Intent();
 
+    ProgressBar progressBar;
+
     private boolean allPermissionsGranted(){
         for( String permission : REQUIRED_PERMISSIONS ){
             if(ContextCompat.checkSelfPermission(getBaseContext(), permission ) != PackageManager.PERMISSION_GRANTED){
@@ -159,6 +162,9 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
         }
     };
 
+    private int progressStatus = 0;
+    private Handler handler = new Handler();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -166,6 +172,30 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
         setContentView(R.layout.activity_camera);
 
         Log.d("PADS", "Entering CameraActivity");
+
+        //progressBar = findViewById(R.id.indeterminateBar);
+        //progressBar.animate();
+        //progressBar.setVisibility(View.INVISIBLE);
+/*
+        new Thread(new Runnable() {
+            public void run(){
+                while( progressStatus < 100){
+                    progressStatus += 1;
+
+                    handler.post(new Runnable(){
+                       public void run(){
+                           progressBar.setProgress(progressStatus);
+                       }
+                    });
+                    try{
+                        Thread.sleep(50);
+                    }catch(InterruptedException e){
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
+*/
 
         ActivityCompat.requestPermissions(this,
                 new String[]{android.Manifest.permission.CAMERA,
@@ -177,15 +207,18 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
         }else{
             Log.e(LOG_TAG, "Hardware Permissions not granted.");
         }
-
+/* //debug code
         Intent callingIntent = getIntent();
         if(callingIntent == null){
             Log.d(LOG_TAG, "Calling Intent NOT found in CameraActivity.onCreate");
         }
-
+*/
         mOpenCvCameraView = (JavaCamResView) findViewById(R.id.activity_surface_view);
         analyzeButton = (FloatingActionButton) findViewById(R.id.floatingAnalyze);
 
+        //progressBar.setProgress(100, true);
+        //progressBar.incrementProgressBy(100);
+        //progressBar.setVisibility(View.INVISIBLE);
         //Toast.makeText(this, this.getString(R.string.maininstructions), Toast.LENGTH_LONG).show();
     }
 
@@ -203,12 +236,17 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
     public void onResume() {
         super.onResume();
 
+        //progressBar.setVisibility(View.VISIBLE);
+        //progressBar.animate();
+
         Intent callingIntent = getIntent();
         if(callingIntent == null){
             Log.d(LOG_TAG, "Calling Intent NOT found in CameraActivity.onResume");
         }
 
         Toast.makeText(this, this.getString(R.string.maininstructions), Toast.LENGTH_LONG).show();
+
+
 
         if (!OpenCVLoader.initDebug()) {
             Log.d("PADs", "Internal OpenCV library not found. Using OpenCV Manager for initialization");
@@ -244,6 +282,8 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
         mOpenCvCameraView.setCameraPermissionGranted();
         mOpenCvCameraView.enableView();
         Log.d("PADS", "Leaving CameraActivity.onResume()");
+
+        //progressBar.setVisibility(View.INVISIBLE);
     }
 
 
@@ -254,9 +294,37 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
         }
     }
 
+    public void goToSettings(View view){
+        Intent i = new Intent(this, SettingsActivity.class);
+        startActivity(i);
+    }
+
     public void onCameraViewStarted(int width, int height) {
         Log.d("PADS", "Entering CameraActivity.onCameraViewStarted");
+
+        /*
+        progressBar.setVisibility(View.VISIBLE);
+        new Thread(new Runnable() {
+            public void run(){
+                while( progressStatus < 100){
+                    progressStatus += 1;
+
+                    handler.post(new Runnable(){
+                        public void run(){
+                            progressBar.setProgress(progressStatus);
+                        }
+                    });
+                    try{
+                        Thread.sleep(50);
+                    }catch(InterruptedException e){
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
+*/
         mOpenCvCameraView.Setup();
+        //progressBar.setVisibility(View.INVISIBLE);
     }
 
     public void onCameraViewStopped() {
