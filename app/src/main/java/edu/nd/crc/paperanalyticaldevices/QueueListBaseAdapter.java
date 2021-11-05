@@ -13,7 +13,7 @@ import java.util.ArrayList;
 
 public class QueueListBaseAdapter extends BaseAdapter {
 
-    //List adapter for the Upload Queue
+    //List adapter for the Upload Queue, displays PADDataObject models
 
     private static ArrayList<PADDataObject> resultItems;
 

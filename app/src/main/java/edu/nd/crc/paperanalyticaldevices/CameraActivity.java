@@ -338,6 +338,7 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
         super.finish();
     }
 /*
+goHome
 Function to return to MainActivity with no actionable result
 Set as onClick for the floatingBack button
  */

@@ -30,8 +30,9 @@ import java.util.UUID;
 //import java.util.concurrent.ExecutionException;
 
 public class UploadQueueActivity extends AppCompatActivity {
+    //Activity to display pending uploads in a ListView
+    //details are stored in an SQLite DB, keyed by the WorkID, so we get the WorkIDs of non-finished work and query the DB to get drug name, sample id, timestamp
 
-    //List<WorkInfo.State> stateList;
 
     ListView queueListView;
 
@@ -44,22 +45,25 @@ public class UploadQueueActivity extends AppCompatActivity {
 
         WorkManager manager = WorkManager.getInstance(this);
 
-
-        //TextView queueText = findViewById(R.id.queueTextView);
+        //ListView that holds the PAD data in queue
         queueListView = findViewById(R.id.queue_list);
 
+        //get all the work that's tagged 'result_upload'
         LiveData<List<WorkInfo>> workInfos = manager.getWorkInfosByTagLiveData("result_upload");
 
+        //observe the live data connection of the work items
         workInfos.observe(this, listOfWorkInfo -> {
             if (listOfWorkInfo == null || listOfWorkInfo.isEmpty()) {
                 return;
             }
 
+            //set up the SQLite DB connection
             dbHelper = new WorkInfoDbHelper(getBaseContext());
             SQLiteDatabase db = dbHelper.getReadableDatabase();
 
 
             int countInQueue = 0;
+            //Create a list of objects to display in the ListView for the queue
             ArrayList<PADDataObject> workList = new ArrayList<PADDataObject>();
 
 
@@ -69,10 +73,6 @@ public class UploadQueueActivity extends AppCompatActivity {
                 UUID workId = workInfo.getId();
                 Log.d("Queue TAG", "Work ID: " + workId);
 
-
-                //There's no viewable data in ENQUEUED work, so for now just count them
-                // Maybe store some data as they go into the worker so it can be referenced later by id?
-
                 /*
                 if(!workInfo.getState().isFinished()){
                     countInQueue++;
@@ -81,8 +81,7 @@ public class UploadQueueActivity extends AppCompatActivity {
                 queueText.setText(queueStatus);*/
 
                 if(!workInfo.getState().isFinished()) {
-                    //WorkInfoDbHelper dbHelper = new WorkInfoDbHelper(getBaseContext());
-                    //SQLiteDatabase db = dbHelper.getReadableDatabase();
+
 
                     String[] projection = {
                             BaseColumns._ID,
@@ -112,7 +111,7 @@ public class UploadQueueActivity extends AppCompatActivity {
 
                         padId = "PAD ID: " + cursor.getString(cursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLEID));
 
-                        //Timestamp javaTimestamp = new Timestamp(Long.parseLong(timestamp));
+                        //Timestamp javaTimestamp = new Timestamp(Long.parseLong(timestamp)); // if the timestamp was in a TEXT column
                         Timestamp javaTimestamp = new Timestamp(timestamp);
                         Date date = new Date(javaTimestamp.getTime());
 
@@ -144,7 +143,6 @@ public class UploadQueueActivity extends AppCompatActivity {
             //ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, R.layout.queue_listview, R.id.queue_item, workList);
             //queueListView.setAdapter(arrayAdapter);
 
-            //ArrayAdapter<PADDataObject> arrayAdapter = new ArrayAdapter<PADDataObject>(this, R.layout.queue_listview, workList);
             queueListView.setAdapter(new QueueListBaseAdapter(this, workList));
 
         });

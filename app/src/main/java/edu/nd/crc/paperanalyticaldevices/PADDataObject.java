@@ -2,6 +2,9 @@ package edu.nd.crc.paperanalyticaldevices;
 
 public class PADDataObject {
 
+    //data model to display in a multi-line ListView row
+
+
     private String padId;
     private String drugName;
     private String datetime;

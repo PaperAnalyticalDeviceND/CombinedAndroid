@@ -1,7 +1,9 @@
     package edu.nd.crc.paperanalyticaldevices;
 
     import android.Manifest;
+    import android.content.Context;
     import android.content.Intent;
+    import android.content.SharedPreferences;
     import android.content.pm.PackageManager;
     import android.graphics.Bitmap;
     import android.graphics.BitmapFactory;
@@ -20,6 +22,7 @@
     import androidx.appcompat.widget.Toolbar;
     import androidx.core.app.ActivityCompat;
     import androidx.core.content.ContextCompat;
+    import androidx.preference.PreferenceManager;
 
     import org.opencv.android.OpenCVLoader;
     import org.tensorflow.lite.DataType;
@@ -36,11 +39,13 @@
     import java.io.BufferedOutputStream;
     import java.io.BufferedReader;
     import java.io.File;
+    import java.io.FileInputStream;
     import java.io.FileOutputStream;
     import java.io.IOException;
     import java.io.InputStream;
     import java.io.InputStreamReader;
     import java.nio.MappedByteBuffer;
+    import java.nio.channels.FileChannel;
     import java.util.ArrayList;
     import java.util.List;
     import java.util.zip.ZipEntry;
@@ -48,6 +53,7 @@
 
     public class MainActivity extends AppCompatActivity {
         static final String PROJECT = "FHI360-App";
+        String ProjectName;
         public static boolean HoldCamera = false;
 
         public static final String EXTRA_SAMPLEID = "e.nd.paddatacapture.EXTRA_SAMPLEID";
@@ -56,8 +62,10 @@
         public static final String EXTRA_LABEL_DRUGS = "e.nd.paddatacapture.EXTRA_LABEL_DRUGS";
 
         // NN storage, now setting up array for multiple NN
-        final int number_of_models = 2;
-        String[] model_list = {"fhi360_small_1_21.tflite", "fhi360_conc_large_1_21.tflite"};
+        //final int number_of_models = 2;
+        int number_of_models;
+        //String[] model_list = {"fhi360_small_1_21.tflite", "fhi360_conc_large_1_21.tflite"};
+        String[] model_list = {};
 
         ImageProcessor[] imageProcessor = {null, null};
         TensorImage[] tImage =  {null, null};
@@ -82,6 +90,13 @@
         private int progressStatus = 0;
         private Handler handler = new Handler();
 
+        private SharedPreferences.OnSharedPreferenceChangeListener listener;
+
+        private static String idPadName = "idPAD_small_1_6.tflite";
+        private static String fhiName = "fhi360_small_1_21.tflite";
+        private static String fhiConcName = "fhi360_conc_large_1_21.tflite";
+        private static String mshName = "model_small_1_10.tflite";
+
         @Override
         protected void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
@@ -92,14 +107,60 @@
                 Log.i("GBT", "Opencv not loaded");
             }
 
+            //check that a project has been selected, otherwise we can't do anything
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
+            listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+                @Override
+                public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+                    if(key.equals("neuralnet") ){
 
+                        ProjectName = sharedPreferences.getString("neuralnet", "");
+
+                        switch(ProjectName){
+                            case "fhi360":
+                                model_list = new String[]{fhiName, fhiConcName};
+                                number_of_models = 2;
+                                break;
+                            case "idpad":
+                                model_list = new String[] {idPadName};
+                                number_of_models = 1;
+                                break;
+                            case "mshtanzania":
+                                model_list = new String[] {mshName};
+                                number_of_models = 1;
+                                break;
+                            default:
+                                number_of_models = 0;
+                                break;
+                        }
+
+                        //InitializeModels();
+                    }
+                }
+            };
+
+            prefs.registerOnSharedPreferenceChangeListener(listener);
+
+            String project = prefs.getString("neuralnet", "");
+            ProjectName = project;
+
+            if(project.length() > 0){
+                InitializeModels();
+            }else{
+                //go to settings to get the Project set so we can load the models
+                Intent i = new Intent(this, SettingsActivity.class);
+                startActivity(i);
+            }
+
+/*  //offloading this code to a separate function now that the tensor files can be dynamic
             // Initialization code for TensorFlow Lite
             // Initialise the models
             for(int num_mod=0; num_mod < number_of_models; num_mod++) {
                 //final int num_mod = 0;
                 try {
-                    tfliteModel[num_mod] = FileUtil.loadMappedFile(this, model_list[num_mod]);
+                    //tfliteModel[num_mod] = FileUtil.loadMappedFile(this, model_list[num_mod]);
+                    tfliteModel[num_mod] = loadTensorFile(this, model_list[num_mod]);
 
                     // does it have metadata?
                     MetadataExtractor metadata = new MetadataExtractor(tfliteModel[num_mod]);
@@ -165,7 +226,7 @@
 
             // setup pls
             pls = new Partial_least_squares(this);
-
+*/
             // setup remainder
             setContentView(R.layout.activity_main);
 
@@ -175,6 +236,102 @@
 
             //progressBar = findViewById(R.id.indeterminateBar2);
             //progressBar.setVisibility(View.INVISIBLE);
+        }
+
+
+        private void InitializeModels(){
+
+            switch(ProjectName){
+                case "fhi360":
+                    model_list = new String[]{fhiName, fhiConcName};
+                    number_of_models = 2;
+                    break;
+                case "idpad":
+                    model_list = new String[] {idPadName};
+                    number_of_models = 1;
+                    break;
+                case "mshtanzania":
+                    model_list = new String[] {mshName};
+                    number_of_models = 1;
+                    break;
+                default:
+                    number_of_models = 0;
+                    break;
+            }
+            // Initialization code for TensorFlow Lite
+            // Initialise the models
+            for(int num_mod=0; num_mod < number_of_models; num_mod++) {
+                //final int num_mod = 0;
+                try {
+                    //tfliteModel[num_mod] = FileUtil.loadMappedFile(this, model_list[num_mod]);
+                    tfliteModel[num_mod] = loadTensorFile(this, model_list[num_mod]);
+
+                    Log.d("InitializeModels", model_list[num_mod]);
+
+                    // does it have metadata?
+                    MetadataExtractor metadata = new MetadataExtractor(tfliteModel[num_mod]);
+                    if (metadata.hasMetadata()) {
+                        // create new list
+                        associatedAxisLabels[num_mod] = new ArrayList<>();
+
+                        // get labels
+                        InputStream a = metadata.getAssociatedFile("labels.txt");
+                        BufferedReader r = new BufferedReader(new InputStreamReader(a));
+                        String line;
+                        while ((line = r.readLine()) != null) {
+                            associatedAxisLabels[num_mod].add(line);
+                        }
+
+                        // other metadata
+                        ModelMetadata mm = metadata.getModelMetadata();
+                        Log.e("GBR", mm.description());
+                        Log.e("GBR", mm.version());
+
+                    } else {
+                        try {
+                            associatedAxisLabels[num_mod] = FileUtil.loadLabels(this, ASSOCIATED_AXIS_LABELS[num_mod]);
+                        } catch (IOException e) {
+                            Log.e("GBR", "Error reading label file", e);
+                        }
+                    }
+
+                    // create interpreter
+                    tflite[num_mod] = new Interpreter(tfliteModel[num_mod], tfliteOptions[num_mod]);
+
+                    // Reads type and shape of input and output tensors, respectively.
+                    int imageTensorIndex = 0;
+                    int[] imageShape = tflite[num_mod].getInputTensor(imageTensorIndex).shape(); // {1, 227, 227, 3}
+                    DataType imageDataType = tflite[num_mod].getInputTensor(imageTensorIndex).dataType();
+
+                    //output
+                    int probabilityTensorIndex = 0;
+
+                    // get output shape
+                    int[] probabilityShape =  tflite[num_mod].getOutputTensor(0).shape(); // {1, NUM_CLASSES}
+                    DataType probabilityDataType = tflite[num_mod].getOutputTensor(probabilityTensorIndex).dataType();
+
+                    // Create an ImageProcessor with all ops required. For more ops, please
+                    // refer to the ImageProcessor Architecture section in this README.
+                    imageProcessor[num_mod] = new ImageProcessor.Builder()
+                            .add(new ResizeOp(imageShape[2], imageShape[1], ResizeOp.ResizeMethod.BILINEAR))
+                            .build();
+
+                    // Create a TensorImage object. This creates the tensor of the corresponding
+                    // tensor type DataType.FLOAT32.
+                    tImage[num_mod] = new TensorImage(imageDataType);
+
+                    // Create a container for the result and specify that this is not a quantized model.
+                    // Hence, the 'DataType' is defined as DataType.FLOAT32
+                    probabilityBuffer[num_mod] = TensorBuffer.createFixedSize(probabilityShape, probabilityDataType);
+                    //TensorBuffer.createFixedSize(new int[]{1, 10}, DataType.FLOAT32);
+
+                } catch (IOException e) {
+                    Log.e("GBR", "Error reading model", e);
+                }
+            }
+
+            // setup pls
+            pls = new Partial_least_squares(this);
         }
 
         @Override
@@ -258,6 +415,7 @@
             if( !HoldCamera ) {
                 //startImageCapture(null);
             }
+            InitializeModels();
         }
 
         private void UncompressOutputs( InputStream fin, File targetDirectory ) throws Exception {
@@ -340,11 +498,13 @@
                             drugStr = drug[0].toLowerCase();
                         }
 
-                        // call
-                        double concentration = pls.do_pls(bmRect, drugStr);
+                        if(ProjectName.equals("fhi360")) {
+                            // call
+                            double concentration = pls.do_pls(bmRect, drugStr);
 
-                        // add conc. result to string
-                        output_string += "%, (PLS " + (int)concentration + "%)";
+                            // add conc. result to string
+                            output_string += "%, (PLS " + (int) concentration + "%)";
+                        }
 
                         Intent intent = new Intent(this, ResultActivity.class);
                         intent.setData(Uri.fromFile(rectifiedFile));
@@ -385,6 +545,35 @@
         public void onDestroy(){
             progressBar.setVisibility(View.INVISIBLE);
             super.onDestroy();
+        }
+/*
+Utility function to load the tensor models from internal storage instead of assets
+ */
+        public MappedByteBuffer loadTensorFile(Context context, String filename) throws IOException {
+
+            File dir = context.getDir("tflitemodels", Context.MODE_PRIVATE);
+
+            File tensorFile = new File(dir.getPath(), filename);
+
+            MappedByteBuffer buffer;
+            try{
+                FileInputStream input = new FileInputStream(tensorFile);
+                try{
+                    FileChannel fileChannel = input.getChannel();
+                    buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, tensorFile.length());
+                }catch(Throwable t){
+                    try{
+                        input.close();
+                    }catch(Throwable t2){
+                        t2.addSuppressed(t);
+                    }
+                    throw t;
+                }
+                input.close();
+            }catch(Throwable t3){
+                throw t3;
+            }
+            return buffer;
         }
 
     }

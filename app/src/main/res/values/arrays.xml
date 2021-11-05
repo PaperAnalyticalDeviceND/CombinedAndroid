@@ -9,4 +9,19 @@
         <item>reply</item>
         <item>reply_all</item>
     </string-array>
+
+    <string-array name="neuralnet_entries">
+        <item></item>
+        <item>FHI 360</item>
+        <item>ID PAD</item>
+        <item>MSH Tanzania</item>
+    </string-array>
+
+    <string-array name="neuralnet_values">
+        <item></item>
+        <item>fhi360</item>
+        <item>idpad</item>
+        <item>mshtanzania</item>
+    </string-array>
+
 </resources>

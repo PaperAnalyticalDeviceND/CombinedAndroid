@@ -7,6 +7,8 @@ import android.provider.BaseColumns;
 
 public final class WorkInfoContract {
 
+    //class defining an SQLite database table to store the PAD details when added to the upload work queue
+
     private static final String SQL_CREATE_ENTRIES = "CREATE TABLE " + WorkInfoEntry.TABLE_NAME +
             " (" + WorkInfoEntry._ID + " INTEGER PRIMARY KEY, " + WorkInfoEntry.COLUMN_NAME_WORKID + " TEXT, " +
             WorkInfoEntry.COLUMN_NAME_SAMPLEID + " TEXT, " + WorkInfoEntry.COLUMN_NAME_SAMPLENAME + " TEXT, " +
