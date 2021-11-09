@@ -19,6 +19,11 @@
 
     <PreferenceCategory app:title="@string/sync_header">
 
+        <EditTextPreference
+            app:key="datacategory"
+            app:title="@string/category"
+            app:useSimpleSummaryProvider="true" />
+
         <SwitchPreferenceCompat
             app:key="sync"
             app:title="@string/sync_title" />

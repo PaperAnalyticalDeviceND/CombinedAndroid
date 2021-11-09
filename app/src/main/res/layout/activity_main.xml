@@ -29,6 +29,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbar" />
 
+    <ProgressBar
+        android:id="@+id/mainProgressBar"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:progressTint="@color/teal_200"
+        android:progressBackgroundTint="@color/purple_700"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"/>
+
     <TextView
         android:id="@+id/appDescription"
         android:layout_width="0dp"

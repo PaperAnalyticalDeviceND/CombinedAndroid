@@ -96,4 +96,6 @@ dependencies {
     implementation group: 'com.google.zxing', name: 'javase', version: '3.2.1', {
         exclude group: 'com.google.guava' , module: 'listenablefuture'
     }
+
+    //implementation 'org.jsoup:jsoup:1.14.3'
 }
