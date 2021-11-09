@@ -22,7 +22,7 @@
     <string name="reply_title">Default reply action</string>
 
     <!-- Sync Preferences -->
-    <string name="sync_title">Upload images?</string>
+    <string name="sync_title">Check for updates automatically?</string>
     <string name="attachment_title">Enqueue uploads for later?</string>
     <string name="attachment_summary_on">Save images for upload later
     </string>

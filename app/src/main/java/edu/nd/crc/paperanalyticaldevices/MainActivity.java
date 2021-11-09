@@ -35,10 +35,10 @@
     import androidx.work.WorkManager;
     import androidx.work.WorkRequest;
 
-    import org.jsoup.Jsoup;
-    import org.jsoup.nodes.Document;
-    import org.jsoup.nodes.Element;
-    import org.jsoup.select.Elements;
+    //import org.jsoup.Jsoup;
+    //import org.jsoup.nodes.Document;
+    //import org.jsoup.nodes.Element;
+    //import org.jsoup.select.Elements;
     import org.opencv.android.OpenCVLoader;
     import org.tensorflow.lite.DataType;
     import org.tensorflow.lite.Interpreter;
@@ -124,6 +124,8 @@
         private String fhiConcName = "fhi360_conc_large_1_21.tflite";
         private String mshName = "model_small_1_10.tflite";
 
+        private boolean sync = false;
+
         @Override
         protected void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
@@ -182,8 +184,11 @@
             String project = prefs.getString("neuralnet", "");
             ProjectName = project;
 
-            checkForUpdates(project);
+            sync = prefs.getBoolean("sync", false);
 
+            if(sync) {
+                checkForUpdates(project);
+            }
             /*
             String projectFolder = "";
             String[] projectFolders = {};

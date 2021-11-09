@@ -13,6 +13,8 @@ import android.view.WindowManager;
 
 import org.opencv.android.JavaCameraView;
 
+import java.util.List;
+
 public class JavaCamResView extends JavaCameraView {
     private boolean mPreviewShowing;
 
@@ -42,8 +44,14 @@ public class JavaCamResView extends JavaCameraView {
         connectCamera(ScreenSize.x, ScreenSize.y);
 
         Camera.Parameters params = this.mCamera.getParameters();
-        params.setFlashMode(FLASH_MODE_TORCH);
-        params.setFocusMode(FOCUS_MODE_CONTINUOUS_VIDEO);
+        List<String> flashModes = params.getSupportedFlashModes();
+        if(null != flashModes && !flashModes.isEmpty() && flashModes.contains(FLASH_MODE_TORCH)) {
+            params.setFlashMode(FLASH_MODE_TORCH);
+        }
+        List<String> focusModes = params.getSupportedFocusModes();
+        if(null != focusModes && focusModes.contains(FOCUS_MODE_CONTINUOUS_VIDEO)) {
+            params.setFocusMode(FOCUS_MODE_CONTINUOUS_VIDEO);
+        }
         //params.setPreviewSize(3840, 2160);
         this.mCamera.setParameters(params);
         StartPreview();
