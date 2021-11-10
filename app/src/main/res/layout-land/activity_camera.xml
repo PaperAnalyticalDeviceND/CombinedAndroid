@@ -9,7 +9,7 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" >
 
-        <edu.nd.crc.paperanalyticaldevices.JavaCamResView
+        <edu.nd.crc.paperanalyticaldevices.JavaCam2ResView
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:id="@+id/activity_surface_view" />

@@ -58,7 +58,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".CameraActivity"
+            android:name=".Camera2Activity"
             android:exported="false"
             android:screenOrientation="landscape"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen" />

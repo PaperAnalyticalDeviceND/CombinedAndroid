@@ -39,6 +39,7 @@
     //import org.jsoup.nodes.Document;
     //import org.jsoup.nodes.Element;
     //import org.jsoup.select.Elements;
+    import org.opencv.android.CameraBridgeViewBase;
     import org.opencv.android.OpenCVLoader;
     import org.tensorflow.lite.DataType;
     import org.tensorflow.lite.Interpreter;
@@ -65,6 +66,7 @@
     import java.nio.MappedByteBuffer;
     import java.nio.channels.FileChannel;
     import java.util.ArrayList;
+    import java.util.Collections;
     import java.util.List;
     import java.util.zip.ZipEntry;
     import java.util.zip.ZipInputStream;
@@ -338,6 +340,11 @@
 
         }
 
+        protected List<? extends CameraBridgeViewBase> getCameraViewList() {
+            return new ArrayList<CameraBridgeViewBase>();
+
+        }
+
         public void checkForUpdates(String project){
 
 
@@ -378,6 +385,10 @@
                         .build();
 
                 WorkManager.getInstance(this).enqueue(myUploadWork);
+            }else{
+                //go to settings to get the Project set so we can load the models
+                Intent i = new Intent(this, SettingsActivity.class);
+                startActivity(i);
             }
         }
 
@@ -539,7 +550,7 @@
 */
 
                 //Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("pads://capture"));
-                Intent intent = new Intent(this, CameraActivity.class);
+                Intent intent = new Intent(this, Camera2Activity.class);
                 startActivityForResult(intent, 10);
             }
         }

@@ -1,6 +1,8 @@
 package edu.nd.crc.paperanalyticaldevices;
 
 //import static android.support.v4.content.FileProvider.getUriForFile;
+import static android.Manifest.permission.CAMERA;
+
 import androidx.core.content.FileProvider;
 import static java.lang.Math.sqrt;
 
@@ -10,9 +12,11 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -38,6 +42,7 @@ import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
 
 import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.android.LoaderCallbackInterface;
@@ -102,6 +107,8 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
     private AlertDialog ad = null;
     List<Point> last_points = null;
 
+    private static final int CAMERA_PERMISSION_REQUEST_CODE = 200;
+
     //UI
     private FloatingActionButton analyzeButton;
 
@@ -133,6 +140,39 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
         analyzeButton = (FloatingActionButton) findViewById(R.id.floatingAnalyze);
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        boolean havePermission = true;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{CAMERA}, CAMERA_PERMISSION_REQUEST_CODE);
+                havePermission = false;
+            }
+        }
+        if (havePermission) {
+            onCameraPermissionGranted();
+        }
+    }
+
+
+    protected List<? extends CameraBridgeViewBase> getCameraViewList() {
+        //return new ArrayList<CameraBridgeViewBase>();
+        return Collections.singletonList(mOpenCvCameraView);
+    }
+
+    protected void onCameraPermissionGranted() {
+        List<? extends CameraBridgeViewBase> cameraViews = getCameraViewList();
+        if (cameraViews == null) {
+            return;
+        }
+        for (CameraBridgeViewBase cameraBridgeViewBase: cameraViews) {
+            if (cameraBridgeViewBase != null) {
+                cameraBridgeViewBase.setCameraPermissionGranted();
+            }
+        }
+    }
+
 	@Override
 	public void onPause() {
 		super.onPause();
@@ -146,7 +186,7 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
 		super.onResume();
         if (!OpenCVLoader.initDebug()) {
             Log.d("PADs", "Internal OpenCV library not found. Using OpenCV Manager for initialization");
-            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_11, this, mLoaderCallback);
+            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION, this, mLoaderCallback);
         } else {
             Log.d("PADs", "OpenCV library found inside package. Using it!");
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
@@ -178,9 +218,21 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
 
 	}
 
+    public void goHome(View view){
+        setResult(RESULT_CANCELED, mResultIntent);
+        super.finish();
+    }
+
+    public void goToSettings(View view){
+        Intent i = new Intent(this, SettingsActivity.class);
+        startActivity(i);
+    }
+
 	public void onDestroy() {
 		super.onDestroy();
 		if (mOpenCvCameraView != null) {
+            //mOpenCvCameraView.setCameraPermissionGranted();
+            //Log.d("PAD", "onDestroy()");
             mOpenCvCameraView.disableView();
         }
 	}
@@ -189,7 +241,8 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
 
     @Override
     public void finish() {
-        Log.i("PAD", "Sending result:" + mResultIntent.toString());
+        //Log.i("PAD", "Sending result:" + mResultIntent.toString());
+        //mOpenCvCameraView.setCameraPermissionGranted();
         setResult(RESULT_OK, mResultIntent);
         super.finish();
     }
@@ -200,6 +253,8 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
 
 	public void onCameraViewStopped() {
 
+        //Log.d("PAD", "onCameraViewStopped()");
+        mOpenCvCameraView.setCameraPermissionGranted();
 	}
 
     private class DataPoint implements Comparable<DataPoint>  {
@@ -223,7 +278,9 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         mRgbaModified = inputFrame.rgba();
 
-        //woiting on dialog?
+        //Log.d(LOG_TAG, "Entering onCameraFrame()");
+
+        //waiting on dialog?
         if(ad != null) return mRgbaModified;
 
         mRgbaModified.copyTo(mRgbaTemp);
@@ -232,11 +289,17 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
         Mat work = new Mat();
         float ratio;
 
+        //debug code
+        //Imgproc.resize(inputFrame.gray(), work, new Size(IMAGE_WIDTH, (mRgbaModified.size().height * IMAGE_WIDTH) / mRgbaModified.size().width), 0, 0, Imgproc.INTER_LINEAR);
+        //ratio = (float)mRgbaModified.size().width / (float)IMAGE_WIDTH;
+
         if(mRgbaModified.size().height >  mRgbaModified.size().width) {
+            //Log.d(LOG_TAG, "Portrait image detected.");
             Imgproc.resize(inputFrame.gray(), work, new Size(IMAGE_WIDTH, (mRgbaModified.size().height * IMAGE_WIDTH) / mRgbaModified.size().width), 0, 0, Imgproc.INTER_LINEAR);
             ratio = (float)mRgbaModified.size().width / (float)IMAGE_WIDTH;
         }else{
             portrait = false;
+            //Log.d(LOG_TAG, "Landscape image detected.");
             Imgproc.resize(inputFrame.gray(), work, new Size((mRgbaModified.size().width * IMAGE_WIDTH) / mRgbaModified.size().height, IMAGE_WIDTH), 0, 0, Imgproc.INTER_LINEAR);
             Core.transpose(work, work);
             Core.flip(work, work, 1);
@@ -312,7 +375,7 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
                     }
                     qrText = qr_data;
                 } catch (Exception e) {
-                    Log.i("ContoursOut", "QR error" + e.toString());
+                    Log.i("ContoursOut", "QR error: " + e.toString());
                 }
 
                 if (pad_version != 0) {
@@ -343,11 +406,14 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
 
                         //ask if we want to save data for email, also block updates until done.
                         showSaveDialog();
+                    }else{
+                        Log.d("ControusOut", "Transform Failed.");
                     }
                 }
             }
         }catch (Exception e){
             Log.d("PADS", "Fudicial Location find exception:" + e.toString());
+            e.printStackTrace();
         }
 
         return mRgbaModified;
@@ -416,7 +482,7 @@ public void showSaveDialog(){
                             }
 
                             Intent intent = getIntent();
-                            if( intent != null && intent.getData() != null){
+                            if( intent != null /*&& intent.getData() != null */){
                                 try{
                                     File target = new File(padImageDirectory, "compressed.zip");
                                     CompressOutputs(new File[]{ cFile, oFile }, target);
@@ -478,7 +544,9 @@ public void showSaveDialog(){
     });
 
     //stop preview while we wait for response
-    mOpenCvCameraView.StopPreview();
+    //Log.d("PAD", "Awaiting dialog, StopPreview()");
+    //removed for Camera2 API changes, becomes redundant and stops workflow
+    //mOpenCvCameraView.StopPreview();
 }
 
 public static String readQRCode(Mat mTwod){
