@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity"
+    tools:context=".ResultActivity"
+    android:background="@color/plainactivitybackground"
     tools:layout_editor_absoluteY="81dp">
 
     <androidx.appcompat.widget.Toolbar
@@ -158,13 +159,29 @@
             tools:layout_editor_absoluteX="132dp"
             tools:layout_editor_absoluteY="111dp" />
 
+        <Switch
+            android:layout_width="match_parent"
+            android:layout_height="38dp"
+            android:id="@+id/oktoconsumetoggleswitch"
+            android:textOff="@string/okno"
+            android:textOn="@string/okyes"
+            android:showText="true"
+            android:splitTrack="true"
+            android:thumb="@drawable/pill_toggle_thumb"
+            android:text="@string/oktoconsume"
+            android:track="@drawable/pill_toggle_track"
+            android:thumbTextPadding="10dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            />
+
         <TextView
             android:id="@+id/textView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="0"
             android:paddingStart="8dp"
-            android:text="Notes" />
+            android:text="@string/notes" />
 
         <EditText
             android:id="@+id/editText"

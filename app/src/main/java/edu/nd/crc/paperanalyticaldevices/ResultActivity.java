@@ -14,9 +14,11 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,6 +38,9 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -44,6 +49,8 @@ public class ResultActivity extends AppCompatActivity {
 
     String qr = "";
     String timestamp = "";
+
+    boolean safeForConsumption = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +64,21 @@ public class ResultActivity extends AppCompatActivity {
         // make sure the manifest specifies a NoAppBar theme or this will create an exception
         Toolbar myToolbar = findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
+
+        Switch okToConsumeSwitch = (Switch) findViewById(R.id.oktoconsumetoggleswitch);
+        //set up toggle switch
+        okToConsumeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    safeForConsumption = true;
+                    Toast.makeText(getBaseContext(), R.string.safetoconsume, Toast.LENGTH_SHORT).show();
+                }else{
+                    safeForConsumption = false;
+                    Toast.makeText(getBaseContext(), R.string.unsafetoconsume, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
 
         // Handle calling intent
         Intent intent = getIntent();
@@ -74,13 +96,21 @@ public class ResultActivity extends AppCompatActivity {
         if( intent.hasExtra(MainActivity.EXTRA_SAMPLEID) ) {
             this.qr = intent.getStringExtra(MainActivity.EXTRA_SAMPLEID);
             TextView vSample = findViewById(R.id.idText);
-            vSample.setText(parseQR(this.qr));
+            vSample.setText("PAD ID: " + parseQR(this.qr));
         }
 
         if( intent.hasExtra(MainActivity.EXTRA_TIMESTAMP) ) {
             this.timestamp = intent.getStringExtra(MainActivity.EXTRA_TIMESTAMP);
             TextView vTimestamp = findViewById(R.id.timeText);
-            vTimestamp.setText(this.timestamp);
+
+            Timestamp javaTimestamp = new Timestamp(Long.valueOf(this.timestamp));
+            Date date = new Date(javaTimestamp.getTime());
+
+            SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+            String newDate = sdf.format(date);
+
+            //vTimestamp.setText(this.timestamp);
+            vTimestamp.setText(newDate);
         }
 
         // Handle Drug List
@@ -151,6 +181,12 @@ public class ResultActivity extends AppCompatActivity {
         compressedNotes += getBatch();
         compressedNotes += ", ";
         compressedNotes += getNotes();
+
+        if(safeForConsumption){
+            compressedNotes += ", Safe to consume.";
+        }else{
+            compressedNotes += ", Not safe to consume.";
+        }
 
         Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.UNMETERED)
