@@ -214,7 +214,7 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
         }
 */
         mOpenCvCameraView = (JavaCamResView) findViewById(R.id.activity_surface_view);
-        analyzeButton = (FloatingActionButton) findViewById(R.id.floatingAnalyze);
+        //analyzeButton = (FloatingActionButton) findViewById(R.id.floatingAnalyze);
 
         //progressBar.setProgress(100, true);
         //progressBar.incrementProgressBy(100);

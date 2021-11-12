@@ -37,4 +37,11 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory app:title="@string/camera">
+
+        <SwitchPreferenceCompat
+            app:key="torchon"
+            app:title="@string/torchonwithcamera"/>
+    </PreferenceCategory>
+
 </PreferenceScreen>

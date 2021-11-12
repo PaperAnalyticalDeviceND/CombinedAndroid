@@ -38,6 +38,8 @@
     <string name="safetoconsume">Safe to consume</string>
     <string name="unsafetoconsume">Unsafe to consume</string>
     <string name="notes">Notes</string>
+    <string name="camera">Camera</string>
+    <string name="torchonwithcamera">Camera Torch ON?</string>
     <string name="large_text">
         "Material is the metaphor.\n\n"
 

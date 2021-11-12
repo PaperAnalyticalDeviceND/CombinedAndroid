@@ -12,6 +12,7 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -23,6 +24,8 @@ import android.os.Looper;
 import android.provider.MediaStore;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import androidx.core.app.ActivityCompat;
+import androidx.preference.PreferenceManager;
+
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
@@ -123,7 +126,21 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
         // Make the textview clickable. Must be called after show()
         ((TextView)d.findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
     }
+/*
+    private boolean isTorchOn;
 
+    public void toggleTorch(View view){
+        mOpenCvCameraView.toggleTorch();
+        analyzeButton = (FloatingActionButton) findViewById(R.id.floatingAnalyze);
+        if(isTorchOn){
+            analyzeButton.setImageResource(R.drawable.baseline_flashlight_on_24);
+            isTorchOn = false;
+        }else{
+            analyzeButton.setImageResource(R.drawable.baseline_flashlight_off_24);
+            isTorchOn = true;
+        }
+    }
+*/
     @Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -137,7 +154,19 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
                         Manifest.permission.WRITE_EXTERNAL_STORAGE}, 91);
 
 		mOpenCvCameraView = (JavaCam2ResView) findViewById(R.id.activity_surface_view);
-        analyzeButton = (FloatingActionButton) findViewById(R.id.floatingAnalyze);
+        //analyzeButton = (FloatingActionButton) findViewById(R.id.floatingAnalyze);
+/*      //Torch toggle not reliable yet
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+
+        isTorchOn = prefs.getBoolean("torchon", false);
+        if(isTorchOn){
+            analyzeButton.setImageResource(R.drawable.baseline_flashlight_off_24);
+
+        }else{
+            analyzeButton.setImageResource(R.drawable.baseline_flashlight_on_24);
+
+        }
+*/
     }
 
     @Override
@@ -219,11 +248,13 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
 	}
 
     public void goHome(View view){
+        mOpenCvCameraView.StopPreview();
         setResult(RESULT_CANCELED, mResultIntent);
         super.finish();
     }
 
     public void goToSettings(View view){
+        //mOpenCvCameraView.StopPreview();
         Intent i = new Intent(this, SettingsActivity.class);
         startActivity(i);
     }
@@ -243,18 +274,21 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
     public void finish() {
         //Log.i("PAD", "Sending result:" + mResultIntent.toString());
         //mOpenCvCameraView.setCameraPermissionGranted();
+        mOpenCvCameraView.StopPreview();
         setResult(RESULT_OK, mResultIntent);
         super.finish();
     }
 
     public void onCameraViewStarted(int width, int height) {
+        Log.d("PAD", "onCameraViewStarted()");
         mOpenCvCameraView.Setup();
 	}
 
 	public void onCameraViewStopped() {
 
-        //Log.d("PAD", "onCameraViewStopped()");
+        Log.d("PAD", "onCameraViewStopped()");
         mOpenCvCameraView.setCameraPermissionGranted();
+        mOpenCvCameraView.StopPreview();
 	}
 
     private class DataPoint implements Comparable<DataPoint>  {
@@ -385,7 +419,7 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
 
                     //flag saved
                     markersDetected = true;
-
+/*  //removed after changing button to flash toggle
                     //enable button once acquired
                     runOnUiThread(new Runnable() {
                         @Override
@@ -393,7 +427,7 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
                             analyzeButton.setEnabled(true);
                         }
                     });
-
+*/
                     // rectify image, include QR/Fiducial points
                     float dest_points[][] = {{85, 1163, 686, 1163, 686, 77, 244, 64, 82, 64, 82, 226}, {85, 1163, 686, 1163, 686, 77, 255, 64, 82, 64, 82, 237}};
 
