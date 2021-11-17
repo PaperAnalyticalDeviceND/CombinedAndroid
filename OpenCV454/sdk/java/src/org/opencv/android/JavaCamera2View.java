@@ -102,9 +102,9 @@ public class JavaCamera2View extends CameraBridgeViewBase {
                 for (String cameraID : camList) {
                     CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraID);
                     if ((mCameraIndex == CameraBridgeViewBase.CAMERA_ID_BACK &&
-                            characteristics.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_BACK) /*||
+                            characteristics.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_BACK) ||
                         (mCameraIndex == CameraBridgeViewBase.CAMERA_ID_FRONT &&
-                            characteristics.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT)*/
+                            characteristics.get(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_FRONT)
                     ) {
                         mCameraID = cameraID;
                         break;
