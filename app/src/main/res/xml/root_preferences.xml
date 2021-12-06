@@ -9,10 +9,18 @@
 
         <ListPreference
             app:defaultValue=""
+            app:entries="@array/project_entries"
+            app:entryValues="@array/project_entries"
+            app:key="project"
+            app:title="@string/category_name"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:defaultValue=""
             app:entries="@array/neuralnet_entries"
             app:entryValues="@array/neuralnet_values"
             app:key="neuralnet"
-            app:title="@string/category_name"
+            app:title="@string/neuralnet"
             app:useSimpleSummaryProvider="true" />
 
     </PreferenceCategory>

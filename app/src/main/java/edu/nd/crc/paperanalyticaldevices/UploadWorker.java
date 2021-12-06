@@ -76,7 +76,9 @@ public class UploadWorker extends Worker {
             SharedPreferences sharedPreferences =
                     PreferenceManager.getDefaultSharedPreferences(this.getApplicationContext());
             //get the stored preference, or JCSTest as default
-            String category = sharedPreferences.getString("neuralnet", "JCSTest");
+            //this is the project name, not the neural net
+            String category = sharedPreferences.getString("project", "JCSTest");
+            //String category = sharedPreferences.getString("neuralnet", "JCSTest");
             sbParams.append("category_name").append("=").append(URLEncoder.encode(category, "UTF-8")).append("&");
 
             //sbParams.append("category_name").append("=").append(URLEncoder.encode("JCSTest", "UTF-8")).append("&");

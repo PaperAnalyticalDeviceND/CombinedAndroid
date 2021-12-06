@@ -72,7 +72,8 @@
     import java.util.zip.ZipInputStream;
 
     public class MainActivity extends AppCompatActivity {
-        static final String PROJECT = "FHI360-App";
+        //static final String PROJECT = "FHI360-App";
+        static final String PROJECT = "";
         String ProjectName;
         public static boolean HoldCamera = false;
 
@@ -151,6 +152,7 @@
                 public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
                     if(key.equals("neuralnet") ){
 
+                        //the Project can be separate from the neural net
                         ProjectName = sharedPreferences.getString("neuralnet", "");
 
                         idPadName = sharedPreferences.getString(subId + "filename", idPadName);
@@ -368,8 +370,9 @@
                         projectFolders = new String[]{subMsh};
                         break;
                     default:
-                        Intent i = new Intent(this, SettingsActivity.class);
-                        startActivity(i);
+                        //12-06-21 allow running without neural net so all projects can be captured
+                        //Intent i = new Intent(this, SettingsActivity.class);
+                        //startActivity(i);
                         return;
                 }
 
@@ -387,14 +390,15 @@
                 WorkManager.getInstance(this).enqueue(myUploadWork);
             }else{
                 //go to settings to get the Project set so we can load the models
-                Intent i = new Intent(this, SettingsActivity.class);
-                startActivity(i);
+                //Intent i = new Intent(this, SettingsActivity.class);
+                //startActivity(i);
             }
         }
 
 
         private void InitializeModels(){
 
+            //@TODO  this will need to be fully dynamic in case models are added to other projects
             switch(ProjectName){
                 case "FHI360-App":
                     model_list = new String[]{fhiName, fhiConcName};
@@ -410,7 +414,7 @@
                     break;
                 default:
                     number_of_models = 0;
-                    Toast.makeText(this, R.string.no_model_set, Toast.LENGTH_LONG).show();
+                    //Toast.makeText(this, R.string.no_model_set, Toast.LENGTH_LONG).show();
                     break;
             }
             // Initialization code for TensorFlow Lite
@@ -666,7 +670,7 @@
                         intent.putExtra(EXTRA_PREDICTED, output_string);
                         if (data.hasExtra("qr"))  intent.putExtra(EXTRA_SAMPLEID, data.getExtras().getString("qr"));
                         if (data.hasExtra("timestamp")) intent.putExtra(EXTRA_TIMESTAMP, timestamp);
-                        if( associatedAxisLabels[0].size() > 0 ) intent.putExtra(EXTRA_LABEL_DRUGS, (String[]) associatedAxisLabels[0].toArray(new String[0]));
+                        if( null != associatedAxisLabels[0] && associatedAxisLabels[0].size() > 0 ) intent.putExtra(EXTRA_LABEL_DRUGS, (String[]) associatedAxisLabels[0].toArray(new String[0]));
                         startActivity(intent);
 
                         HoldCamera = true;

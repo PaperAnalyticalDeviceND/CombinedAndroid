@@ -217,6 +217,9 @@ public class SettingsActivity extends AppCompatActivity {
         return false;
     }
 
+    /**
+     * Query API for newer versions of neural nets and download, or do fresh download on settings change.
+     */
     public class UpdatesAsyncTask extends AsyncTask<String, String, String> {
 
         //@TODO make this a setting and fetch a unique one from an API on first start

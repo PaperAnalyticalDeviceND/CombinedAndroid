@@ -24,4 +24,23 @@
         <item>MSH Tanzania</item>
     </string-array>
 
+    <string-array name="project_entries">
+        <item></item>
+        <item>AirGap</item>
+        <item>AMR Kenya</item>
+        <item>Bangladesh</item>
+        <item>chemoPAD</item>
+        <item>COIP</item>
+        <item>FHI2020</item>
+        <item>FHI360</item>
+        <item>FHI360-App</item>
+        <item>Liberia 2021</item>
+        <item>MSH Kenya</item>
+        <item>MSH Tanzania</item>
+        <item>NewDrugs</item>
+        <item>T. Lockwood idPAD 2.4</item>
+        <item>USP</item>
+        <item>Veripad idPAD</item>
+    </string-array>
+
 </resources>

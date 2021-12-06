@@ -22,24 +22,26 @@
     <string name="reply_title">Default reply action</string>
 
     <!-- Sync Preferences -->
-    <string name="sync_title">Check for updates automatically?</string>
+    <string name="sync_title">Check for project updates?</string>
     <string name="attachment_title">Enqueue uploads for later?</string>
     <string name="attachment_summary_on">Save images for upload later
     </string>
     <string name="attachment_summary_off">Only send images when connected</string>
     <string name="category_name">Project</string>
+    <string name="neuralnet">Neural Net</string>
     <string name="category">Category</string>
     <string name="title_activity_queue">Upload Queue</string>
     <string name="donetext">Done</string>
-    <string name="no_model_set">Please select a project on the Settings page.</string>
+    <string name="no_model_set">Please select a neural network on the Settings page.</string>
+    <string name="no_project_set">Please select a project on the Settings page.</string>
     <string name="okno">No</string>
     <string name="okyes">Yes</string>
-    <string name="oktoconsume">OK to consume?</string>
-    <string name="safetoconsume">Safe to consume</string>
-    <string name="unsafetoconsume">Unsafe to consume</string>
+    <string name="oktoconsume">Suspected unsafe?</string>
+    <string name="safetoconsume">Suspected Safe</string>
+    <string name="unsafetoconsume">Suspected Unsafe</string>
     <string name="notes">Notes</string>
     <string name="camera">Camera</string>
-    <string name="torchonwithcamera">Camera Torch ON?</string>
+    <string name="torchonwithcamera">Flashlight</string>
     <string name="large_text">
         "Material is the metaphor.\n\n"
 

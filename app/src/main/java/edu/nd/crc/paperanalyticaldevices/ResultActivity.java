@@ -50,7 +50,7 @@ public class ResultActivity extends AppCompatActivity {
     String qr = "";
     String timestamp = "";
 
-    boolean safeForConsumption = false;
+    boolean unsafeForConsumption = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,16 +66,17 @@ public class ResultActivity extends AppCompatActivity {
         setSupportActionBar(myToolbar);
 
         Switch okToConsumeSwitch = (Switch) findViewById(R.id.oktoconsumetoggleswitch);
-        //set up toggle switch
+        //set up toggle switch "Suspected unsafe?"
+        //send this value to the API in the Notes
         okToConsumeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if(isChecked){
-                    safeForConsumption = true;
-                    Toast.makeText(getBaseContext(), R.string.safetoconsume, Toast.LENGTH_SHORT).show();
-                }else{
-                    safeForConsumption = false;
+                    unsafeForConsumption = true;
                     Toast.makeText(getBaseContext(), R.string.unsafetoconsume, Toast.LENGTH_SHORT).show();
+                }else{
+                    unsafeForConsumption = false;
+                    Toast.makeText(getBaseContext(), R.string.safetoconsume, Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -182,11 +183,20 @@ public class ResultActivity extends AppCompatActivity {
         compressedNotes += ", ";
         compressedNotes += getNotes();
 
-        if(safeForConsumption){
-            compressedNotes += ", Safe to consume.";
+        if(unsafeForConsumption){
+            // from the Suspected unsafe? toggle button
+            compressedNotes += ", Suspected unsafe.  ";
         }else{
-            compressedNotes += ", Not safe to consume.";
+            compressedNotes += ", Suspected safe.  ";
         }
+
+        String userName = mPreferences.getString("username", "Unknown");
+        // attach stored user's name
+        compressedNotes += " User: " + userName + ".  ";
+
+        String neuralnet = mPreferences.getString("neuralnet", "None");
+        //attach stored neural net used
+        compressedNotes += "Neural net: " + neuralnet + ".  ";
 
         Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.UNMETERED)

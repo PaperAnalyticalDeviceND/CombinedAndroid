@@ -46,6 +46,7 @@
             android:layout_width="180dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:paddingBottom="5dp"
             android:onClick="discardData"
             android:background="@drawable/pillbutton"
             android:text="@string/cancel" />
@@ -55,6 +56,7 @@
             android:layout_width="180dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:paddingBottom="5dp"
             android:onClick="saveData"
             android:background="@drawable/pillbutton"
             android:text="@string/upload" />
