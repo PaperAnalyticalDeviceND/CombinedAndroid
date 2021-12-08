@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -86,8 +87,17 @@ public class ResultActivity extends AppCompatActivity {
 
         ImageView imageView = findViewById(R.id.imageView);
         imageView.setImageURI(intent.getData());
+        if(null == intent.getData()){
 
-        String sPredicted = intent.getStringExtra(MainActivity.EXTRA_PREDICTED);
+            imageView.setImageBitmap(BitmapFactory.decodeStream(this.getClass().getResourceAsStream("/test42401.png")));
+        }
+
+        String sPredicted = "";
+        //String sPredicted = intent.getStringExtra(MainActivity.EXTRA_PREDICTED);
+        //check exists first to avoid exception when passing it to the array adapter
+        if( intent.hasExtra(MainActivity.EXTRA_PREDICTED)){
+            sPredicted = intent.getStringExtra(MainActivity.EXTRA_PREDICTED);
+        }
         Spinner sResult = findViewById(R.id.batchSpinner);
         ArrayAdapter<String> aPredicted = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, Arrays.asList(sPredicted));
         sResult.setEnabled(false);

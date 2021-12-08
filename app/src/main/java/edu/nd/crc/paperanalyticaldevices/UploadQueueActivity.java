@@ -159,7 +159,9 @@ public class UploadQueueActivity extends AppCompatActivity {
 
     @Override
     public void onDestroy(){
-        dbHelper.close();
+        if(null != dbHelper) {
+            dbHelper.close();
+        }
         super.onDestroy();
     }
 

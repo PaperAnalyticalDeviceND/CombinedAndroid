@@ -10,6 +10,7 @@
     <string name="maininstructions">Use the alignment squares to center the image and hold the phone very steady.  When a clear image is possible you will be notified.</string>
     <string name="appsettings">Settings</string>
     <string name="title_activity_settings">Settings</string>
+    <string name="activity_result">Result</string>
 
     <!-- Preference Titles -->
     <string name="messages_header">Messages</string>

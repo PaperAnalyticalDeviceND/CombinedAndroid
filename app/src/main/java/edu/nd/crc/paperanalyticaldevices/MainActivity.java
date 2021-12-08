@@ -582,6 +582,13 @@
             try (BufferedInputStream bis = new BufferedInputStream(fin); ZipInputStream stream = new ZipInputStream(bis)) {
                 ZipEntry entry;
                 while ((entry = stream.getNextEntry()) != null) {
+
+                    File f = new File(targetDirectory.getPath(), entry.getName());
+                    String canonicalPath = f.getCanonicalPath();
+                    if(!canonicalPath.startsWith(targetDirectory.getPath())){
+                        throw new SecurityException("Zip path traversal error.");
+                    }
+
                     try (FileOutputStream fos = new FileOutputStream(targetDirectory.getPath() + "/" + entry.getName());
                          BufferedOutputStream bos = new BufferedOutputStream(fos, buffer.length)) {
 
@@ -590,6 +597,8 @@
                             bos.write(buffer, 0, len);
                         }
                     }
+
+
                 }
             }
         }

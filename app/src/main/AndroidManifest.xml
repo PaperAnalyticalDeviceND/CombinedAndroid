@@ -64,7 +64,16 @@
             android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen" />
         <activity
             android:name=".ResultActivity"
-            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" />
+            android:exported="true"
+            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" >
+            <intent-filter android:label="@string/activity_result">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:scheme="pad"
+                    android:host="result" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

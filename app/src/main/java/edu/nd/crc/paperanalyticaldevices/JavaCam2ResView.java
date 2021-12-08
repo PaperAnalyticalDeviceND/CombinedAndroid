@@ -56,7 +56,7 @@ public class JavaCam2ResView extends JavaCamera2View {
         //isTorchOn = prefs.getBoolean("torchon", false);
 
         //normal initialize
-        StopPreview();
+        //StopPreview();  //this should be redundant
         //disconnectCamera();
 
         //connectCamera(960, 720); 1920x1080, 3840x2160, 1280x720
