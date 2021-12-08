@@ -33,6 +33,8 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
 
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -290,23 +292,20 @@ public class ResultActivity extends AppCompatActivity {
     private Uri buildJSON() {
         Uri ret = Uri.EMPTY;
         try {
-            JSONObject jsonObject = new JSONObject();
             String compressedNotes = "Predicted drug =";
             compressedNotes += getBatch();
             compressedNotes += ", ";
             compressedNotes += getNotes();
-            try {
-                jsonObject.accumulate("sample_name", getDrug());
-                jsonObject.accumulate("project_name", MainActivity.PROJECT);
-                jsonObject.accumulate("camera1", Build.MANUFACTURER + " " + Build.MODEL);
-                jsonObject.accumulate("sampleid", parseQR(this.qr));
-                jsonObject.accumulate("qr_string", this.qr);
-                jsonObject.accumulate("quantity", getPercentage(getBrand()));
-                jsonObject.accumulate("notes", compressedNotes);
-                jsonObject.accumulate("timestamp", this.timestamp);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.accumulate("sample_name", getDrug());
+            jsonObject.accumulate("project_name", MainActivity.PROJECT);
+            jsonObject.accumulate("camera1", Build.MANUFACTURER + " " + Build.MODEL);
+            jsonObject.accumulate("sampleid", parseQR(this.qr));
+            jsonObject.accumulate("qr_string", this.qr);
+            jsonObject.accumulate("quantity", getPercentage(getBrand()));
+            jsonObject.accumulate("notes", compressedNotes);
+            jsonObject.accumulate("timestamp", this.timestamp);
 
             File outputFile = File.createTempFile("data", ".json", this.getCacheDir());
 
@@ -316,7 +315,8 @@ public class ResultActivity extends AppCompatActivity {
             file.close();
 
             ret = FileProvider.getUriForFile(this, this.getApplicationContext().getPackageName() + ".fileprovider", outputFile);
-        } catch (IOException e) {
+        } catch (Exception e) {
+            FirebaseCrashlytics.getInstance().recordException(e);
             e.printStackTrace();
         }
         return ret;

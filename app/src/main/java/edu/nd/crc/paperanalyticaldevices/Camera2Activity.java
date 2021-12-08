@@ -33,6 +33,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.ChecksumException;
 import com.google.zxing.FormatException;
@@ -409,6 +410,7 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
                     }
                     qrText = qr_data;
                 } catch (Exception e) {
+                    FirebaseCrashlytics.getInstance().recordException(e);
                     Log.i("ContoursOut", "QR error: " + e.toString());
                 }
 
@@ -446,6 +448,7 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
                 }
             }
         }catch (Exception e){
+            FirebaseCrashlytics.getInstance().recordException(e);
             Log.d("PADS", "Fudicial Location find exception:" + e.toString());
             e.printStackTrace();
         }
@@ -512,6 +515,7 @@ public void showSaveDialog(){
                                         df.format(today), "Origional Image");
                                 //Log.i("ContoursOut", "Saved to gallery");
                             } catch (Exception e) {
+                                FirebaseCrashlytics.getInstance().recordException(e);
                                 Log.i("ContoursOut", "Cannot save to gallery" + e.toString());
                             }
 
@@ -526,6 +530,7 @@ public void showSaveDialog(){
                                     mResultIntent.putExtra("timestamp", Calendar.getInstance().getTimeInMillis());
                                     finish();
                                 }catch( Exception e ) {
+                                    FirebaseCrashlytics.getInstance().recordException(e);
                                     Log.i("ContoursOut", "Cannot compress files: " + e.toString());
                                 }
                             }else {
@@ -547,6 +552,7 @@ public void showSaveDialog(){
                                 try {
                                     startActivity(i);
                                 } catch (android.content.ActivityNotFoundException ex) {
+                                    FirebaseCrashlytics.getInstance().recordException(ex);
                                     Log.i("ContoursOut", "There are no email clients installed.");
                                 }
 
@@ -599,12 +605,15 @@ public static String readQRCode(Mat mTwod){
     try {
         result = reader.decode(bitmap);
     } catch (NotFoundException e) {
+        FirebaseCrashlytics.getInstance().recordException(e);
         Log.i("ContoursOut", "QR error" + e.toString());
         e.printStackTrace();
     } catch (ChecksumException e) {
+        FirebaseCrashlytics.getInstance().recordException(e);
         Log.i("ContoursOut", "QR error" + e.toString());
         e.printStackTrace();
     } catch (FormatException e) {
+        FirebaseCrashlytics.getInstance().recordException(e);
         Log.i("ContoursOut", "QR error" + e.toString());
         e.printStackTrace();
     }

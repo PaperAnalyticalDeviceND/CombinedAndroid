@@ -39,6 +39,10 @@
     //import org.jsoup.nodes.Document;
     //import org.jsoup.nodes.Element;
     //import org.jsoup.select.Elements;
+    import com.google.firebase.FirebaseApp;
+    import com.google.firebase.analytics.FirebaseAnalytics;
+    import com.google.firebase.crashlytics.FirebaseCrashlytics;
+
     import org.opencv.android.CameraBridgeViewBase;
     import org.opencv.android.OpenCVLoader;
     import org.tensorflow.lite.DataType;
@@ -129,9 +133,14 @@
 
         private boolean sync = false;
 
+        private FirebaseAnalytics mFirebaseAnalytics;
+
         @Override
         protected void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
+
+            FirebaseApp.initializeApp(this);
+            mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
 
             //initialize opencv
             if (!OpenCVLoader.initDebug()) {
@@ -193,6 +202,7 @@
             if(sync) {
                 checkForUpdates(project);
             }
+
             /*
             String projectFolder = "";
             String[] projectFolders = {};
@@ -338,8 +348,6 @@
             //put in a top toolbar with a menu dropdown
             Toolbar myToolbar = findViewById(R.id.toolbar);
             setSupportActionBar(myToolbar);
-
-
         }
 
         protected List<? extends CameraBridgeViewBase> getCameraViewList() {
@@ -450,6 +458,7 @@
                         try {
                             associatedAxisLabels[num_mod] = FileUtil.loadLabels(this, ASSOCIATED_AXIS_LABELS[num_mod]);
                         } catch (IOException e) {
+                            FirebaseCrashlytics.getInstance().recordException(e);
                             Log.e("GBR", "Error reading label file", e);
                         }
                     }
@@ -485,6 +494,7 @@
                     //TensorBuffer.createFixedSize(new int[]{1, 10}, DataType.FLOAT32);
 
                 } catch (IOException e) {
+                    FirebaseCrashlytics.getInstance().recordException(e);
                     Log.e("GBR", "Error reading model", e);
                 }
             }
@@ -584,11 +594,6 @@
                 while ((entry = stream.getNextEntry()) != null) {
 
                     File f = new File(targetDirectory.getPath(), entry.getName());
-                    String canonicalPath = f.getCanonicalPath();
-                    if(!canonicalPath.startsWith(targetDirectory.getPath())){
-                        throw new SecurityException("Zip path traversal error.");
-                    }
-
                     try (FileOutputStream fos = new FileOutputStream(targetDirectory.getPath() + "/" + entry.getName());
                          BufferedOutputStream bos = new BufferedOutputStream(fos, buffer.length)) {
 
@@ -605,6 +610,8 @@
 
         @Override
         protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+            super.onActivityResult(requestCode, resultCode, data);
+
             Log.i("GBT", "onActivityResult");
             if (resultCode == RESULT_OK && requestCode == 10) {
                 Uri resultData = data.getData();
@@ -612,7 +619,8 @@
                     try {
                         // Create Output Directory
                         String timestamp = "";
-                        if (data.hasExtra("timestamp")) timestamp = String.format("%d", data.getExtras().getLong("timestamp"));
+                        if (data.hasExtra("timestamp"))
+                            timestamp = String.format("%d", data.getExtras().getLong("timestamp"));
 
                         File targetDir = new File(this.getFilesDir(), timestamp);
                         targetDir.mkdirs();
@@ -644,7 +652,7 @@
 
                                 // concat to output string
                                 output_string += associatedAxisLabels[num_mod].get(maxidx);
-                                if( num_mod == 0 ){
+                                if (num_mod == 0) {
                                     output_string += String.format(" (%.3f)", probabilityBuffer[num_mod].getFloatArray()[maxidx]);
                                 }
 
@@ -662,11 +670,11 @@
                         // get drug if available
                         String[] drug = output_string.split(" ", 2);
                         String drugStr = "albendazole";
-                        if(drug.length > 1){
+                        if (drug.length > 1) {
                             drugStr = drug[0].toLowerCase();
                         }
 
-                        if(ProjectName.equals("FHI360-App")) {
+                        if (ProjectName.equals("FHI360-App")) {
                             // call
                             double concentration = pls.do_pls(bmRect, drugStr);
 
@@ -677,19 +685,22 @@
                         Intent intent = new Intent(this, ResultActivity.class);
                         intent.setData(Uri.fromFile(rectifiedFile));
                         intent.putExtra(EXTRA_PREDICTED, output_string);
-                        if (data.hasExtra("qr"))  intent.putExtra(EXTRA_SAMPLEID, data.getExtras().getString("qr"));
+                        if (data.hasExtra("qr"))
+                            intent.putExtra(EXTRA_SAMPLEID, data.getExtras().getString("qr"));
                         if (data.hasExtra("timestamp")) intent.putExtra(EXTRA_TIMESTAMP, timestamp);
-                        if( null != associatedAxisLabels[0] && associatedAxisLabels[0].size() > 0 ) intent.putExtra(EXTRA_LABEL_DRUGS, (String[]) associatedAxisLabels[0].toArray(new String[0]));
+                        if (null != associatedAxisLabels[0] && associatedAxisLabels[0].size() > 0)
+                            intent.putExtra(EXTRA_LABEL_DRUGS, (String[]) associatedAxisLabels[0].toArray(new String[0]));
                         startActivity(intent);
 
                         HoldCamera = true;
 
                         Log.i("GBR", output_string + "%");
-                    }catch (Exception e){
+                    } catch (Exception e) {
+                        FirebaseCrashlytics.getInstance().recordException(e);
                         e.printStackTrace();
                     }
                 }
-            }else if(resultCode == RESULT_CANCELED){
+            } else if (resultCode == RESULT_CANCELED) {
                 // do nothing for now
             }
 

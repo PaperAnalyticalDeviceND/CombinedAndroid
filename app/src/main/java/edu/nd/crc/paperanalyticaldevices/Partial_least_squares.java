@@ -7,6 +7,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.Log;
 
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.opencsv.CSVReader;
 
 import org.opencv.android.Utils;
@@ -74,6 +75,7 @@ public class Partial_least_squares {
 //            double concentration = do_pls(bmp, "albendazole");
 
         } catch (IOException e) {
+            FirebaseCrashlytics.getInstance().recordException(e);
             Log.i("GBT-PLS", "PLS error");
             e.printStackTrace();
         }
