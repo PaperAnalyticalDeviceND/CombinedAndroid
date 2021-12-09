@@ -33,8 +33,8 @@ import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 
 public class UploadWorker extends Worker {
-    private NotificationManager notificationManager;
-    private FirebaseAnalytics mFirebaseAnalytics;
+    private final NotificationManager notificationManager;
+    private final FirebaseAnalytics mFirebaseAnalytics;
 
     public UploadWorker(@NonNull Context context, @NonNull WorkerParameters params) {
         super(context, params);
@@ -45,7 +45,7 @@ public class UploadWorker extends Worker {
     @Override
     public Result doWork() {
         UploadData data = UploadData.from(getInputData(), this.getApplicationContext());
-        if(!data.isValid()) {
+        if (!data.isValid()) {
             return Result.failure();
         }
 
@@ -54,7 +54,7 @@ public class UploadWorker extends Worker {
         String formData;
         try {
             formData = data.toUrlEncoded();
-        }catch(IOException|NoSuchAlgorithmException e){
+        } catch (IOException | NoSuchAlgorithmException e) {
             FirebaseCrashlytics.getInstance().recordException(e);
             return Result.failure();
         }
@@ -74,7 +74,7 @@ public class UploadWorker extends Worker {
                 .appendQueryParameter("action", "post");
 
         // Send Data
-        try{
+        try {
             URL urlObj = new URL(builder.build().toString());
 
             HttpURLConnection conn = (HttpURLConnection) urlObj.openConnection();

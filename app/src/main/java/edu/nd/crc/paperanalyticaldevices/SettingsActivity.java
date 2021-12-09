@@ -37,31 +37,23 @@ import java.net.URLConnection;
 import java.net.UnknownHostException;
 
 public class SettingsActivity extends AppCompatActivity {
-    // hard coding all these names for now until we have API details
-    private static String baseUrl = "https://pad.crc.nd.edu/neuralnetworks/tf_lite/";
-
-    private static String subFhiConc = "fhi360_conc_large_lite";
-    private static String subFhi = "fhi360_small_lite";
-    private static String subId = "idPAD_small_lite";
-    private static String subMsh = "msh_tanzania_3k_10_lite";
-
-    private static String modelVersion = "1.0";
-
-    private static String idPadName = "idPAD_small_1_6.tflite";
-    private static String fhiName = "fhi360_small_1_21.tflite";
-    private static String fhiConcName = "fhi360_conc_large_1_21.tflite";
-    private static String mshName = "model_small_1_10.tflite";
-
-    private SharedPreferences.OnSharedPreferenceChangeListener listener;
-
-    private ProgressDialog pDialog;
     public static final int progress_bar_type = 0;
-
+    // hard coding all these names for now until we have API details
+    private static final String baseUrl = "https://pad.crc.nd.edu/neuralnetworks/tf_lite/";
+    private static final String subFhiConc = "fhi360_conc_large_lite";
+    private static final String subFhi = "fhi360_small_lite";
+    private static final String subId = "idPAD_small_lite";
+    private static final String subMsh = "msh_tanzania_3k_10_lite";
+    private static final String modelVersion = "1.0";
+    private static final String idPadName = "idPAD_small_1_6.tflite";
+    private static final String fhiName = "fhi360_small_1_21.tflite";
+    private static final String fhiConcName = "fhi360_conc_large_1_21.tflite";
+    private static final String mshName = "model_small_1_10.tflite";
     private static ProgressBar progressBar;
-
     private static AsyncTask task;
-
     private static Button doneButton;
+    private SharedPreferences.OnSharedPreferenceChangeListener listener;
+    private ProgressDialog pDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,7 +84,7 @@ public class SettingsActivity extends AppCompatActivity {
         listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
             @Override
             public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-                if(key.equals("neuralnet") ){
+                if (key.equals("neuralnet")) {
 
                     String settingValue = sharedPreferences.getString("neuralnet", "");
                     Context context = getBaseContext();
@@ -102,7 +94,7 @@ public class SettingsActivity extends AppCompatActivity {
                     String projectFolder = "";
                     String[] projectFolders = {};
 
-                    switch(settingValue){
+                    switch (settingValue) {
                         case "FHI360-App":
                             projectFolder = subFhi;
                             projectFolders = new String[]{subFhi, subFhiConc};
@@ -127,34 +119,34 @@ public class SettingsActivity extends AppCompatActivity {
         prefs.registerOnSharedPreferenceChangeListener(listener);
     }
 
+    /*
+    Set as onClick for the Done button so that this activity can be reached from Main and Result activities and always return to the calling activity on close
+     */
+    public void finish(View view) {
+        finish();
+    }
+
+    public boolean isNetworkAvailable(Context context) {
+        ConnectivityManager connectivityManager = ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE));
+        return connectivityManager.getActiveNetworkInfo() != null && connectivityManager.getActiveNetworkInfo().isConnected();
+    }
+
+    public boolean isInternetAvailable() {
+        try {
+            InetAddress address = InetAddress.getByName("pad.crc.nd.edu");
+            return !address.equals("");
+        } catch (UnknownHostException e) {
+            FirebaseCrashlytics.getInstance().recordException(e);
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public static class SettingsFragment extends PreferenceFragmentCompat {
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
         }
-    }
-
-    /*
-    Set as onClick for the Done button so that this activity can be reached from Main and Result activities and always return to the calling activity on close
-     */
-    public void finish(View view){
-        finish();
-    }
-
-    public boolean isNetworkAvailable(Context context){
-        ConnectivityManager connectivityManager = ( (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE));
-        return connectivityManager.getActiveNetworkInfo() != null && connectivityManager.getActiveNetworkInfo().isConnected();
-    }
-
-    public boolean isInternetAvailable(){
-        try{
-            InetAddress address = InetAddress.getByName("pad.crc.nd.edu");
-            return !address.equals("");
-        }catch(UnknownHostException e){
-            FirebaseCrashlytics.getInstance().recordException(e);
-            e.printStackTrace();
-        }
-        return false;
     }
 
     /**
@@ -163,18 +155,18 @@ public class SettingsActivity extends AppCompatActivity {
     public class UpdatesAsyncTask extends AsyncTask<String, String, String> {
 
         //@TODO make this a setting and fetch a unique one from an API on first start
-        private String api_key = "5NWT4K7IS60WMLR3J2LV";
+        private final String api_key = "5NWT4K7IS60WMLR3J2LV";
 
-        private  String TAG_LIST = "list";
-        private  String TAG_WEIGHTS = "weights_url";
-        private  String TAG_NAME = "name";
-        private  String TAG_TYPE = "type";
-        private  String TAG_DESCRIPTION = "description";
-        private  String TAG_VERSION = "version";
-        private  String TAG_DRUGS = "drugs";
+        private final String TAG_LIST = "list";
+        private final String TAG_WEIGHTS = "weights_url";
+        private final String TAG_NAME = "name";
+        private final String TAG_TYPE = "type";
+        private final String TAG_DESCRIPTION = "description";
+        private final String TAG_VERSION = "version";
+        private final String TAG_DRUGS = "drugs";
 
         @Override
-        protected void onPreExecute(){
+        protected void onPreExecute() {
             super.onPreExecute();
             doneButton.setClickable(false);
             progressBar.setVisibility(View.VISIBLE);
@@ -182,13 +174,13 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         @Override
-        protected String doInBackground(String... project){
+        protected String doInBackground(String... project) {
             int count;
             BufferedReader reader = null;
             HttpURLConnection conn = null;
 
             String[] projectFolders = {project[0]};
-            if(project[0].equals(subFhi)){
+            if (project[0].equals(subFhi)) {
                 projectFolders = new String[]{project[0], subFhiConc};
             }
 
@@ -204,7 +196,7 @@ public class SettingsActivity extends AppCompatActivity {
                     .appendQueryParameter("api_key", api_key)
                     .appendQueryParameter("queryname", "network_info");
 
-            try{
+            try {
                 URL urlObj = new URL(builder.build().toString());
 
                 conn = (HttpURLConnection) urlObj.openConnection();
@@ -224,14 +216,14 @@ public class SettingsActivity extends AppCompatActivity {
                 StringBuffer buffer = new StringBuffer();
                 String line = "";
 
-                while( (line = reader.readLine()) != null){
+                while ((line = reader.readLine()) != null) {
                     buffer.append(line + "\n");
                 }
 
                 SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                 SharedPreferences.Editor editor = prefs.edit();
 
-                for(String projectSet : projectFolders){
+                for (String projectSet : projectFolders) {
 
                     String projectVersionString = prefs.getString(projectSet + "version", "0.0");
                     Double projectVersion = Double.parseDouble(projectVersionString);
@@ -239,18 +231,18 @@ public class SettingsActivity extends AppCompatActivity {
                     JSONObject jsonObject = new JSONObject(buffer.toString());
                     JSONArray listArray = jsonObject.getJSONArray(TAG_LIST);
 
-                    for(int i = 0; i < listArray.length(); i++){
+                    for (int i = 0; i < listArray.length(); i++) {
                         JSONObject item = listArray.getJSONObject(i);
 
                         String projectName = item.getString(TAG_NAME);
-                        if( projectName.equals(projectSet)){
+                        if (projectName.equals(projectSet)) {
 
                             String weightsUrl = item.getString(TAG_WEIGHTS);
                             Log.d("PADS_URL", weightsUrl);
                             String versionString = item.getString(TAG_VERSION);
                             Double version = Double.parseDouble(versionString);
 
-                            if(version > projectVersion){
+                            if (version > projectVersion) {
                                 // then get updated files and update the shared preferences with new data
 
                                 URL url = new URL(weightsUrl);
@@ -280,14 +272,14 @@ public class SettingsActivity extends AppCompatActivity {
 
                                 OutputStream output = new FileOutputStream(newFile);
 
-                                byte data[] = new byte[1024];
+                                byte[] data = new byte[1024];
 
                                 long total = 0;
 
                                 while ((count = input.read(data)) != -1) {
                                     total += count;
 
-                                    publishProgress(String.valueOf( (total * 100) / lengthOfFile));
+                                    publishProgress(String.valueOf((total * 100) / lengthOfFile));
                                     output.write(data, 0, count);
                                 }
 
@@ -301,7 +293,7 @@ public class SettingsActivity extends AppCompatActivity {
                         }
                     }
                 }
-            }catch(Exception e){
+            } catch (Exception e) {
                 FirebaseCrashlytics.getInstance().recordException(e);
                 e.printStackTrace();
             }
@@ -309,14 +301,14 @@ public class SettingsActivity extends AppCompatActivity {
             return null;
         }
 
-        protected void onProgressUpdate(String... progress){
+        protected void onProgressUpdate(String... progress) {
 
             progressBar.setProgress(Integer.parseInt(progress[0]));
 
         }
 
         @Override
-        protected void onPostExecute(String result){
+        protected void onPostExecute(String result) {
             super.onPostExecute(result);
             progressBar.setVisibility(View.INVISIBLE);
             doneButton.setClickable(true);

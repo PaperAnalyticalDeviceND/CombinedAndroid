@@ -32,23 +32,23 @@ import java.net.URLConnection;
 
 public class UpdatesWorker extends Worker {
 
-    private static String TAG_LIST = "list";
-    private static String TAG_WEIGHTS = "weights_url";
-    private static String TAG_NAME = "name";
-    private static String TAG_TYPE = "type";
-    private static String TAG_DESCRIPTION = "description";
-    private static String TAG_VERSION = "version";
-    private static String TAG_DRUGS = "drugs";
+    private static final String TAG_LIST = "list";
+    private static final String TAG_WEIGHTS = "weights_url";
+    private static final String TAG_NAME = "name";
+    private static final String TAG_TYPE = "type";
+    private static final String TAG_DESCRIPTION = "description";
+    private static final String TAG_VERSION = "version";
+    private static final String TAG_DRUGS = "drugs";
 
-    private static String fhiConcName = "fhi360_conc_large_lite";
-    private static String fhiName = "fhi360_small_lite";
-    private static String veripadIdName = "idPAD_small_lite";
-    private static String mshTanzaniaName = "msh_tanzania_3k_10_lite";
+    private static final String fhiConcName = "fhi360_conc_large_lite";
+    private static final String fhiName = "fhi360_small_lite";
+    private static final String veripadIdName = "idPAD_small_lite";
+    private static final String mshTanzaniaName = "msh_tanzania_3k_10_lite";
 
     //@TODO make this a setting and fetch a unique one from an API on first start
-    private String api_key = "5NWT4K7IS60WMLR3J2LV";
+    private final String api_key = "5NWT4K7IS60WMLR3J2LV";
 
-    public UpdatesWorker(@NonNull Context context, @NonNull WorkerParameters params){
+    public UpdatesWorker(@NonNull Context context, @NonNull WorkerParameters params) {
         super(context, params);
     }
 
@@ -72,7 +72,7 @@ public class UpdatesWorker extends Worker {
                 .appendQueryParameter("api_key", api_key)
                 .appendQueryParameter("queryname", "network_info");
 
-        try{
+        try {
             URL urlObj = new URL(builder.build().toString());
 
             conn = (HttpURLConnection) urlObj.openConnection();
@@ -92,7 +92,7 @@ public class UpdatesWorker extends Worker {
             StringBuffer buffer = new StringBuffer();
             String line = "";
 
-            while( (line = reader.readLine()) != null){
+            while ((line = reader.readLine()) != null) {
                 buffer.append(line + "\n");
             }
 
@@ -101,25 +101,25 @@ public class UpdatesWorker extends Worker {
 
             String[] projectFolders = getInputData().getStringArray("projectkeys");
 
-            for(String projectSet : projectFolders){
+            for (String projectSet : projectFolders) {
                 String projectVersionString = prefs.getString(projectSet + "version", "0.0");
                 Double projectVersion = Double.parseDouble(projectVersionString);
 
                 JSONObject jsonObject = new JSONObject(buffer.toString());
                 JSONArray listArray = jsonObject.getJSONArray("list");
 
-                for(int i = 0; i < listArray.length(); i++){
+                for (int i = 0; i < listArray.length(); i++) {
                     JSONObject item = listArray.getJSONObject(i);
 
                     String projectName = item.getString(TAG_NAME);
-                    if( projectName.equals(projectSet)){
+                    if (projectName.equals(projectSet)) {
 
                         String weightsUrl = item.getString(TAG_WEIGHTS);
                         Log.d("PADS_URL", weightsUrl);
                         String versionString = item.getString(TAG_VERSION);
                         Double version = Double.parseDouble(versionString);
 
-                        if(version > projectVersion){
+                        if (version > projectVersion) {
                             // then get updated files and update the shared preferences with new data
 
                             URL url = new URL(weightsUrl);
@@ -147,7 +147,7 @@ public class UpdatesWorker extends Worker {
 
                             OutputStream output = new FileOutputStream(newFile);
 
-                            byte data[] = new byte[1024];
+                            byte[] data = new byte[1024];
 
                             long total = 0;
 
@@ -168,25 +168,25 @@ public class UpdatesWorker extends Worker {
                 }
             } //for each project name
 
-        }catch(MalformedURLException e){
+        } catch (MalformedURLException e) {
             FirebaseCrashlytics.getInstance().recordException(e);
             e.printStackTrace();
-        }catch(IOException e) {
+        } catch (IOException e) {
             FirebaseCrashlytics.getInstance().recordException(e);
             e.printStackTrace();
-        }catch(JSONException e){
+        } catch (JSONException e) {
             FirebaseCrashlytics.getInstance().recordException(e);
             e.printStackTrace();
-        }finally {
+        } finally {
 
-            if(conn != null){
+            if (conn != null) {
                 conn.disconnect();
             }
-            try{
-                if(reader != null){
+            try {
+                if (reader != null) {
                     reader.close();
                 }
-            }catch(IOException e2){
+            } catch (IOException e2) {
                 e2.printStackTrace();
             }
 
@@ -195,7 +195,6 @@ public class UpdatesWorker extends Worker {
 
         return Result.success();
     }
-
 
 
 }

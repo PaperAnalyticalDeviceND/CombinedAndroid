@@ -16,7 +16,8 @@ public final class WorkInfoContract {
             "DROP TABLE IF EXISTS " + WorkInfoEntry.TABLE_NAME;
 
 
-    private WorkInfoContract(){}
+    private WorkInfoContract() {
+    }
 
     public static class WorkInfoEntry implements BaseColumns {
 

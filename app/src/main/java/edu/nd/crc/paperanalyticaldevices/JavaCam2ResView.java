@@ -21,7 +21,7 @@ public class JavaCam2ResView extends JavaCamera2View {
         mPreviewShowing = true;
     }
 
-    public void Setup(){
+    public void Setup() {
         //get actual screensize if possible
         WindowManager sManager = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
 
@@ -36,12 +36,12 @@ public class JavaCam2ResView extends JavaCamera2View {
         StartPreview();
     }
 
-    public void StopPreview(){
+    public void StopPreview() {
         disconnectCamera();
         mPreviewShowing = false;
     }
 
-    public void StartPreview(){
+    public void StartPreview() {
         Point ScreenSize = new Point(getWidth(), getHeight());
         connectCamera(ScreenSize.x, ScreenSize.y);
         mPreviewShowing = true;

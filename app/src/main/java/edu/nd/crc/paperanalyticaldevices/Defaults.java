@@ -3,7 +3,7 @@ package edu.nd.crc.paperanalyticaldevices;
 import java.util.ArrayList;
 
 public class Defaults {
-    public static final ArrayList<String> Drugs = new ArrayList<String>(){{
+    public static final ArrayList<String> Drugs = new ArrayList<String>() {{
         add("unknown");
         add("albendazole");
         add("amoxicillin");
@@ -33,20 +33,20 @@ public class Defaults {
         add("tetracycline");
     }};
 
-    public static final ArrayList<String> Brands = new ArrayList<String>(){{
+    public static final ArrayList<String> Brands = new ArrayList<String>() {{
         add("100%");
         add("80%");
         add("50%");
         add("20%");
     }};
 
-    public static final ArrayList<String> Batches = new ArrayList<String>(){{
+    public static final ArrayList<String> Batches = new ArrayList<String>() {{
         add("n/a");
     }};
 
-    public static final ArrayList<String> TensorModels = new ArrayList<String>(){{
-       add("fhi360");
-       add("idpads");
-       add("mshtanzania");
+    public static final ArrayList<String> TensorModels = new ArrayList<String>() {{
+        add("fhi360");
+        add("idpads");
+        add("mshtanzania");
     }};
 }

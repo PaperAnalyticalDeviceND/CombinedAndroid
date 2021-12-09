@@ -3,20 +3,20 @@ package edu.nd.crc.paperanalyticaldevices;
 import org.opencv.core.Mat;
 
 public class WhiteBalance {
-    public static int[][] CalculateHistogram(Mat mat){
+    public static int[][] CalculateHistogram(Mat mat) {
         int[][] hists = new int[3][256];
-        for( int i = 0; i < 3; i++ ){
-            for( int j = 0; j < 256; j++) {
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 256; j++) {
                 hists[i][j] = 0;
             }
         }
 
         for (int y = 0; y < mat.rows(); y++) {
             for (int x = 0; x < mat.cols(); x++) {
-                byte buffs[] = new byte[3];
+                byte[] buffs = new byte[3];
                 mat.get(y, x, buffs);
                 for (int j = 0; j < 3; ++j) {
-                    hists[j][buffs[j]& 0xFF] += 1;
+                    hists[j][buffs[j] & 0xFF] += 1;
                 }
             }
         }
@@ -29,7 +29,7 @@ public class WhiteBalance {
         int[][] hists = CalculateHistogram(mat);
 
         // cumulative hist
-        int total = mat.cols()*mat.rows();
+        int total = mat.cols() * mat.rows();
         int[] vmin = new int[3];
         int[] vmax = new int[3];
         for (int i = 0; i < 3; ++i) {
@@ -50,14 +50,14 @@ public class WhiteBalance {
 
         for (int y = 0; y < mat.rows(); ++y) {
             for (int x = 0; x < mat.cols(); ++x) {
-                byte buff[] = new byte[mat.cols() * mat.channels()];
+                byte[] buff = new byte[mat.cols() * mat.channels()];
                 mat.get(y, 0, buff);
 
                 for (int j = 0; j < 3; ++j) {
-                    int val = (int)mat.get(y,x)[j];
+                    int val = (int) mat.get(y, x)[j];
                     if (val < vmin[j]) val = vmin[j];
                     if (val > vmax[j]) val = vmax[j];
-                    buff[x * 3 + j] = (byte)((val - vmin[j]) * 255.0 / (vmax[j] - vmin[j]));
+                    buff[x * 3 + j] = (byte) ((val - vmin[j]) * 255.0 / (vmax[j] - vmin[j]));
                 }
                 mat.put(y, 0, buff);
             }
