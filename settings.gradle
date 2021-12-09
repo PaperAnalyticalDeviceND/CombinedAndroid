@@ -10,5 +10,5 @@ rootProject.name = "PaperAnalyticalDevices"
 
 include ':app'
 
-include ':OpenCV454'
-project(':OpenCV454').projectDir = new File(rootDir, 'OpenCV454/sdk/build.gradle')
+include ':opencv'
+project(':opencv').projectDir = new File(rootDir, 'OpenCV454/sdk')
