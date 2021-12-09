@@ -35,12 +35,10 @@ import androidx.work.WorkRequest;
 
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -74,10 +72,10 @@ public class ResultActivity extends AppCompatActivity {
         okToConsumeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked){
+                if (isChecked) {
                     unsafeForConsumption = true;
                     Toast.makeText(getBaseContext(), R.string.unsafetoconsume, Toast.LENGTH_SHORT).show();
-                }else{
+                } else {
                     unsafeForConsumption = false;
                     Toast.makeText(getBaseContext(), R.string.safetoconsume, Toast.LENGTH_SHORT).show();
                 }
@@ -89,15 +87,14 @@ public class ResultActivity extends AppCompatActivity {
 
         ImageView imageView = findViewById(R.id.imageView);
         imageView.setImageURI(intent.getData());
-        if(null == intent.getData()){
+        if (null == intent.getData()) {
 
             imageView.setImageBitmap(BitmapFactory.decodeStream(this.getClass().getResourceAsStream("/test42401.png")));
         }
 
         String sPredicted = "";
-        //String sPredicted = intent.getStringExtra(MainActivity.EXTRA_PREDICTED);
         //check exists first to avoid exception when passing it to the array adapter
-        if( intent.hasExtra(MainActivity.EXTRA_PREDICTED)){
+        if (intent.hasExtra(MainActivity.EXTRA_PREDICTED)) {
             sPredicted = intent.getStringExtra(MainActivity.EXTRA_PREDICTED);
         }
         Spinner sResult = findViewById(R.id.batchSpinner);
@@ -106,13 +103,13 @@ public class ResultActivity extends AppCompatActivity {
         sResult.setAdapter(aPredicted);
         sResult.setSelection(aPredicted.getPosition(sPredicted));
 
-        if( intent.hasExtra(MainActivity.EXTRA_SAMPLEID) ) {
+        if (intent.hasExtra(MainActivity.EXTRA_SAMPLEID)) {
             this.qr = intent.getStringExtra(MainActivity.EXTRA_SAMPLEID);
             TextView vSample = findViewById(R.id.idText);
             vSample.setText("PAD ID: " + parseQR(this.qr));
         }
 
-        if( intent.hasExtra(MainActivity.EXTRA_TIMESTAMP) ) {
+        if (intent.hasExtra(MainActivity.EXTRA_TIMESTAMP)) {
             this.timestamp = intent.getStringExtra(MainActivity.EXTRA_TIMESTAMP);
             TextView vTimestamp = findViewById(R.id.timeText);
 
@@ -129,11 +126,11 @@ public class ResultActivity extends AppCompatActivity {
         // Handle Drug List
         String tDrugs = "";
         ArrayAdapter<String> aDrugs = null;
-        if( intent.hasExtra(MainActivity.EXTRA_LABEL_DRUGS) && intent.getStringArrayExtra(MainActivity.EXTRA_LABEL_DRUGS) != null ) {
+        if (intent.hasExtra(MainActivity.EXTRA_LABEL_DRUGS) && intent.getStringArrayExtra(MainActivity.EXTRA_LABEL_DRUGS) != null) {
             String[] drugs = intent.getStringArrayExtra(MainActivity.EXTRA_LABEL_DRUGS);
             aDrugs = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, drugs);
             tDrugs = drugs[0];
-        }else {
+        } else {
             aDrugs = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, Defaults.Drugs);
             tDrugs = Defaults.Drugs.get(0);
         }
@@ -156,7 +153,7 @@ public class ResultActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu){
+    public boolean onCreateOptionsMenu(Menu menu) {
 
         //attach the menu for settings and queue to the app bar
         MenuInflater inflater = getMenuInflater();
@@ -184,7 +181,6 @@ public class ResultActivity extends AppCompatActivity {
                 return super.onOptionsItemSelected(item);
 
         }
-        //return true;
     }
 
     public void saveData(View view) {
@@ -195,10 +191,10 @@ public class ResultActivity extends AppCompatActivity {
         compressedNotes += ", ";
         compressedNotes += getNotes();
 
-        if(unsafeForConsumption){
+        if (unsafeForConsumption) {
             // from the Suspected unsafe? toggle button
             compressedNotes += ", Suspected unsafe.  ";
-        }else{
+        } else {
             compressedNotes += ", Suspected safe.  ";
         }
 
@@ -214,19 +210,19 @@ public class ResultActivity extends AppCompatActivity {
                 .setRequiredNetworkType(NetworkType.UNMETERED)
                 .build();
 
-        WorkRequest myUploadWork =  new OneTimeWorkRequest.Builder(UploadWorker.class)
+        WorkRequest myUploadWork = new OneTimeWorkRequest.Builder(UploadWorker.class)
                 .setConstraints(constraints)
                 .addTag("result_upload")
                 .setInputData(
-                    new Data.Builder()
-                            .putString("SAMPLE_NAME", getDrug())
-                            .putString("SAMPLE_ID", parseQR(this.qr))
-                            .putString("NOTES", compressedNotes)
-                            .putString("QUANTITY", getPercentage(getBrand()))
-                            .putString("TIMESTAMP", this.timestamp)
-                            .putString("ORIGINAL_IMAGE", FileProvider.getUriForFile(this, this.getApplicationContext().getPackageName() + ".fileprovider", new File(new File(this.getFilesDir(), timestamp), "original.png")).toString())
-                            .putString("RECTIFIED_IMAGE", FileProvider.getUriForFile(this, this.getApplicationContext().getPackageName() + ".fileprovider", new File(new File(this.getFilesDir(), timestamp), "rectified.png")).toString())
-                        .build()
+                        new Data.Builder()
+                                .putString("SAMPLE_NAME", getDrug())
+                                .putString("SAMPLE_ID", parseQR(this.qr))
+                                .putString("NOTES", compressedNotes)
+                                .putString("QUANTITY", getPercentage(getBrand()))
+                                .putString("TIMESTAMP", this.timestamp)
+                                .putString("ORIGINAL_IMAGE", FileProvider.getUriForFile(this, this.getApplicationContext().getPackageName() + ".fileprovider", new File(new File(this.getFilesDir(), timestamp), "original.png")).toString())
+                                .putString("RECTIFIED_IMAGE", FileProvider.getUriForFile(this, this.getApplicationContext().getPackageName() + ".fileprovider", new File(new File(this.getFilesDir(), timestamp), "rectified.png")).toString())
+                                .build()
                 )
                 .build();
 
@@ -259,30 +255,6 @@ public class ResultActivity extends AppCompatActivity {
                 finish();
             }
         }, 1250);
-
-        /*
-        Intent emailIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
-        emailIntent.setType("message/rfc822");
-        emailIntent.setType("application/image");
-        String[] target = {"paper.analytical.devices@gmail.com"};
-        Uri attachment = buildJSON();
-
-        Log.i("GB", attachment.toString());
-        ArrayList<Uri> attachments = new ArrayList<Uri>();
-        attachments.add(attachment);
-        attachments.add(FileProvider.getUriForFile(this, this.getApplicationContext().getPackageName() + ".provider", new File(new File(this.getFilesDir(), timestamp), "original.png")));
-        attachments.add(FileProvider.getUriForFile(this, this.getApplicationContext().getPackageName() + ".provider", new File(new File(this.getFilesDir(), timestamp), "rectified.png")));
-
-        emailIntent.putExtra(Intent.EXTRA_EMAIL, target);
-        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "PADs");
-        emailIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        emailIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, attachments);
-        try {
-            startActivityForResult(emailIntent, 11);
-            Log.i("GBR", "Email client found");
-        } catch (android.content.ActivityNotFoundException ex) {
-            Log.i("GBR", "No email clients found");
-        }*/
     }
 
     public void discardData(View view) {
@@ -332,7 +304,7 @@ public class ResultActivity extends AppCompatActivity {
     private String getBrand() {
         Spinner spinner = findViewById(R.id.brandSpinner);
         String ret = String.valueOf(spinner.getSelectedItem());
-        if(ret.isEmpty()){
+        if (ret.isEmpty()) {
             return "100%";
         }
         mPreferences.edit().putString("Brand", ret).commit();
@@ -346,7 +318,7 @@ public class ResultActivity extends AppCompatActivity {
     private String getBatch() {
         Spinner spinner = findViewById(R.id.batchSpinner);
         String ret = String.valueOf(spinner.getSelectedItem());
-        if(ret.isEmpty()){
+        if (ret.isEmpty()) {
             ret = "n/a";
         }
         return ret.toLowerCase();
@@ -358,7 +330,7 @@ public class ResultActivity extends AppCompatActivity {
     }
 
     public String parseQR(String qr) {
-        if (qr.startsWith("padproject.nd.edu/?s=") || qr.startsWith("padproject.nd.edu/?t=") ){
+        if (qr.startsWith("padproject.nd.edu/?s=") || qr.startsWith("padproject.nd.edu/?t=")) {
             return qr.substring(21);
         }
         return qr;

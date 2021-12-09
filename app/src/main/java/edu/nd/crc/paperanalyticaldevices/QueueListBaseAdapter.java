@@ -7,8 +7,6 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
 
 public class QueueListBaseAdapter extends BaseAdapter {
@@ -17,29 +15,29 @@ public class QueueListBaseAdapter extends BaseAdapter {
 
     private static ArrayList<PADDataObject> resultItems;
 
-    private LayoutInflater mInflater;
+    private final LayoutInflater mInflater;
 
-    public QueueListBaseAdapter(Context context, ArrayList<PADDataObject> results){
+    public QueueListBaseAdapter(Context context, ArrayList<PADDataObject> results) {
         resultItems = results;
         mInflater = LayoutInflater.from(context);
     }
 
-    public int getCount(){
+    public int getCount() {
         return resultItems.size();
     }
 
-    public Object getItem(int position){
+    public Object getItem(int position) {
         return resultItems.get(position);
     }
 
-    public long getItemId(int position){
+    public long getItemId(int position) {
         return position;
     }
 
-    public View getView(int position, View convertView, ViewGroup parent){
+    public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
 
-        if(convertView == null){
+        if (convertView == null) {
             convertView = mInflater.inflate(R.layout.queue_listview, null);
             holder = new ViewHolder();
 
@@ -48,7 +46,7 @@ public class QueueListBaseAdapter extends BaseAdapter {
             holder.padId = (TextView) convertView.findViewById(R.id.pad_info);
 
             convertView.setTag(holder);
-        }else{
+        } else {
             holder = (ViewHolder) convertView.getTag();
         }
 

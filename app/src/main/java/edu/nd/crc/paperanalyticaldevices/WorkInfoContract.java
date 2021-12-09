@@ -1,8 +1,5 @@
 package edu.nd.crc.paperanalyticaldevices;
 
-import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
 
 public final class WorkInfoContract {
@@ -19,7 +16,8 @@ public final class WorkInfoContract {
             "DROP TABLE IF EXISTS " + WorkInfoEntry.TABLE_NAME;
 
 
-    private WorkInfoContract(){}
+    private WorkInfoContract() {
+    }
 
     public static class WorkInfoEntry implements BaseColumns {
 
@@ -32,9 +30,4 @@ public final class WorkInfoContract {
         public static final String COLUMN_NAME_QUANTITY = "samplequantity";
 
     }
-
-
-
-
-
 }

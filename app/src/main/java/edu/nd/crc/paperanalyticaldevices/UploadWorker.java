@@ -7,18 +7,12 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
-import android.util.Base64;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
-import androidx.preference.PreferenceManager;
-import androidx.work.Data;
 import androidx.work.ForegroundInfo;
 import androidx.work.WorkManager;
 import androidx.work.Worker;
@@ -31,20 +25,16 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class UploadWorker extends Worker {
-    private NotificationManager notificationManager;
-    private FirebaseAnalytics mFirebaseAnalytics;
+    private final NotificationManager notificationManager;
+    private final FirebaseAnalytics mFirebaseAnalytics;
 
     public UploadWorker(@NonNull Context context, @NonNull WorkerParameters params) {
         super(context, params);
@@ -55,7 +45,7 @@ public class UploadWorker extends Worker {
     @Override
     public Result doWork() {
         UploadData data = UploadData.from(getInputData(), this.getApplicationContext());
-        if(!data.isValid()) {
+        if (!data.isValid()) {
             return Result.failure();
         }
 
@@ -64,7 +54,7 @@ public class UploadWorker extends Worker {
         String formData;
         try {
             formData = data.toUrlEncoded();
-        }catch(IOException|NoSuchAlgorithmException e){
+        } catch (IOException | NoSuchAlgorithmException e) {
             FirebaseCrashlytics.getInstance().recordException(e);
             return Result.failure();
         }
@@ -84,7 +74,7 @@ public class UploadWorker extends Worker {
                 .appendQueryParameter("action", "post");
 
         // Send Data
-        try{
+        try {
             URL urlObj = new URL(builder.build().toString());
 
             HttpURLConnection conn = (HttpURLConnection) urlObj.openConnection();

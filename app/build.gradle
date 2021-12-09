@@ -37,75 +37,50 @@ dependencies {
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation "com.android.support:appcompat-v7:25.3.1"
-    implementation "com.android.support:support-v4:25.3.1"
-    implementation 'androidx.appcompat:appcompat:1.3.1'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'androidx.appcompat:appcompat:1.4.0'
     implementation 'com.google.android.material:material:1.4.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.1'
-    implementation "com.google.guava:guava:19.0"
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.2'
     implementation 'androidx.preference:preference:1.1.1'
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
-    implementation project(path: ':OpenCV454')
+
+    implementation project(':opencv')
 
     // Import tflite dependencies
-    implementation 'org.tensorflow:tensorflow-lite:0.0.0-nightly-SNAPSHOT', {
-        exclude group: 'com.google.guava' , module: 'listenablefuture'
-    }
+    implementation 'org.tensorflow:tensorflow-lite:0.0.0-nightly-SNAPSHOT'
+
     // The GPU delegate library is optional. Depend on it as needed.
-    implementation 'org.tensorflow:tensorflow-lite-gpu:0.0.0-nightly-SNAPSHOT', {
-        exclude group: 'com.google.guava' , module: 'listenablefuture'
-    }
-    implementation 'org.tensorflow:tensorflow-lite-support:0.0.0-nightly-SNAPSHOT', {
-        exclude group: 'com.google.guava' , module: 'listenablefuture'
-    }
-    implementation 'org.tensorflow:tensorflow-lite-metadata:0.0.0-nightly-SNAPSHOT', {
-        exclude group: 'com.google.guava' , module: 'listenablefuture'
-    }
+    implementation 'org.tensorflow:tensorflow-lite-gpu:0.0.0-nightly-SNAPSHOT'
+    implementation 'org.tensorflow:tensorflow-lite-support:0.0.0-nightly-SNAPSHOT'
+    implementation 'org.tensorflow:tensorflow-lite-metadata:0.0.0-nightly-SNAPSHOT'
 
     def work_version = "2.7.0"
-    implementation "androidx.work:work-runtime:$work_version", {
-        exclude group: 'com.google.guava' , module: 'listenablefuture'
-    }
-    implementation "androidx.work:work-rxjava2:$work_version", {
-        exclude group: 'com.google.guava' , module: 'listenablefuture'
-    }
-    implementation "androidx.work:work-gcm:$work_version", {
-        exclude group: 'com.google.guava' , module: 'listenablefuture'
-    }
-    implementation "androidx.work:work-multiprocess:$work_version", {
-        exclude group: 'com.google.guava' , module: 'listenablefuture'
-    }
-    androidTestImplementation "androidx.work:work-testing:$work_version", {
-        exclude group: 'com.google.guava' , module: 'listenablefuture'
-    }
+    implementation "androidx.work:work-runtime:$work_version"
+    implementation "androidx.work:work-rxjava2:$work_version"
+    implementation "androidx.work:work-gcm:$work_version"
+    implementation "androidx.work:work-multiprocess:$work_version"
+    androidTestImplementation "androidx.work:work-testing:$work_version"
 
-    implementation 'com.opencsv:opencsv:4.6', {
-        exclude group: 'com.google.guava' , module: 'listenablefuture'
-    }
+    implementation 'com.opencsv:opencsv:4.6'
 
     // https://mvnrepository.com/artifact/com.google.zxing/core
-    implementation group: 'com.google.zxing', name: 'core', version: '3.2.1', {
-        exclude group: 'com.google.guava' , module: 'listenablefuture'
-    }
+    implementation group: 'com.google.zxing', name: 'core', version: '3.2.1'
 
     // https://mvnrepository.com/artifact/com.google.zxing/android-core
-    implementation group: 'com.google.zxing', name: 'android-core', version: '3.2.1', {
-        exclude group: 'com.google.guava' , module: 'listenablefuture'
-    }
+    implementation group: 'com.google.zxing', name: 'android-core', version: '3.2.1'
 
     // https://mvnrepository.com/artifact/com.google.zxing/javase
-    implementation group: 'com.google.zxing', name: 'javase', version: '3.2.1', {
-        exclude group: 'com.google.guava' , module: 'listenablefuture'
-    }
+    implementation group: 'com.google.zxing', name: 'javase', version: '3.2.1'
 
-    //implementation 'org.jsoup:jsoup:1.14.3'
-
-    // Crashlytics
+    // Firebase
     implementation platform('com.google.firebase:firebase-bom:29.0.1')
     implementation 'com.google.firebase:firebase-perf'
     implementation 'com.google.firebase:firebase-crashlytics'
     implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.android.gms:play-services-basement:17.5.0'
 
+    // Put last to fix listenable future issue
+    implementation 'com.google.guava:guava:27.0.1-android'
 }
