@@ -74,11 +74,12 @@ dependencies {
     // https://mvnrepository.com/artifact/com.google.zxing/javase
     implementation group: 'com.google.zxing', name: 'javase', version: '3.2.1'
 
-    // Crashlytics
+    // Firebase
     implementation platform('com.google.firebase:firebase-bom:29.0.1')
     implementation 'com.google.firebase:firebase-perf'
     implementation 'com.google.firebase:firebase-crashlytics'
     implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.android.gms:play-services-basement:17.5.0'
 
     // Put last to fix listenable future issue
     implementation 'com.google.guava:guava:27.0.1-android'
