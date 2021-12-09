@@ -7,8 +7,7 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "PaperAnalyticalDevices"
-def opencvsdk='/Users/crc/AndroidStudioProjects/CombinedAndroid/OpenCV454'
 
 include ':app'
-include ':OpenCV454'
-project(':OpenCV454').projectDir = new File(opencvsdk + '/sdk')
+include ':opencv'
+project(':opencv').projectDir = new File(rootDir, 'OpenCV454/sdk/build.gradle')
