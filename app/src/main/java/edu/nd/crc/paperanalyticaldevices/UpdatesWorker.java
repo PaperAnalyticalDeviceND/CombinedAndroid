@@ -96,34 +96,23 @@ public class UpdatesWorker extends Worker {
                 buffer.append(line + "\n");
             }
 
-            //return buffer.toString();
-
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
             SharedPreferences.Editor editor = prefs.edit();
 
             String[] projectFolders = getInputData().getStringArray("projectkeys");
 
             for(String projectSet : projectFolders){
-
-                //String projectSet = getInputData().getString("projectkey");
-                //String projectSet = prefs.getString("projectkey", "");
                 String projectVersionString = prefs.getString(projectSet + "version", "0.0");
                 Double projectVersion = Double.parseDouble(projectVersionString);
 
-
-                //Log.d("PADS_JSON", buffer.toString());
                 JSONObject jsonObject = new JSONObject(buffer.toString());
                 JSONArray listArray = jsonObject.getJSONArray("list");
-                //Log.d("PADS_JSON", jsonObject.toString());
-
-
 
                 for(int i = 0; i < listArray.length(); i++){
                     JSONObject item = listArray.getJSONObject(i);
 
-                    //Log.d("PADS_JSON", "item: " + item.toString());
                     String projectName = item.getString(TAG_NAME);
-                    if( projectName.equals(projectSet) /*projectName.equals(fhiConcName) || projectName.equals(fhiName) || projectName.equals(veripadIdName) || projectName.equals(mshTanzaniaName)*/){
+                    if( projectName.equals(projectSet)){
 
                         String weightsUrl = item.getString(TAG_WEIGHTS);
                         Log.d("PADS_URL", weightsUrl);
@@ -136,8 +125,6 @@ public class UpdatesWorker extends Worker {
                             URL url = new URL(weightsUrl);
                             URLConnection connection = url.openConnection();
                             connection.connect();
-
-                            //int lengthOfFile = connection.getContentLength();
 
                             InputStream input = new BufferedInputStream(url.openStream(), 8192);
 

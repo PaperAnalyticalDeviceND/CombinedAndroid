@@ -93,7 +93,6 @@ public class ResultActivity extends AppCompatActivity {
         }
 
         String sPredicted = "";
-        //String sPredicted = intent.getStringExtra(MainActivity.EXTRA_PREDICTED);
         //check exists first to avoid exception when passing it to the array adapter
         if( intent.hasExtra(MainActivity.EXTRA_PREDICTED)){
             sPredicted = intent.getStringExtra(MainActivity.EXTRA_PREDICTED);
@@ -182,7 +181,6 @@ public class ResultActivity extends AppCompatActivity {
                 return super.onOptionsItemSelected(item);
 
         }
-        //return true;
     }
 
     public void saveData(View view) {
@@ -257,30 +255,6 @@ public class ResultActivity extends AppCompatActivity {
                 finish();
             }
         }, 1250);
-
-        /*
-        Intent emailIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
-        emailIntent.setType("message/rfc822");
-        emailIntent.setType("application/image");
-        String[] target = {"paper.analytical.devices@gmail.com"};
-        Uri attachment = buildJSON();
-
-        Log.i("GB", attachment.toString());
-        ArrayList<Uri> attachments = new ArrayList<Uri>();
-        attachments.add(attachment);
-        attachments.add(FileProvider.getUriForFile(this, this.getApplicationContext().getPackageName() + ".provider", new File(new File(this.getFilesDir(), timestamp), "original.png")));
-        attachments.add(FileProvider.getUriForFile(this, this.getApplicationContext().getPackageName() + ".provider", new File(new File(this.getFilesDir(), timestamp), "rectified.png")));
-
-        emailIntent.putExtra(Intent.EXTRA_EMAIL, target);
-        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "PADs");
-        emailIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        emailIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, attachments);
-        try {
-            startActivityForResult(emailIntent, 11);
-            Log.i("GBR", "Email client found");
-        } catch (android.content.ActivityNotFoundException ex) {
-            Log.i("GBR", "No email clients found");
-        }*/
     }
 
     public void discardData(View view) {

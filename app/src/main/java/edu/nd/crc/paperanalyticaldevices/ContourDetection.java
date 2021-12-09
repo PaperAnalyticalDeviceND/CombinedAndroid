@@ -63,16 +63,13 @@ public class ContourDetection {
 
         //draw target fiducials
         //[85, 1163], [686, 1163], [686, 77], [82, 64], [82, 226], [244, 64]
-        //portrait    comDisplay = new Point(mc.x * ratio, mc.y * ratio);
-        //landscape comDisplay = new Point((mc.y) * ratio, (720-mc.x) * ratio);
-        //center = 360
+
         double horiz_line = 730 / 2;
         double scale_ratio = min(work.size().height / 1220, 1.0) * .95;
         if(scale_ratio > .85){
             scale_ratio = 0.85;
         }
         double scale_offset = ((work.size().height - (1163 * scale_ratio)) / 2) - (64 * scale_ratio);
-        //Log.i("ContoursOut", String.format("Offs %f", scale_offset));
 
         List<Integer> f_locs = Arrays.asList(85, 1163, 686, 1163, 686, 77, 82, 64, 82, 226, 244, 64);
         Scalar wt_color = new Scalar(255, 255, 255, 10);
@@ -88,14 +85,9 @@ public class ContourDetection {
             Imgproc.rectangle(mRgbaModified, pnt3, pnt4, wt_color, 2, 8, 0);
         }
 
-        //ratio = (float)1.5;
-
-        //Log.i("ContoursOut", "Sizes " + work.size().width + " height " + work.size().height + " ratio " + ratio);
-        //Mat work_blur = new Mat();
         Mat edges = work.clone();
         Imgproc.blur(edges, edges, new Size(4, 4));
 
-        //Mat edges = work.clone();
         Imgproc.Canny(edges, edges, 25 , 75, 3, true);
 
         List<MatOfPoint> contours = new ArrayList<>();
@@ -130,8 +122,6 @@ public class ContourDetection {
             List<Point> qr = new Vector<>();
             List<Float> diameter = new Vector<>();
             for( int i=0; i < Markers.size(); i++){
-                //Imgproc.drawContours(mRgbaModified, contours, Markers.get(i), new Scalar(255, 200, 0), 2, 8, hierarchy, 0, new Point(0, 0));
-
                 Moments mum = Imgproc.moments(contours.get(Markers.get(i)), false);
                 Point mc = new Point( mum.get_m10()/mum.get_m00() , mum.get_m01()/mum.get_m00() );
 
@@ -146,12 +136,6 @@ public class ContourDetection {
                 //Image is now 600 wide (x) and 337 high (y). Wax fiducials in y region 130-210 and z region 100-550.
                 boolean nexcluded = !(mc.x > 300 && mc.x < 420);
 
-                /*if(portrait) {
-                    nexcluded = !(mc.x > 300 && mc.x < 420);
-                }else{
-                    nexcluded = !(mc.y > 300 && mc.y < 420);
-                }*/
-
                 //test valid point
                 if(asprat < 1.5 && dia < 45 && dia > 5 && nexcluded){
                     //check of nearby points
@@ -161,7 +145,6 @@ public class ContourDetection {
                     for(int j=0; j<order.size(); j++){
                         float diff = (float)Math.sqrt((order.get(j).Center.x - mc.x) * (order.get(j).Center.x - mc.x) + (order.get(j).Center.y - mc.y) * (order.get(j).Center.y - mc.y));
                         if(diff < 10){
-                            //Log.i("ContoursOut", "Dup Location " + mc.x + ", " + mc.y);
                             pnearby = true;
                             break;
                         }
@@ -169,24 +152,14 @@ public class ContourDetection {
 
                     //if unique point, add it.
                     if(!pnearby) {
-                        //Log.i("ContoursOut", "Org Location " + mc.x + ", " + mc.y + " dia " + dia);
                         //save point
-                        //DataPoint dat = [i, mc.x, mc.y, dia];
                         order.add(new DataPoint(i, dist, dia, mc));
 
                         boolean isQR = mc.y < 640 && mc.x < 320;
-
-                        /*if(portrait){
-                            isQR = mc.y < 640 && mc.x < 320;
-                        }else{
-                            isQR = mc.x < 640 && mc.y > 320;
-                        }*/
-
                         //draw contour
                         //QR or outer?
                         Scalar color = new Scalar(0, 255, 0, 255);
-                        //if (mc.y < 640 && mc.x < 320) {
-                        if ( isQR ){ //mc.x < 640 && mc.y > 320) {
+                        if ( isQR ){
                             qr.add(new Point(mc.x, mc.y));
                             color = new Scalar(255, 0, 0, 255);
                         } else {
@@ -202,15 +175,12 @@ public class ContourDetection {
                             comDisplay = new Point((mc.y) * ratio, (720-mc.x) * ratio);
                         }
                         Imgproc.circle(mRgbaModified, comDisplay, 10, color, 2, 8, 0);
-
                     }
-                    //Log.i("ContoursOut", "Location " + mc.x + ", " + mc.y);
                  }
             }
 
             //test if we have data
             if(outer.size() + qr.size() >= 5){
-                //List<Point>
                 order_points(src_points, outer, qr, ratio);
 
                 return true;
@@ -253,22 +223,16 @@ public class ContourDetection {
             }
 
             //LHS outer fiducial
-            //src_points.push(outer[oindxx]);
             src_points.add(new Point(outer.get(oindxx).y * ratio, (720 - outer.get(oindxx).x) * ratio));
-            //src_points.add(new Point(outer.get(oindxx).x, outer.get(oindxx).y));
 
             //saved max fudicial
-            //src_points.push(outer[oindx]);
             src_points.add(new Point(outer.get(oindx).y * ratio, (720 - outer.get(oindx).x) * ratio));
-            //src_points.add(new Point(outer.get(oindx).x, outer.get(oindx).y));
 
             //remaining fiducial
             for (int i = 0; i < 3; i++) {
                 if (i == oindx || i == oindxx) continue;
                 //LHS QR fiducial
-                //src_points.push(outer[i]);
                 src_points.add(new Point(outer.get(i).y * ratio, (720 - outer.get(i).x) * ratio));
-                //src_points.add(new Point(outer.get(i).x, outer.get(i).y));
             }
         }else{ //only 2 points
             //get angle
@@ -340,20 +304,15 @@ public class ContourDetection {
             for (int i = 0; i < 3; i++) {
                 if (i == indx || i == indxx) continue;
                 //LHS QR fiducial
-                //src_points.push(qr[i]);
                 src_points.add(new Point(qr.get(i).y * ratio, (720 - qr.get(i).x) * ratio));
-                //src_points.add(new Point(qr.get(i).x, qr.get(i).y));
             }
 
             //min fiducial, top LHS
-            //src_points.push(qr[indx]);
             src_points.add(new Point(qr.get(indx).y * ratio, (720 - qr.get(indx).x) * ratio));
-            //src_points.add(new Point(qr.get(indx).x, qr.get(indx).y));
 
             //LHS QR fiducial
             //src_points.push(qr[indxx]);
             src_points.add(new Point(qr.get(indxx).y * ratio, (720 - qr.get(indxx).x) * ratio));
-            //src_points.add(new Point(qr.get(indxx).x, qr.get(indxx).y));
         }else{ //only 2 ponts
             //get angle
             Log.d("PADS", qr.toString());
@@ -529,11 +488,10 @@ public class ContourDetection {
         checks.put(0, 0, checkdata);
 
         //get transformation
-        Mat TI = Imgproc.getPerspectiveTransform(points, destinationpoints);//TransformPoints(points, destinationpoints);
+        Mat TI = Imgproc.getPerspectiveTransform(points, destinationpoints);
         Log.i("ContoursOut", String.format("TI %s, %s.",TI.toString(), checks.toString()));
 
         Mat work = new Mat();
-        //Imgproc.resize(input, work, new Size(720, 1280), 0, 0, Imgproc.INTER_LINEAR );
 
         Imgproc.warpPerspective(input, work, TI, new Size(690 + 40, 1230 + 20));
 
@@ -560,10 +518,6 @@ public class ContourDetection {
             return false;
         }
 
-        //Mat work = new Mat();
-        //Imgproc.resize(input, work, new Size(730, (input.size().height * 730) / input.size().width), 0, 0, Imgproc.INTER_LINEAR );
-        //input.copyTo(work);
-
         Mat im_warped_nb = new Mat();
         Imgproc.cvtColor(work, im_warped_nb, Imgproc.COLOR_RGB2GRAY);
 
@@ -579,8 +533,6 @@ public class ContourDetection {
         File outputFiles = new File(padImageDirectory, "template.jpeg");
         Imgproc.cvtColor(Template, mTemp, Imgproc.COLOR_GRAY2RGBA);
         Imgcodecs.imwrite(outputFiles.getPath(), mTemp);
-
-
 
         Mat result = new Mat( );
         Imgproc.matchTemplate(im_warped_nb, Template, result, Imgproc.TM_CCOEFF_NORMED);
@@ -626,7 +578,6 @@ public class ContourDetection {
             Point temp = cellPoints.get(0);
             cellPoints.set(0, cellPoints.get(1));
             cellPoints.set(1, temp);
-            //Log.d("Contour", String.format("Flipped %d, %d", cellPoints.get(0).x, cellPoints.get(0).y));
         }
 
         // do SVD for rotation/translation?
@@ -652,7 +603,6 @@ public class ContourDetection {
         TICP.get(0, 0, tBuff);
         Log.d("Contour", String.format("TICP %f %f %f \n %f %f %f \n %f %f %f", tBuff[0], tBuff[1], tBuff[2], tBuff[3], tBuff[4], tBuff[5], tBuff[6], tBuff[7], tBuff[8]));
 
-        //Mat fringe_warped = new Mat();
         Imgproc.warpPerspective(work, fringe_warped, TICP, new Size(690 + 40, 1220));
 
         for( int i = 0; i < 13; i++ ) {
@@ -664,10 +614,6 @@ public class ContourDetection {
         Imgproc.line(fringe_warped, new Point(comparePoints.get(0).x-5,comparePoints.get(0).y), new Point(comparePoints.get(0).x+5,comparePoints.get(0).y), new Scalar(0,255,0),1);
         Imgproc.line(fringe_warped, new Point(comparePoints.get(1).x,comparePoints.get(1).y-5), new Point(comparePoints.get(1).x,comparePoints.get(1).y+5), new Scalar(0,255,0),1);
         Imgproc.line(fringe_warped, new Point(comparePoints.get(1).x-5,comparePoints.get(1).y), new Point(comparePoints.get(1).x+5,comparePoints.get(1).y), new Scalar(0,255,0),1);
-
-        //wax markers
-        //Core.circle(fringe_warped, new Point(387,214), 10, new Scalar(0,0,255), 2, 6, 0);
-        //Core.circle(fringe_warped, new Point(387,1164), 10, new Scalar(0,0,255), 2, 6, 0);
 
         return true;
     }

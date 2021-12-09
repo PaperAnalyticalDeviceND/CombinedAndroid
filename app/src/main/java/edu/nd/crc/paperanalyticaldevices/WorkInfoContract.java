@@ -29,9 +29,4 @@ public final class WorkInfoContract {
         public static final String COLUMN_NAME_QUANTITY = "samplequantity";
 
     }
-
-
-
-
-
 }

@@ -37,10 +37,8 @@ import java.net.URLConnection;
 import java.net.UnknownHostException;
 
 public class SettingsActivity extends AppCompatActivity {
-
     // hard coding all these names for now until we have API details
     private static String baseUrl = "https://pad.crc.nd.edu/neuralnetworks/tf_lite/";
-    //private static String fileUrl = "https://pad.crc.nd.edu/neuralnetworks/tf_lite/idPAD_small_lite/1.0/idPAD_small_1_6.tflite";
 
     private static String subFhiConc = "fhi360_conc_large_lite";
     private static String subFhi = "fhi360_small_lite";
@@ -69,7 +67,6 @@ public class SettingsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.settings_activity_constraint_layout);
-        //setContentView(R.layout.settings_activity);
         if (savedInstanceState == null) {
             getSupportFragmentManager()
                     .beginTransaction()
@@ -97,74 +94,30 @@ public class SettingsActivity extends AppCompatActivity {
             public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
                 if(key.equals("neuralnet") ){
 
-                    //new DownloadNeuralNet().execute(fileUrl);
-
                     String settingValue = sharedPreferences.getString("neuralnet", "");
                     Context context = getBaseContext();
-                    //File newDir = context.getDir("tflitemodels", Context.MODE_PRIVATE);
 
                     String projectFile = sharedPreferences.getString(settingValue + "filename", "");
-
-                    //if(projectFile.isEmpty() && !isInternetAvailable()){
-                        //@TODO  start an activity here asking user to return when internet is available
-                    //}
 
                     String projectFolder = "";
                     String[] projectFolders = {};
 
                     switch(settingValue){
                         case "FHI360-App":
-                            //File fhi = new File(newDir.getPath(), fhiName);
-                            //if(!fhi.exists()) {
-                                //String url = baseUrl + "/" + subFhi;// + "/" + modelVersion + "/" + fhiName;
-                                //task = new DownloadNeuralNet().execute(url);
-                            //}
-                            //File conc = new File(newDir.getPath(), fhiConcName);
-                            //if(!conc.exists()) {
-                                //String url2 = baseUrl + "/" + subFhiConc;// + "/" + modelVersion + "/" + fhiConcName;
-                                //task = new DownloadNeuralNet().execute(url2);
-                            //}
                             projectFolder = subFhi;
                             projectFolders = new String[]{subFhi, subFhiConc};
                             break;
                         case "Veripad idPAD":
-
-                            //File idpad = new File(newDir.getPath(), idPadName);
-                            //if(!idpad.exists()) {
-                                //String url3 = baseUrl + "/" + subId;// + "/" + modelVersion + "/" + idPadName;
-                                //task = new DownloadNeuralNet().execute(url3);
-                            //}
                             projectFolder = subId;
                             projectFolders = new String[]{subId};
                             break;
                         case "MSH Tanzania":
-
-                            //File msh = new File(newDir.getPath(), mshName);
-                            //if(!msh.exists()) {
-                                //String url4 = baseUrl + "/" + subMsh;// + "/" + modelVersion + "/" + mshName;
-                                //task = new DownloadNeuralNet().execute(url4);
-                            //}
                             projectFolder = subMsh;
                             projectFolders = new String[]{subMsh};
                             break;
                         default:
                             return;
                     }
-
-/*
-                    Constraints constraints = new Constraints.Builder()
-                            .setRequiredNetworkType(NetworkType.UNMETERED)
-                            .build();
-
-                    WorkRequest myUploadWork =  new OneTimeWorkRequest.Builder(UpdatesWorker.class).setConstraints(constraints)
-                            .addTag("neuralnet_updates").setInputData(new Data.Builder()
-                                    .putString("projectkey", projectFolder).putStringArray("projectkeys", projectFolders)
-                                    .build()
-                            )
-                            .build();
-
-                    WorkManager.getInstance(getBaseContext()).enqueue(myUploadWork);
-                    */
 
                     new UpdatesAsyncTask().execute(projectFolder);
                 }
@@ -220,13 +173,6 @@ public class SettingsActivity extends AppCompatActivity {
         private  String TAG_VERSION = "version";
         private  String TAG_DRUGS = "drugs";
 
-        //private  String subFhiConc = "fhi360_conc_large_lite";
-        //private  String subFhi = "fhi360_small_lite";
-        //private  String subId = "idPAD_small_lite";
-        //private  String subMsh = "msh_tanzania_3k_10_lite";
-
-
-
         @Override
         protected void onPreExecute(){
             super.onPreExecute();
@@ -259,112 +205,101 @@ public class SettingsActivity extends AppCompatActivity {
                     .appendQueryParameter("queryname", "network_info");
 
             try{
+                URL urlObj = new URL(builder.build().toString());
 
-                {
-                    URL urlObj = new URL(builder.build().toString());
+                conn = (HttpURLConnection) urlObj.openConnection();
+                conn.setDoOutput(true);
+                conn.setRequestMethod("GET");
+                conn.setRequestProperty("Accept-Charset", "UTF-8");
+                conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+                conn.setRequestProperty("charset", "utf-8");
+                conn.setReadTimeout(10000);
+                conn.setConnectTimeout(15000);
+                conn.connect();
 
-                    conn = (HttpURLConnection) urlObj.openConnection();
-                    conn.setDoOutput(true);
-                    conn.setRequestMethod("GET");
-                    conn.setRequestProperty("Accept-Charset", "UTF-8");
-                    conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-                    conn.setRequestProperty("charset", "utf-8");
-                    conn.setReadTimeout(10000);
-                    conn.setConnectTimeout(15000);
-                    conn.connect();
+                InputStream stream = conn.getInputStream();
 
-                    InputStream stream = conn.getInputStream();
+                reader = new BufferedReader(new InputStreamReader(stream));
 
-                    reader = new BufferedReader(new InputStreamReader(stream));
+                StringBuffer buffer = new StringBuffer();
+                String line = "";
 
-                    StringBuffer buffer = new StringBuffer();
-                    String line = "";
+                while( (line = reader.readLine()) != null){
+                    buffer.append(line + "\n");
+                }
 
-                    while( (line = reader.readLine()) != null){
-                        buffer.append(line + "\n");
-                    }
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                SharedPreferences.Editor editor = prefs.edit();
 
-                    //return buffer.toString();
+                for(String projectSet : projectFolders){
 
-                    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                    SharedPreferences.Editor editor = prefs.edit();
+                    String projectVersionString = prefs.getString(projectSet + "version", "0.0");
+                    Double projectVersion = Double.parseDouble(projectVersionString);
 
+                    JSONObject jsonObject = new JSONObject(buffer.toString());
+                    JSONArray listArray = jsonObject.getJSONArray(TAG_LIST);
 
-                    for(String projectSet : projectFolders){
+                    for(int i = 0; i < listArray.length(); i++){
+                        JSONObject item = listArray.getJSONObject(i);
 
-                        String projectVersionString = prefs.getString(projectSet + "version", "0.0");
-                        Double projectVersion = Double.parseDouble(projectVersionString);
+                        String projectName = item.getString(TAG_NAME);
+                        if( projectName.equals(projectSet)){
 
+                            String weightsUrl = item.getString(TAG_WEIGHTS);
+                            Log.d("PADS_URL", weightsUrl);
+                            String versionString = item.getString(TAG_VERSION);
+                            Double version = Double.parseDouble(versionString);
 
-                        //Log.d("PADS_JSON", buffer.toString());
-                        JSONObject jsonObject = new JSONObject(buffer.toString());
-                        JSONArray listArray = jsonObject.getJSONArray(TAG_LIST);
-                        //Log.d("PADS_JSON", jsonObject.toString());
+                            if(version > projectVersion){
+                                // then get updated files and update the shared preferences with new data
 
-                        for(int i = 0; i < listArray.length(); i++){
-                            JSONObject item = listArray.getJSONObject(i);
+                                URL url = new URL(weightsUrl);
+                                URLConnection connection = url.openConnection();
+                                connection.connect();
 
-                            //Log.d("PADS_JSON", "item: " + item.toString());
-                            String projectName = item.getString(TAG_NAME);
-                            if( projectName.equals(projectSet) /*projectName.equals(fhiConcName) || projectName.equals(fhiName) || projectName.equals(veripadIdName) || projectName.equals(mshTanzaniaName)*/){
+                                int lengthOfFile = connection.getContentLength();
 
-                                String weightsUrl = item.getString(TAG_WEIGHTS);
-                                Log.d("PADS_URL", weightsUrl);
-                                String versionString = item.getString(TAG_VERSION);
-                                Double version = Double.parseDouble(versionString);
+                                InputStream input = new BufferedInputStream(url.openStream(), 8192);
 
-                                if(version > projectVersion){
-                                    // then get updated files and update the shared preferences with new data
-
-                                    URL url = new URL(weightsUrl);
-                                    URLConnection connection = url.openConnection();
-                                    connection.connect();
-
-                                    int lengthOfFile = connection.getContentLength();
-
-                                    InputStream input = new BufferedInputStream(url.openStream(), 8192);
-
-                                    Context context = getBaseContext();
-                                    File newDir = context.getDir("tflitemodels", Context.MODE_PRIVATE);
-                                    if (!newDir.exists()) {
-                                        newDir.mkdirs();
-                                    }
-
-                                    String newFileName = URLUtil.guessFileName(String.valueOf(url), null, null);
-                                    //store the values in shared preferences
-                                    editor.putString(projectSet + "filename", newFileName);
-                                    editor.putString(projectSet + "version", versionString);
-                                    editor.commit();
-
-                                    Log.d("UPDATES_WORKER", "Updating: " + projectSet + "filename to " + newFileName);
-                                    Log.d("UPDATES_WORKER", "Updating: " + projectSet + "version to " + versionString);
-
-                                    File newFile = new File(newDir, newFileName);
-
-                                    OutputStream output = new FileOutputStream(newFile);
-
-                                    byte data[] = new byte[1024];
-
-                                    long total = 0;
-
-                                    while ((count = input.read(data)) != -1) {
-                                        total += count;
-
-                                        publishProgress(String.valueOf( (total * 100) / lengthOfFile));
-                                        output.write(data, 0, count);
-                                    }
-
-                                    output.flush();
-
-                                    output.close();
-                                    input.close();
-
+                                Context context = getBaseContext();
+                                File newDir = context.getDir("tflitemodels", Context.MODE_PRIVATE);
+                                if (!newDir.exists()) {
+                                    newDir.mkdirs();
                                 }
 
-                            }
-                        }
-                    } //for each project name
+                                String newFileName = URLUtil.guessFileName(String.valueOf(url), null, null);
+                                //store the values in shared preferences
+                                editor.putString(projectSet + "filename", newFileName);
+                                editor.putString(projectSet + "version", versionString);
+                                editor.commit();
 
+                                Log.d("UPDATES_WORKER", "Updating: " + projectSet + "filename to " + newFileName);
+                                Log.d("UPDATES_WORKER", "Updating: " + projectSet + "version to " + versionString);
+
+                                File newFile = new File(newDir, newFileName);
+
+                                OutputStream output = new FileOutputStream(newFile);
+
+                                byte data[] = new byte[1024];
+
+                                long total = 0;
+
+                                while ((count = input.read(data)) != -1) {
+                                    total += count;
+
+                                    publishProgress(String.valueOf( (total * 100) / lengthOfFile));
+                                    output.write(data, 0, count);
+                                }
+
+                                output.flush();
+
+                                output.close();
+                                input.close();
+
+                            }
+
+                        }
+                    }
                 }
             }catch(Exception e){
                 FirebaseCrashlytics.getInstance().recordException(e);
@@ -387,239 +322,5 @@ public class SettingsActivity extends AppCompatActivity {
             doneButton.setClickable(true);
 
         }
-
-
     }
-
-/*
-    @Override
-    protected Dialog onCreateDialog(int id) {
-        switch (id) {
-            case progress_bar_type: // we set this to 0
-                pDialog = new ProgressDialog(this);
-                pDialog.setMessage("Downloading file. Please wait...");
-                pDialog.setIndeterminate(false);
-                pDialog.setMax(100);
-                pDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-                pDialog.setCancelable(true);
-                pDialog.show();
-                return pDialog;
-            default:
-                return null;
-        }
-    }
-*/
-
-    //Async class to do tflite model downloads
-    /*
-    private class DownloadNeuralNet extends AsyncTask<String, String, String> {
-
-        @Override
-        protected void onPreExecute(){
-            super.onPreExecute();
-            //showDialog(progress_bar_type);
-            doneButton.setClickable(false);
-            progressBar.setVisibility(View.VISIBLE);
-            progressBar.setMax(100);
-        }
-
-        @Override
-        protected String doInBackground(String... f_url){
-            int count;
-            List<String> filesList = new ArrayList<>();
-
-            try{
-
-                //get the preferences so we can store versions and filenames there
-                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-                SharedPreferences.Editor editor = prefs.edit();
-
-                String projectFolder = f_url[0].substring(f_url[0].lastIndexOf("/") + 1);
-
-                Log.d("ModelFolder", projectFolder);
-                editor.putString("ProjectFolder", projectFolder);
-                editor.commit();
-
-                String loggedVersionString = prefs.getString(projectFolder + "version", "0.0/");
-                Double loggedVersion = Double.parseDouble(loggedVersionString);
-
-                Log.d("ModelVersionLogged", loggedVersion.toString());
-                String latestVersionString = getLatestNNVersion(f_url[0]);
-                Double latestVersion = Double.parseDouble(latestVersionString);
-
-                Log.d("ModelVersionLatest", latestVersion.toString());
-
-                //if(!latestVersion.equals(loggedVersion)) {
-                if(latestVersion > loggedVersion){
-                    // get the latest files to download if we don't already have the latest vesion logged for the project
-                    filesList = getLatestVersionFiles(f_url[0] + "/" + latestVersion);
-
-                    editor.putString(projectFolder + "version", latestVersion.toString());
-                    editor.commit();
-                }
-
-                for(String file : filesList) {
-
-                    URL url = new URL(f_url[0] + "/" + latestVersion + file);
-                    URLConnection connection = url.openConnection();
-                    connection.connect();
-
-                    int lengthOfFile = connection.getContentLength();
-
-                    InputStream input = new BufferedInputStream(url.openStream(), 8192);
-
-                    //String baseDataDir = Environment.getDataDirectory().toString();
-
-                    Context context = getBaseContext();
-                    File newDir = context.getDir("tflitemodels", Context.MODE_PRIVATE);
-                    if (!newDir.exists()) {
-                        newDir.mkdirs();
-                    }
-
-                    String newFileName = URLUtil.guessFileName(String.valueOf(url), null, null);
-                    //File newFile = new File(newDir, "idPAD_small_1_6.tflite");
-
-                    //keep track of the file name in case they change with new versions
-                    editor.putString(projectFolder + "filename", newFileName);
-                    editor.commit();
-
-                    File newFile = new File(newDir, newFileName);
-
-                    //String appDataDir = baseDataDir + "/data/" + BuildConfig.APPLICATION_ID + "/app_tflitemodels";
-                    //Log.d("SETTINGS", baseDataDir);
-                    //OutputStream output = new FileOutputStream(baseDataDir + "/idPAD_small_1_6.tflite");
-
-                    OutputStream output = new FileOutputStream(newFile);
-
-                    byte data[] = new byte[1024];
-
-                    long total = 0;
-
-                    while ((count = input.read(data)) != -1) {
-                        total += count;
-
-                        //publishProgress("" + (int) ((total * 100) / lengthOfFile));
-                        //progressBar.setProgress((int) ((total * 100) / lengthOfFile));
-                        publishProgress(String.valueOf( (total * 100) / lengthOfFile));
-
-                        output.write(data, 0, count);
-                    }
-
-                    output.flush();
-
-                    output.close();
-                    input.close();
-
-                }
-
-            }catch(Exception e){
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        private String getLatestNNVersion(String url){
-            //parse the root project folder on the web and return highest number sub-folder found
-            Double latest = 1.0;
-
-            String latestString = "1.0/";
-            try{
-                Document doc = Jsoup.connect(url).timeout(0).get();
-
-                doc.select("img").remove();
-                Elements links = doc.select("a");
-
-                List<String> listmainlinks = new ArrayList<>();
-
-                for(Element link : links){
-                    String linkInnerH = link.html();
-                    String linkHref = link.attr("href");
-                    //System.out.println("linkHref: "+ linkHref);
-                    //System.out.println("linkInnerH: "+ linkInnerH);
-                    if(linkInnerH.equals("") ||linkInnerH.equals(" ")||linkInnerH.equals(null) || linkHref.contains("?C=N;O=D")||
-                            linkHref.contains("?C=M;O=A")||linkHref.contains("?C=S;O=A") ||linkHref.contains("?C=D;O=A")){ }
-                    else if(linkHref.contains("/")){
-
-                        if(!linkInnerH.contains("Parent Directory")) {
-                            listmainlinks.add(linkHref);
-                            String temp = linkHref.replace("/", "");
-                            Double tempDouble = Double.parseDouble(temp);
-                            if(tempDouble > latest){
-                                latest = tempDouble;
-                                latestString = linkHref;
-                            }
-                        }
-                    }else{
-                        //listweblinks.add(url + linkHref);
-                    }
-                }
-
-
-
-
-            }catch(IOException e){
-                e.printStackTrace();
-            }
-            return latestString;
-
-        }
-
-        private List<String> getLatestVersionFiles(String url){
-
-            //parse version directory for tflite files and return a list
-            List<String> listmainlinks = new ArrayList<>();
-
-            try{
-                Document doc = Jsoup.connect(url).timeout(0).get();
-
-                doc.select("img").remove();
-                Elements links = doc.select("a");
-
-
-
-                for(Element link : links){
-                    String linkInnerH = link.html();
-                    String linkHref = link.attr("href");
-                    //System.out.println("linkHref: "+ linkHref);
-                    //System.out.println("linkInnerH: "+ linkInnerH);
-                    if(linkInnerH.equals("") ||linkInnerH.equals(" ")||linkInnerH.equals(null) || linkHref.contains("?C=N;O=D")||
-                            linkHref.contains("?C=M;O=A")||linkHref.contains("?C=S;O=A") ||linkHref.contains("?C=D;O=A")){ }
-                    else if(linkHref.contains("/")){
-
-                        if(!linkInnerH.contains("Parent Directory")) {
-                            //listmainlinks.add(linkHref);
-
-                        }
-                    }else{
-                        //listweblinks.add(url + linkHref);
-                        listmainlinks.add(linkHref);
-                    }
-                }
-
-
-
-
-            }catch(IOException e){
-                e.printStackTrace();
-            }
-
-            return listmainlinks;
-        }
-
-        protected void onProgressUpdate(String... progress){
-            //pDialog.setProgress(Integer.parseInt(progress[0]));
-            progressBar.setProgress(Integer.parseInt(progress[0]));
-            //if(progressBar.getProgress() >= 100){
-                //task.cancel(true);
-            //}
-        }
-
-        @Override
-        protected  void onPostExecute(String f_url){
-            //dismissDialog(progress_bar_type);
-            progressBar.setVisibility(View.INVISIBLE);
-            doneButton.setClickable(true);
-        }
-
-    }*/
 }

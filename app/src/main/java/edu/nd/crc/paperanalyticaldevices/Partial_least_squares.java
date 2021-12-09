@@ -66,14 +66,6 @@ public class Partial_least_squares {
 
             Log.i("GBT-PLS", csv.get(0)[0]);
             Log.i("GBT-PLS", valueOf(coeffs.get(0).get(0)) + ", " + labels.get(0));
-
-            // run test at initialize
-            // calculate the concentration
-            // for regression should be 28.22623085
-//            Bitmap bmp = BitmapFactory.decodeStream(context.getAssets().open("pls_test_16895.png"));
-//
-//            double concentration = do_pls(bmp, "albendazole");
-
         } catch (IOException e) {
             FirebaseCrashlytics.getInstance().recordException(e);
             Log.i("GBT-PLS", "PLS error");
@@ -99,9 +91,6 @@ public class Partial_least_squares {
         List<double []> results = new ArrayList<>();
 
         // load test image from drawable
-        //try {
-        //Mat BGRMat = Utils.loadResource(context, R.drawable.pls_test_16895);
-        //Bitmap bmp = BitmapFactory.decodeStream(context.getAssets().open("pls_test_16895.png"));
         Mat BGRMat = new Mat();
         Utils.bitmapToMat(bmp, BGRMat);
         Imgproc.cvtColor(BGRMat,BGRMat,Imgproc.COLOR_RGBA2BGR);
@@ -117,25 +106,19 @@ public class Partial_least_squares {
         for (int lane=1; lane < 13; lane++){
             int laneStart = 17 + (53*lane) + 12;
             int laneEnd = 17 + (53*(lane+1)) - 12;
-            //Log.i("GBT-PLS-lane", String.valueOf(lane));
-            // for each region
             for (int region=0; region < 10; region++){
-                //Log.i("GBT-PLS-region", String.valueOf(region));
                 int start = 359;
                 int totalLength = 273;
                 int regionStart = start + (int)Math.floor((totalLength * region)/10);
                 int regionEnd = start + (int)Math.floor((totalLength * (region+1))/10);
 
                 Rect rroi = new Rect(laneStart, regionStart, laneEnd - laneStart, regionEnd - regionStart );
-                //Log.i("GBT-PLS", String.valueOf(rroi) +","+regionStart+","+regionEnd+","+laneStart+","+laneEnd);
 
                 Mat roi =  new Mat(imgHSV, rroi);
                 Mat rgbROI =  new Mat(BGRMat, rroi);
-                //Log.i("GBT-PLS", String.valueOf(roi.size()));
 
                 // gt most intense pixels
                 Vector<Point> pixels = findMaxIntensitiesFiltered(roi);
-                //Log.i("GBT-PLS", "pix, "+String.valueOf(pixels.size()) +','+String.valueOf(pixels.get(0)));
 
                 // average over rgb
                 double [] rgb = avgPixels(pixels, rgbROI);
@@ -163,13 +146,9 @@ public class Partial_least_squares {
     private Vector<Point> findMaxIntensitiesFiltered(Mat img){
         Vector<Point> maxSet = new Vector<>();
 
-        // imgS = img[:,:,1]
-        // imgV = img[:,:,2]
-
         double maxI = 0;
         double centerX = (double)img.rows()/2.0;
         double centerY = (double)img.cols()/2.0;
-        //Log.i("GBT-PLS", String.valueOf(centerX) + ','+String.valueOf(centerY));
 
         // loop over x
         for (int i=0; i<img.rows(); i++) {
@@ -179,7 +158,7 @@ public class Partial_least_squares {
             for (int j=0; j<img.cols(); j++) {
                 double dY = Math.abs(centerY - j);
                 double sF = cosCorrectFactor(dX, dY, centerX, centerY);
-                //Log.i("GBT-PLS", i +","+j);
+
                 double cS = sF * img.get(i, j)[1]; //imgS
                 double cV = sF * img.get(i, j)[2]; //imgV
 
@@ -256,7 +235,6 @@ public class Partial_least_squares {
             }
         }
 
-        //Log.i("GBT-PLS", "res size, "+String.valueOf(results.size())+","+drug_coeffs.size()+","+conc);
         // return concentration
         return conc;
     }

@@ -123,21 +123,7 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
         // Make the textview clickable. Must be called after show()
         ((TextView)d.findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
     }
-/*
-    private boolean isTorchOn;
 
-    public void toggleTorch(View view){
-        mOpenCvCameraView.toggleTorch();
-        analyzeButton = (FloatingActionButton) findViewById(R.id.floatingAnalyze);
-        if(isTorchOn){
-            analyzeButton.setImageResource(R.drawable.baseline_flashlight_on_24);
-            isTorchOn = false;
-        }else{
-            analyzeButton.setImageResource(R.drawable.baseline_flashlight_off_24);
-            isTorchOn = true;
-        }
-    }
-*/
     @Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -151,19 +137,6 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
                         Manifest.permission.WRITE_EXTERNAL_STORAGE}, 91);
 
 		mOpenCvCameraView = (JavaCam2ResView) findViewById(R.id.activity_surface_view);
-        //analyzeButton = (FloatingActionButton) findViewById(R.id.floatingAnalyze);
-/*      //Torch toggle not reliable yet
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-
-        isTorchOn = prefs.getBoolean("torchon", false);
-        if(isTorchOn){
-            analyzeButton.setImageResource(R.drawable.baseline_flashlight_off_24);
-
-        }else{
-            analyzeButton.setImageResource(R.drawable.baseline_flashlight_on_24);
-
-        }
-*/
     }
 
     @Override
@@ -183,7 +156,6 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
 
 
     protected List<? extends CameraBridgeViewBase> getCameraViewList() {
-        //return new ArrayList<CameraBridgeViewBase>();
         return Collections.singletonList(mOpenCvCameraView);
     }
 
@@ -231,6 +203,7 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
 
         // Parse input test file
         Bitmap tBM2 = BitmapFactory.decodeStream(this.getClass().getResourceAsStream("/test42401.png"));
+
         // Convert to OpenCV matrix
         Utils.bitmapToMat(tBM2, testMat);
 
@@ -241,7 +214,6 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
         mOpenCvCameraView.setCvCameraViewListener(this);
         mOpenCvCameraView.enableFpsMeter();
         mOpenCvCameraView.enableView();
-
 	}
 
     public void goHome(View view){
@@ -251,7 +223,6 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
     }
 
     public void goToSettings(View view){
-        //mOpenCvCameraView.StopPreview();
         Intent i = new Intent(this, SettingsActivity.class);
         startActivity(i);
     }
@@ -259,8 +230,6 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
 	public void onDestroy() {
 		super.onDestroy();
 		if (mOpenCvCameraView != null) {
-            //mOpenCvCameraView.setCameraPermissionGranted();
-            //Log.d("PAD", "onDestroy()");
             mOpenCvCameraView.disableView();
         }
 	}
@@ -269,8 +238,6 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
 
     @Override
     public void finish() {
-        //Log.i("PAD", "Sending result:" + mResultIntent.toString());
-        //mOpenCvCameraView.setCameraPermissionGranted();
         mOpenCvCameraView.StopPreview();
         setResult(RESULT_OK, mResultIntent);
         super.finish();
@@ -282,7 +249,6 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
 	}
 
 	public void onCameraViewStopped() {
-
         Log.d("PAD", "onCameraViewStopped()");
         mOpenCvCameraView.setCameraPermissionGranted();
         mOpenCvCameraView.StopPreview();
@@ -309,8 +275,6 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         mRgbaModified = inputFrame.rgba();
 
-        //Log.d(LOG_TAG, "Entering onCameraFrame()");
-
         //waiting on dialog?
         if(ad != null) return mRgbaModified;
 
@@ -320,17 +284,11 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
         Mat work = new Mat();
         float ratio;
 
-        //debug code
-        //Imgproc.resize(inputFrame.gray(), work, new Size(IMAGE_WIDTH, (mRgbaModified.size().height * IMAGE_WIDTH) / mRgbaModified.size().width), 0, 0, Imgproc.INTER_LINEAR);
-        //ratio = (float)mRgbaModified.size().width / (float)IMAGE_WIDTH;
-
         if(mRgbaModified.size().height >  mRgbaModified.size().width) {
-            //Log.d(LOG_TAG, "Portrait image detected.");
             Imgproc.resize(inputFrame.gray(), work, new Size(IMAGE_WIDTH, (mRgbaModified.size().height * IMAGE_WIDTH) / mRgbaModified.size().width), 0, 0, Imgproc.INTER_LINEAR);
             ratio = (float)mRgbaModified.size().width / (float)IMAGE_WIDTH;
         }else{
             portrait = false;
-            //Log.d(LOG_TAG, "Landscape image detected.");
             Imgproc.resize(inputFrame.gray(), work, new Size((mRgbaModified.size().width * IMAGE_WIDTH) / mRgbaModified.size().height, IMAGE_WIDTH), 0, 0, Imgproc.INTER_LINEAR);
             Core.transpose(work, work);
             Core.flip(work, work, 1);
@@ -417,15 +375,7 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
 
                     //flag saved
                     markersDetected = true;
-/*  //removed after changing button to flash toggle
-                    //enable button once acquired
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            analyzeButton.setEnabled(true);
-                        }
-                    });
-*/
+
                     // rectify image, include QR/Fiducial points
                     float dest_points[][] = {{85, 1163, 686, 1163, 686, 77, 244, 64, 82, 64, 82, 226}, {85, 1163, 686, 1163, 686, 77, 255, 64, 82, 64, 82, 237}};
 
@@ -471,87 +421,99 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
         }
         out.close();
     }
-/**
-Show dialog to save data
- */
-public void showSaveDialog(){
-    new Handler(Looper.getMainLooper()).post(new Runnable() {
-        @Override
-        public void run() {
-            Log.d("UI thread", "I am the UI thread");
 
-            AlertDialog.Builder alert = new AlertDialog.Builder(Camera2Activity.this);
-            alert.setTitle("Fiducials acquired!");
-            alert.setMessage("Store PAD image?");
-            alert.setPositiveButton("OK",
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            DateFormat df = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
-                            Date today = Calendar.getInstance().getTime();
+    /**
+    Show dialog to save data
+    */
+    public void showSaveDialog(){
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                Log.d("UI thread", "I am the UI thread");
 
-                            File imagePath = new File(Camera2Activity.this.getFilesDir(), "images");
-                            File padImageDirectory = new File(imagePath + "/PAD/" + df.format(today));
-                            padImageDirectory.mkdirs();
+                AlertDialog.Builder alert = new AlertDialog.Builder(Camera2Activity.this);
+                alert.setTitle("Fiducials acquired!");
+                alert.setMessage("Store PAD image?");
+                alert.setPositiveButton("OK",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                DateFormat df = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+                                Date today = Calendar.getInstance().getTime();
 
-                            //save rectified image
-                            File cFile = new File(padImageDirectory, "rectified.png");
-                            Imgproc.cvtColor(cropped, cropped, Imgproc.COLOR_BGRA2RGB);
-                            Imgcodecs.imwrite(cFile.getPath(), cropped);
+                                File imagePath = new File(Camera2Activity.this.getFilesDir(), "images");
+                                File padImageDirectory = new File(imagePath + "/PAD/" + df.format(today));
+                                padImageDirectory.mkdirs();
 
-                            //save original image
-                            File oFile = new File(padImageDirectory, "original.png");
-                            Imgproc.cvtColor(mRgba, mRgba, Imgproc.COLOR_BGRA2RGB);
-                            Imgcodecs.imwrite(oFile.getPath(), mRgba);
+                                //save rectified image
+                                File cFile = new File(padImageDirectory, "rectified.png");
+                                Imgproc.cvtColor(cropped, cropped, Imgproc.COLOR_BGRA2RGB);
+                                Imgcodecs.imwrite(cFile.getPath(), cropped);
 
-                            //gallery?
-                            try {
-                                MediaStore.Images.Media.insertImage(getContentResolver(), cFile.getPath(),
-                                        df.format(today), "Rectified Image");
-                                MediaStore.Images.Media.insertImage(getContentResolver(), oFile.getPath(),
-                                        df.format(today), "Origional Image");
-                                //Log.i("ContoursOut", "Saved to gallery");
-                            } catch (Exception e) {
-                                FirebaseCrashlytics.getInstance().recordException(e);
-                                Log.i("ContoursOut", "Cannot save to gallery" + e.toString());
-                            }
+                                //save original image
+                                File oFile = new File(padImageDirectory, "original.png");
+                                Imgproc.cvtColor(mRgba, mRgba, Imgproc.COLOR_BGRA2RGB);
+                                Imgcodecs.imwrite(oFile.getPath(), mRgba);
 
-                            Intent intent = getIntent();
-                            if( intent != null /*&& intent.getData() != null */){
-                                try{
-                                    File target = new File(padImageDirectory, "compressed.zip");
-                                    CompressOutputs(new File[]{ cFile, oFile }, target);
-                                    mResultIntent.setData(FileProvider.getUriForFile(Camera2Activity.this, "edu.nd.crc.paperanalyticaldevices.fileprovider", target));
-                                    mResultIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                                    mResultIntent.putExtra("qr", qrText);
-                                    mResultIntent.putExtra("timestamp", Calendar.getInstance().getTimeInMillis());
-                                    finish();
-                                }catch( Exception e ) {
-                                    FirebaseCrashlytics.getInstance().recordException(e);
-                                    Log.i("ContoursOut", "Cannot compress files: " + e.toString());
-                                }
-                            }else {
-                                Log.i("ContoursOut", cFile.getPath());
-
-                                Intent i = new Intent(Intent.ACTION_SEND_MULTIPLE);
-                                i.setType("message/rfc822");
-                                i.setType("application/image");
-                                //i.putExtra(Intent.EXTRA_EMAIL, new String[]{"paperanalyticaldevices@gmail.com"});
-                                i.putExtra(Intent.EXTRA_EMAIL, new String[]{"mcurran2@nd.edu"});
-                                i.putExtra(Intent.EXTRA_SUBJECT, "PADs");
-                                i.putExtra(Intent.EXTRA_TEXT, "Pad image (" + qrText + ")");
-                                ArrayList<Uri> uris = new ArrayList<Uri>();
-                                uris.add(FileProvider.getUriForFile(getApplicationContext(), getApplicationContext().getPackageName() + ".fileprovider", new File(cFile.getPath())));
-                                uris.add(FileProvider.getUriForFile(getApplicationContext(), getApplicationContext().getPackageName() + ".fileprovider", new File(oFile.getPath())));
-                                i.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
-                                i.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
+                                //gallery?
                                 try {
-                                    startActivity(i);
-                                } catch (android.content.ActivityNotFoundException ex) {
-                                    FirebaseCrashlytics.getInstance().recordException(ex);
-                                    Log.i("ContoursOut", "There are no email clients installed.");
+                                    MediaStore.Images.Media.insertImage(getContentResolver(), cFile.getPath(),
+                                            df.format(today), "Rectified Image");
+                                    MediaStore.Images.Media.insertImage(getContentResolver(), oFile.getPath(),
+                                            df.format(today), "Origional Image");
+                                } catch (Exception e) {
+                                    FirebaseCrashlytics.getInstance().recordException(e);
+                                    Log.i("ContoursOut", "Cannot save to gallery" + e.toString());
                                 }
 
+                                Intent intent = getIntent();
+                                if( intent != null /*&& intent.getData() != null */){
+                                    try{
+                                        File target = new File(padImageDirectory, "compressed.zip");
+                                        CompressOutputs(new File[]{ cFile, oFile }, target);
+                                        mResultIntent.setData(FileProvider.getUriForFile(Camera2Activity.this, "edu.nd.crc.paperanalyticaldevices.fileprovider", target));
+                                        mResultIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                                        mResultIntent.putExtra("qr", qrText);
+                                        mResultIntent.putExtra("timestamp", Calendar.getInstance().getTimeInMillis());
+                                        finish();
+                                    }catch( Exception e ) {
+                                        FirebaseCrashlytics.getInstance().recordException(e);
+                                        Log.i("ContoursOut", "Cannot compress files: " + e.toString());
+                                    }
+                                }else {
+                                    Log.i("ContoursOut", cFile.getPath());
+
+                                    Intent i = new Intent(Intent.ACTION_SEND_MULTIPLE);
+                                    i.setType("message/rfc822");
+                                    i.setType("application/image");
+                                    i.putExtra(Intent.EXTRA_EMAIL, new String[]{"mcurran2@nd.edu"});
+                                    i.putExtra(Intent.EXTRA_SUBJECT, "PADs");
+                                    i.putExtra(Intent.EXTRA_TEXT, "Pad image (" + qrText + ")");
+                                    ArrayList<Uri> uris = new ArrayList<Uri>();
+                                    uris.add(FileProvider.getUriForFile(getApplicationContext(), getApplicationContext().getPackageName() + ".fileprovider", new File(cFile.getPath())));
+                                    uris.add(FileProvider.getUriForFile(getApplicationContext(), getApplicationContext().getPackageName() + ".fileprovider", new File(oFile.getPath())));
+                                    i.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+                                    i.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                                    try {
+                                        startActivity(i);
+                                    } catch (android.content.ActivityNotFoundException ex) {
+                                        FirebaseCrashlytics.getInstance().recordException(ex);
+                                        Log.i("ContoursOut", "There are no email clients installed.");
+                                    }
+
+                                    //start preview
+                                    mOpenCvCameraView.StartPreview();
+
+                                    dialog.dismiss();
+
+                                    ad = null;
+                                }
+                            }
+                        }
+                );
+                alert.setNegativeButton("Cancel",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
                                 //start preview
                                 mOpenCvCameraView.StartPreview();
 
@@ -560,66 +522,48 @@ public void showSaveDialog(){
                                 ad = null;
                             }
                         }
-                    }
-            );
-            alert.setNegativeButton("Cancel",
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            //start preview
-                            mOpenCvCameraView.StartPreview();
+                );
+                ad = alert.show();
 
-                            dialog.dismiss();
-
-                            ad = null;
-                        }
-                    }
-            );
-            ad = alert.show();
-
-        }
-    });
-
-    //stop preview while we wait for response
-    //Log.d("PAD", "Awaiting dialog, StopPreview()");
-    //removed for Camera2 API changes, becomes redundant and stops workflow
-    //mOpenCvCameraView.StopPreview();
-}
-
-public static String readQRCode(Mat mTwod){
-    Bitmap bMap = Bitmap.createBitmap(mTwod.width(), mTwod.height(), Bitmap.Config.ARGB_8888);
-    Utils.matToBitmap(mTwod, bMap);
-    int[] intArray = new int[bMap.getWidth()*bMap.getHeight()];
-    //copy pixel data from the Bitmap into the 'intArray' array
-    bMap.getPixels(intArray, 0, bMap.getWidth(), 0, 0, bMap.getWidth(), bMap.getHeight());
-
-    LuminanceSource source = new RGBLuminanceSource(bMap.getWidth(), bMap.getHeight(),intArray);
-
-    BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
-    Reader reader = new MultiFormatReader();
-    //....doing the actually reading
-    Result result = null;
-    try {
-        result = reader.decode(bitmap);
-    } catch (NotFoundException e) {
-        FirebaseCrashlytics.getInstance().recordException(e);
-        Log.i("ContoursOut", "QR error" + e.toString());
-        e.printStackTrace();
-    } catch (ChecksumException e) {
-        FirebaseCrashlytics.getInstance().recordException(e);
-        Log.i("ContoursOut", "QR error" + e.toString());
-        e.printStackTrace();
-    } catch (FormatException e) {
-        FirebaseCrashlytics.getInstance().recordException(e);
-        Log.i("ContoursOut", "QR error" + e.toString());
-        e.printStackTrace();
+            }
+        });
     }
-    Log.i("ContoursOut", String.format("QR: %s", result.getText()));
 
-    //return
-    return result.getText();
-}
+    public static String readQRCode(Mat mTwod){
+        Bitmap bMap = Bitmap.createBitmap(mTwod.width(), mTwod.height(), Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(mTwod, bMap);
+        int[] intArray = new int[bMap.getWidth()*bMap.getHeight()];
+        //copy pixel data from the Bitmap into the 'intArray' array
+        bMap.getPixels(intArray, 0, bMap.getWidth(), 0, 0, bMap.getWidth(), bMap.getHeight());
 
-public class PredictionGuess implements Comparable<PredictionGuess> {
+        LuminanceSource source = new RGBLuminanceSource(bMap.getWidth(), bMap.getHeight(),intArray);
+
+        BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
+        Reader reader = new MultiFormatReader();
+        //....doing the actually reading
+        Result result = null;
+        try {
+            result = reader.decode(bitmap);
+        } catch (NotFoundException e) {
+            FirebaseCrashlytics.getInstance().recordException(e);
+            Log.i("ContoursOut", "QR error" + e.toString());
+            e.printStackTrace();
+        } catch (ChecksumException e) {
+            FirebaseCrashlytics.getInstance().recordException(e);
+            Log.i("ContoursOut", "QR error" + e.toString());
+            e.printStackTrace();
+        } catch (FormatException e) {
+            FirebaseCrashlytics.getInstance().recordException(e);
+            Log.i("ContoursOut", "QR error" + e.toString());
+            e.printStackTrace();
+        }
+        Log.i("ContoursOut", String.format("QR: %s", result.getText()));
+
+        //return
+        return result.getText();
+    }
+
+    public class PredictionGuess implements Comparable<PredictionGuess> {
         public int Index;
         public float Confidence;
         public int NetIndex;

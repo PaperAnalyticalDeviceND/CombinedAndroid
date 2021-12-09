@@ -20,7 +20,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-//import java.util.concurrent.ExecutionException;
 
 public class UploadQueueActivity extends AppCompatActivity {
     //Activity to display pending uploads in a ListView
@@ -54,11 +53,9 @@ public class UploadQueueActivity extends AppCompatActivity {
             dbHelper = new WorkInfoDbHelper(getBaseContext());
             SQLiteDatabase db = dbHelper.getReadableDatabase();
 
-
             int countInQueue = 0;
             //Create a list of objects to display in the ListView for the queue
             ArrayList<PADDataObject> workList = new ArrayList<PADDataObject>();
-
 
             for(WorkInfo workInfo : listOfWorkInfo){
                 Data workData = workInfo.getOutputData();
@@ -66,16 +63,7 @@ public class UploadQueueActivity extends AppCompatActivity {
                 UUID workId = workInfo.getId();
                 Log.d("Queue TAG", "Work ID: " + workId);
 
-                /*
-                if(!workInfo.getState().isFinished()){
-                    countInQueue++;
-                }
-                String queueStatus = "Queue Size: " + countInQueue;
-                queueText.setText(queueStatus);*/
-
                 if(!workInfo.getState().isFinished()) {
-
-
                     String[] projection = {
                             BaseColumns._ID,
                             WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLENAME,
@@ -99,22 +87,16 @@ public class UploadQueueActivity extends AppCompatActivity {
                     List items = new ArrayList<>();
                     while(cursor.moveToNext()){
                         drugName = cursor.getString(cursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLENAME));
-                        //String timestamp = cursor.getString(cursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP));
                         Long timestamp = cursor.getLong(cursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP));
 
                         padId = "PAD ID: " + cursor.getString(cursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLEID));
 
-                        //Timestamp javaTimestamp = new Timestamp(Long.parseLong(timestamp)); // if the timestamp was in a TEXT column
                         Timestamp javaTimestamp = new Timestamp(timestamp);
                         Date date = new Date(javaTimestamp.getTime());
 
                         SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
                         newDate = sdf.format(date);
-                        //workMessage = newDate  + " - " + drugName;
                     }
-
-                    //workList.add(workMessage);
-                    //queueText.setText(workMessage);
 
                     PADDataObject padInfo = new PADDataObject();
                     padInfo.setDatetime(newDate);
@@ -133,11 +115,7 @@ public class UploadQueueActivity extends AppCompatActivity {
                 }
             }
 
-            //ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, R.layout.queue_listview, R.id.queue_item, workList);
-            //queueListView.setAdapter(arrayAdapter);
-
             queueListView.setAdapter(new QueueListBaseAdapter(this, workList));
-
         });
 
 

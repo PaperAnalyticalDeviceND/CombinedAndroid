@@ -62,7 +62,6 @@
     import java.util.zip.ZipInputStream;
 
     public class MainActivity extends AppCompatActivity {
-        //static final String PROJECT = "FHI360-App";
         static final String PROJECT = "";
         String ProjectName;
         public static boolean HoldCamera = false;
@@ -73,9 +72,7 @@
         public static final String EXTRA_LABEL_DRUGS = "e.nd.paddatacapture.EXTRA_LABEL_DRUGS";
 
         // NN storage, now setting up array for multiple NN
-        //final int number_of_models = 2;
         int number_of_models;
-        //String[] model_list = {"fhi360_small_1_21.tflite", "fhi360_conc_large_1_21.tflite"};
         String[] model_list = {};
 
         ImageProcessor[] imageProcessor = {null, null};
@@ -172,8 +169,6 @@
                                 number_of_models = 0;
                                 break;
                         }
-
-                        //InitializeModels();
                     }
                 }
             };
@@ -189,145 +184,6 @@
                 checkForUpdates(project);
             }
 
-            /*
-            String projectFolder = "";
-            String[] projectFolders = {};
-
-            // check the currently selected project for updated NN files on app start
-            if(project.length() > 0){
-
-
-                switch(project){
-                    case "FHI360-App":
-
-                        //String url = baseUrl + "/" + subFhi;// + "/" + modelVersion + "/" + fhiName;
-                        //new updatesCheck().execute(url);
-
-
-                        //String url2 = baseUrl + "/" + subFhiConc;// + "/" + modelVersion + "/" + fhiConcName;
-                        //new updatesCheck().execute(url2);
-
-                        projectFolder = subFhi;
-                        projectFolders = new String[]{fhiName, fhiConcName};
-                        break;
-                    case "Veripad idPAD":
-
-
-                        //String url3 = baseUrl + "/" + subId;// + "/" + modelVersion + "/" + idPadName;
-                        //new updatesCheck().execute(url3);
-
-                        projectFolder = subId;
-                        projectFolders = new String[]{subId};
-                        break;
-                    case "MSH Tanzania":
-
-
-                        //String url4 = baseUrl + "/" + subMsh;// + "/" + modelVersion + "/" + mshName;
-                        //new updatesCheck().execute(url4);
-
-                        projectFolder = subMsh;
-                        projectFolders = new String[]{subMsh};
-                        break;
-                    default:
-                        Intent i = new Intent(this, SettingsActivity.class);
-                        startActivity(i);
-                        return;
-                }
-
-                Constraints constraints = new Constraints.Builder()
-                        .setRequiredNetworkType(NetworkType.UNMETERED)
-                        .build();
-
-                WorkRequest myUploadWork =  new OneTimeWorkRequest.Builder(UpdatesWorker.class).setConstraints(constraints)
-                        .addTag("neuralnet_updates").setInputData(new Data.Builder()
-                            .putString("projectkey", projectFolder).putStringArray("projectkeys", projectFolders)
-                                .build()
-                        )
-                        .build();
-
-                WorkManager.getInstance(this).enqueue(myUploadWork);
-/*
-                InitializeModels();
-            }else{
-                //go to settings to get the Project set so we can load the models
-                Intent i = new Intent(this, SettingsActivity.class);
-                startActivity(i);
-            }
-
-/*  //offloading this code to a separate function now that the tensor files can be dynamic
-            // Initialization code for TensorFlow Lite
-            // Initialise the models
-            for(int num_mod=0; num_mod < number_of_models; num_mod++) {
-                //final int num_mod = 0;
-                try {
-                    //tfliteModel[num_mod] = FileUtil.loadMappedFile(this, model_list[num_mod]);
-                    tfliteModel[num_mod] = loadTensorFile(this, model_list[num_mod]);
-
-                    // does it have metadata?
-                    MetadataExtractor metadata = new MetadataExtractor(tfliteModel[num_mod]);
-                    if (metadata.hasMetadata()) {
-                        // create new list
-                        associatedAxisLabels[num_mod] = new ArrayList<>();
-
-                        // get labels
-                        InputStream a = metadata.getAssociatedFile("labels.txt");
-                        BufferedReader r = new BufferedReader(new InputStreamReader(a));
-                        String line;
-                        while ((line = r.readLine()) != null) {
-                            associatedAxisLabels[num_mod].add(line);
-                        }
-
-                        // other metadata
-                        ModelMetadata mm = metadata.getModelMetadata();
-                        Log.e("GBR", mm.description());
-                        Log.e("GBR", mm.version());
-
-                    } else {
-                        try {
-                            associatedAxisLabels[num_mod] = FileUtil.loadLabels(this, ASSOCIATED_AXIS_LABELS[num_mod]);
-                        } catch (IOException e) {
-                            Log.e("GBR", "Error reading label file", e);
-                        }
-                    }
-
-                    // create interpreter
-                    tflite[num_mod] = new Interpreter(tfliteModel[num_mod], tfliteOptions[num_mod]);
-
-                    // Reads type and shape of input and output tensors, respectively.
-                    int imageTensorIndex = 0;
-                    int[] imageShape = tflite[num_mod].getInputTensor(imageTensorIndex).shape(); // {1, 227, 227, 3}
-                    DataType imageDataType = tflite[num_mod].getInputTensor(imageTensorIndex).dataType();
-
-                    //output
-                    int probabilityTensorIndex = 0;
-
-                    // get output shape
-                    int[] probabilityShape =  tflite[num_mod].getOutputTensor(0).shape(); // {1, NUM_CLASSES}
-                    DataType probabilityDataType = tflite[num_mod].getOutputTensor(probabilityTensorIndex).dataType();
-
-                    // Create an ImageProcessor with all ops required. For more ops, please
-                    // refer to the ImageProcessor Architecture section in this README.
-                    imageProcessor[num_mod] = new ImageProcessor.Builder()
-                                    .add(new ResizeOp(imageShape[2], imageShape[1], ResizeOp.ResizeMethod.BILINEAR))
-                                    .build();
-
-                    // Create a TensorImage object. This creates the tensor of the corresponding
-                    // tensor type DataType.FLOAT32.
-                    tImage[num_mod] = new TensorImage(imageDataType);
-
-                    // Create a container for the result and specify that this is not a quantized model.
-                    // Hence, the 'DataType' is defined as DataType.FLOAT32
-                    probabilityBuffer[num_mod] = TensorBuffer.createFixedSize(probabilityShape, probabilityDataType);
-                    //TensorBuffer.createFixedSize(new int[]{1, 10}, DataType.FLOAT32);
-
-                } catch (IOException e) {
-                    Log.e("GBR", "Error reading model", e);
-                }
-            }
-
-            // setup pls
-            pls = new Partial_least_squares(this);
-*/
             // setup remainder
             setContentView(R.layout.activity_main);
 
@@ -342,14 +198,10 @@
         }
 
         public void checkForUpdates(String project){
-
-
             String[] projectFolders = {};
 
             // check the currently selected project for updated NN files on app start
             if(project.length() > 0) {
-
-
                 switch (project) {
                     case "FHI360-App":
 
@@ -365,8 +217,6 @@
                         break;
                     default:
                         //12-06-21 allow running without neural net so all projects can be captured
-                        //Intent i = new Intent(this, SettingsActivity.class);
-                        //startActivity(i);
                         return;
                 }
 
@@ -382,16 +232,11 @@
                         .build();
 
                 WorkManager.getInstance(this).enqueue(myUploadWork);
-            }else{
-                //go to settings to get the Project set so we can load the models
-                //Intent i = new Intent(this, SettingsActivity.class);
-                //startActivity(i);
             }
         }
 
 
         private void InitializeModels(){
-
             //@TODO  this will need to be fully dynamic in case models are added to other projects
             switch(ProjectName){
                 case "FHI360-App":
@@ -408,15 +253,12 @@
                     break;
                 default:
                     number_of_models = 0;
-                    //Toast.makeText(this, R.string.no_model_set, Toast.LENGTH_LONG).show();
                     break;
             }
             // Initialization code for TensorFlow Lite
             // Initialise the models
             for(int num_mod=0; num_mod < number_of_models; num_mod++) {
-                //final int num_mod = 0;
                 try {
-                    //tfliteModel[num_mod] = FileUtil.loadMappedFile(this, model_list[num_mod]);
                     tfliteModel[num_mod] = loadTensorFile(this, model_list[num_mod]);
 
                     Log.d("InitializeModels", model_list[num_mod]);
@@ -477,7 +319,6 @@
                     // Create a container for the result and specify that this is not a quantized model.
                     // Hence, the 'DataType' is defined as DataType.FLOAT32
                     probabilityBuffer[num_mod] = TensorBuffer.createFixedSize(probabilityShape, probabilityDataType);
-                    //TensorBuffer.createFixedSize(new int[]{1, 10}, DataType.FLOAT32);
 
                 } catch (IOException e) {
                     FirebaseCrashlytics.getInstance().recordException(e);
@@ -491,7 +332,6 @@
 
         @Override
         public boolean onCreateOptionsMenu(Menu menu){
-
             //attach the menu for settings and queue to the app bar
             MenuInflater inflater = getMenuInflater();
             inflater.inflate(R.menu.maintoolbarmenu, menu);
@@ -500,7 +340,6 @@
 
         @Override
         public boolean onOptionsItemSelected(MenuItem item) {
-
             //main screen app bar overflow menu
             switch (item.getItemId()) {
 
@@ -518,58 +357,22 @@
                     return super.onOptionsItemSelected(item);
 
             }
-            //return true;
         }
 
-            public void startImageCapture(View view){
+        public void startImageCapture(View view){
             Log.i("GBR", "Image capture starting");
             if ((ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)  != PackageManager.PERMISSION_GRANTED)
                     | (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)) {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 90);
             } else {
-                //progressBar.setVisibility(View.VISIBLE);
-/*
-                new Thread(new Runnable() {
-                    public void run(){
-                        while( progressStatus < 100){
-                            progressStatus += 1;
-
-                            handler.post(new Runnable(){
-                                public void run(){
-                                    progressBar.setProgress(progressStatus);
-                                }
-                            });
-                            try{
-                                Thread.sleep(5);
-                            }catch(InterruptedException e){
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                }).start();
-*/
-
-                //Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("pads://capture"));
                 Intent intent = new Intent(this, Camera2Activity.class);
                 startActivityForResult(intent, 10);
             }
         }
 
-        //ActivityResultLauncher<String> mGetResult = registerForActivityResult()
-
-/*
-        public void startCameraActivity(View view){
-
-
-
-        }
-*/
         @Override
         protected void onResume() {
             super.onResume();
-            if( !HoldCamera ) {
-                //startImageCapture(null);
-            }
             InitializeModels();
         }
 
@@ -708,7 +511,6 @@
 
         @Override
         public void onDestroy(){
-            //progressBar.setVisibility(View.INVISIBLE);
             super.onDestroy();
         }
 /*
@@ -740,309 +542,4 @@ Utility function to load the tensor models from internal storage instead of asse
             }
             return buffer;
         }
-/*
-        private class getUpdated extends AsyncTask<String, String, String> {
-
-            String thisProject;
-            String projectFolder;
-            //String url;
-            ProgressBar progressBar;
-            List<String> filesList = new ArrayList<>();
-
-            @Override
-            protected void onPreExecute(){
-                super.onPreExecute();
-                progressBar = (ProgressBar) findViewById(R.id.mainProgressBar);
-                progressBar.setVisibility(View.VISIBLE);
-            }
-
-            @Override
-            protected void onPostExecute(String result){
-                super.onPostExecute(result);
-            }
-
-            @Override
-            protected String doInBackground(String... version){
-
-                int count;
-
-                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-                SharedPreferences.Editor editor = prefs.edit();
-
-                thisProject = prefs.getString("neuralnet", "");
-
-                String modelVersion = version[0];
-
-                List<String> filesList = new ArrayList<>();
-                List<String> urlsList = new ArrayList<>();
-
-                switch(thisProject){
-                    case "FHI360-App":
-
-                        String url = baseUrl + "/" + subFhi + "/" + modelVersion + "/";// + fhiName;
-                        filesList = getLatestVersionFiles(url);
-
-                        for(String file : filesList){
-                            urlsList.add(url + file);
-                        }
-
-                        String url2 = baseUrl + "/" + subFhiConc + "/" + modelVersion + "/";// + fhiConcName;
-                        List<String> otherFiles = new ArrayList<>();
-                        otherFiles = getLatestVersionFiles(url2);
-
-                        for(String file : otherFiles){
-                            //filesList.add(file);
-                            urlsList.add(url2 + file);
-                        }
-
-
-
-                        break;
-                    case "Veripad idPAD":
-
-
-                        String url3 = baseUrl + "/" + subId + "/" + modelVersion + "/";// + idPadName;
-                        filesList = getLatestVersionFiles(url3);
-                        for(String file : filesList){
-                            urlsList.add(url3 + file);
-                        }
-
-                        break;
-                    case "MSH Tanzania":
-
-
-                        String url4 = baseUrl + "/" + subMsh + "/" + modelVersion + "/";// + mshName;
-                        filesList = getLatestVersionFiles(url4);
-                        for(String file : filesList){
-                            urlsList.add(url4 + file);
-                        }
-
-                        break;
-                    default:
-                        return null;
-                }
-
-                try {
-                    for (String file : urlsList) {
-
-                        URL url = new URL(file);
-                        URLConnection connection = url.openConnection();
-                        connection.connect();
-
-                        int lengthOfFile = connection.getContentLength();
-
-                        InputStream input = new BufferedInputStream(url.openStream(), 8192);
-
-                        //String baseDataDir = Environment.getDataDirectory().toString();
-
-                        Context context = getBaseContext();
-                        File newDir = context.getDir("tflitemodels", Context.MODE_PRIVATE);
-                        if (!newDir.exists()) {
-                            newDir.mkdirs();
-                        }
-
-                        String newFileName = URLUtil.guessFileName(String.valueOf(url), null, null);
-                        //File newFile = new File(newDir, "idPAD_small_1_6.tflite");
-
-                        //keep track of the file name in case they change with new versions
-                        editor.putString(projectFolder + "filename", newFileName);
-                        editor.commit();
-
-                        File newFile = new File(newDir, newFileName);
-
-                        //String appDataDir = baseDataDir + "/data/" + BuildConfig.APPLICATION_ID + "/app_tflitemodels";
-                        //Log.d("SETTINGS", baseDataDir);
-                        //OutputStream output = new FileOutputStream(baseDataDir + "/idPAD_small_1_6.tflite");
-
-                        OutputStream output = new FileOutputStream(newFile);
-
-                        byte data[] = new byte[1024];
-
-                        long total = 0;
-
-                        while ((count = input.read(data)) != -1) {
-                            total += count;
-
-                            //publishProgress("" + (int) ((total * 100) / lengthOfFile));
-                            //progressBar.setProgress((int) ((total * 100) / lengthOfFile));
-                            publishProgress(String.valueOf((total * 100) / lengthOfFile));
-
-                            output.write(data, 0, count);
-                        }
-
-                        output.flush();
-
-                        output.close();
-                        input.close();
-
-                    }
-                }catch(Exception e){
-                    e.printStackTrace();
-                }
-
-                return null;
-            }
-
-            protected void onProgressUpdate(String... progress){
-
-                progressBar.setProgress(Integer.parseInt(progress[0]));
-
-            }
-
-            private List<String> getLatestVersionFiles(String url){
-
-                //parse version directory for tflite files and return a list
-                List<String> listmainlinks = new ArrayList<>();
-
-                try{
-                    Document doc = Jsoup.connect(url).timeout(0).get();
-
-                    doc.select("img").remove();
-                    Elements links = doc.select("a");
-
-
-
-                    for(Element link : links){
-                        String linkInnerH = link.html();
-                        String linkHref = link.attr("href");
-                        //System.out.println("linkHref: "+ linkHref);
-                        //System.out.println("linkInnerH: "+ linkInnerH);
-                        if(linkInnerH.equals("") ||linkInnerH.equals(" ")||linkInnerH.equals(null) || linkHref.contains("?C=N;O=D")||
-                                linkHref.contains("?C=M;O=A")||linkHref.contains("?C=S;O=A") ||linkHref.contains("?C=D;O=A")){ }
-                        else if(linkHref.contains("/")){
-
-                            if(!linkInnerH.contains("Parent Directory")) {
-                                //listmainlinks.add(linkHref);
-
-                            }
-                        }else{
-                            //listweblinks.add(url + linkHref);
-                            listmainlinks.add(linkHref);
-                        }
-                    }
-
-
-
-
-                }catch(IOException e){
-                    e.printStackTrace();
-                }
-
-                return listmainlinks;
-            }
-
-        }
-
-        private class updatesCheck extends AsyncTask<String, String, String> {
-
-            AlertDialog alertDialog;
-
-            @Override
-            protected void onPreExecute(){
-                super.onPreExecute();
-                alertDialog = new AlertDialog.Builder(MainActivity.this).create();
-            }
-
-            @Override
-            protected void onPostExecute(String result){
-                super.onPostExecute(result);
-
-                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-                String projectFolder = prefs.getString("ProjectFolder", "");
-                String projectFolderVersion = prefs.getString(projectFolder + "version", "1.0/");
-
-                if(!result.equals(projectFolderVersion)) {
-                    alertDialog.setTitle("Download Update Now?");
-                    alertDialog.setCanceledOnTouchOutside(true);
-                    alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Yes", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-
-                            new getUpdated().execute(result);
-                        }
-                    });
-                    alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "No", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-
-                        }
-                    });
-                    alertDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                        @Override
-                        public void onDismiss(DialogInterface dialog) {
-
-                        }
-                    });
-
-                    alertDialog.show();
-                }
-            }
-
-            @Override
-            protected String doInBackground(String... f_url){
-
-
-                try{
-                    String latestVersion = getLatestNNVersion(f_url[0]);
-
-                    if(!latestVersion.equals("1.0/")){
-                        //ask to download the latest
-                        return latestVersion;
-                    }
-
-                }catch(Exception e){
-                    e.printStackTrace();
-                }
-
-                return "1.0/";
-            }
-
-
-            private String getLatestNNVersion(String url){
-                //parse the root project folder on the web and return highest number sub-folder found
-                Double latest = 1.0;
-
-                String latestString = "1.0/";
-                try{
-                    Document doc = Jsoup.connect(url).timeout(0).get();
-
-                    doc.select("img").remove();
-                    Elements links = doc.select("a");
-
-                    List<String> listmainlinks = new ArrayList<>();
-
-                    for(Element link : links){
-                        String linkInnerH = link.html();
-                        String linkHref = link.attr("href");
-                        //System.out.println("linkHref: "+ linkHref);
-                        //System.out.println("linkInnerH: "+ linkInnerH);
-                        if(linkInnerH.equals("") ||linkInnerH.equals(" ")||linkInnerH.equals(null) || linkHref.contains("?C=N;O=D")||
-                                linkHref.contains("?C=M;O=A")||linkHref.contains("?C=S;O=A") ||linkHref.contains("?C=D;O=A")){ }
-                        else if(linkHref.contains("/")){
-
-                            if(!linkInnerH.contains("Parent Directory")) {
-                                listmainlinks.add(linkHref);
-                                String temp = linkHref.replace("/", "");
-                                Double tempDouble = Double.parseDouble(temp);
-                                if(tempDouble > latest){
-                                    latest = tempDouble;
-                                    latestString = linkHref;
-                                }
-                            }
-                        }else{
-                            //listweblinks.add(url + linkHref);
-                        }
-                    }
-
-
-
-
-                }catch(IOException e){
-                    e.printStackTrace();
-                }
-                return latestString;
-
-            }
-        }
-*/
     }
