@@ -1,0 +1,55 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/projectsettings">
+
+        <EditTextPreference
+            app:key="username"
+            app:title="@string/user_name"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:defaultValue=""
+            app:entries="@array/project_entries"
+            app:entryValues="@array/project_entries"
+            app:key="project"
+            app:title="@string/category_name"
+            app:useSimpleSummaryProvider="true" />
+
+        <ListPreference
+            app:defaultValue=""
+            app:entries="@array/neuralnet_entries"
+            app:entryValues="@array/neuralnet_values"
+            app:key="neuralnet"
+            app:title="@string/neuralnet"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/sync_header">
+
+        <!--EditTextPreference
+            app:key="datacategory"
+            app:title="@string/category"
+            app:useSimpleSummaryProvider="true" / -->
+
+        <SwitchPreferenceCompat
+            app:key="sync"
+            app:title="@string/sync_title" />
+
+        <!--SwitchPreferenceCompat
+            app:dependency="sync"
+            app:key="attachment"
+            app:summaryOff="@string/attachment_summary_off"
+            app:summaryOn="@string/attachment_summary_on"
+            app:title="@string/attachment_title" /-->
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/camera">
+
+        <SwitchPreferenceCompat
+            app:key="torchon"
+            app:title="@string/torchonwithcamera"/>
+    </PreferenceCategory>
+
+</PreferenceScreen>

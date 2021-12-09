@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -21,7 +22,19 @@
         android:requestLegacyExternalStorage="true"
         android:supportsRtl="true"
         android:theme="@style/Theme.PaperAnalyticalDevices">
+        <activity
+            android:name=".UploadQueueActivity"
+            android:exported="false"
+            android:label="@string/title_activity_queue"
+            android:theme="@style/Theme.AppCompat.DayNight"
+            />
 
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:label="@string/title_activity_settings"
+            android:theme="@style/Theme.AppCompat.DayNight"
+             />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -36,7 +49,8 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -44,11 +58,22 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".CameraActivity"
-            android:screenOrientation="landscape"
+            android:name=".Camera2Activity"
             android:exported="false"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen"/>
-        <activity android:name=".ResultActivity"></activity>
+            android:screenOrientation="landscape"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen" />
+        <activity
+            android:name=".ResultActivity"
+            android:exported="true"
+            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" >
+            <intent-filter android:label="@string/activity_result">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:scheme="pad"
+                    android:host="result" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

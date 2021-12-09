@@ -7,6 +7,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Base64;
@@ -15,6 +16,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
+import androidx.preference.PreferenceManager;
 import androidx.work.ForegroundInfo;
 import androidx.work.WorkManager;
 import androidx.work.Worker;
@@ -68,9 +70,18 @@ public class UploadWorker extends Worker {
         StringBuilder sbParams = new StringBuilder();
         try {
             sbParams.append("api_key").append("=").append(URLEncoder.encode("D5HDZG76N3ICA3GBUYWC", "UTF-8")).append("&");
-            sbParams.append("category_name").append("=").append(URLEncoder.encode("JCSTest", "UTF-8")).append("&");
-            //@TODO make this a settings parameter
-            //sbParams.append("category_name").append("=").append(URLEncoder.encode("MattTest", "UTF-8")).append("&");
+
+            // make this a settings parameter
+
+            SharedPreferences sharedPreferences =
+                    PreferenceManager.getDefaultSharedPreferences(this.getApplicationContext());
+            //get the stored preference, or JCSTest as default
+            //this is the project name, not the neural net
+            String category = sharedPreferences.getString("project", "JCSTest");
+            //String category = sharedPreferences.getString("neuralnet", "JCSTest");
+            sbParams.append("category_name").append("=").append(URLEncoder.encode(category, "UTF-8")).append("&");
+
+            //sbParams.append("category_name").append("=").append(URLEncoder.encode("JCSTest", "UTF-8")).append("&");
             sbParams.append("camera1").append("=").append(URLEncoder.encode(Build.MANUFACTURER + " " + Build.MODEL, "UTF-8")).append("&");
             sbParams.append("test_name").append("=").append(URLEncoder.encode("12LanePADKenya2015", "UTF-8")).append("&");
 

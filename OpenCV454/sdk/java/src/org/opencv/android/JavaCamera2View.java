@@ -6,6 +6,7 @@ import java.util.List;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.ImageFormat;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -18,6 +19,7 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Surface;
@@ -206,8 +208,18 @@ public class JavaCamera2View extends CameraBridgeViewBase {
                         try {
                             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE,
                                     CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+                            //mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE,
+                              //      CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+
                             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE,
-                                    CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+                                    CaptureRequest.CONTROL_AE_MODE_ON);
+
+                            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+                            boolean torchOn = prefs.getBoolean("torchon", false);
+                            if(torchOn) {
+                                mPreviewRequestBuilder.set(CaptureRequest.FLASH_MODE,
+                                        CaptureRequest.FLASH_MODE_TORCH);
+                            }
 
                             mCaptureSession.setRepeatingRequest(mPreviewRequestBuilder.build(), null, mBackgroundHandler);
                             Log.i(LOGTAG, "CameraPreviewSession has been started");
@@ -220,6 +232,14 @@ public class JavaCamera2View extends CameraBridgeViewBase {
                     public void onConfigureFailed(CameraCaptureSession cameraCaptureSession) {
                         Log.e(LOGTAG, "createCameraPreviewSession failed");
                     }
+
+/*
+                    @Override
+                    public void onClosed(CameraCaptureSession cameraCaptureSession){
+                        super.onClosed(cameraCaptureSession);
+                        stopBackgroundThread();
+                    }*/
+
                 },
                 null
             );

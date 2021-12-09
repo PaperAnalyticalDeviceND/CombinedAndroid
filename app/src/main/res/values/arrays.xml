@@ -1,0 +1,46 @@
+<resources>
+    <!-- Reply Preference -->
+    <string-array name="reply_entries">
+        <item>Reply</item>
+        <item>Reply to all</item>
+    </string-array>
+
+    <string-array name="reply_values">
+        <item>reply</item>
+        <item>reply_all</item>
+    </string-array>
+
+    <string-array name="neuralnet_entries">
+        <item></item>
+        <item>FHI360</item>
+        <item>Veripad idPAD</item>
+        <item>MSH Tanzania</item>
+    </string-array>
+
+    <string-array name="neuralnet_values">
+        <item></item>
+        <item>FHI360-App</item>
+        <item>Veripad idPAD</item>
+        <item>MSH Tanzania</item>
+    </string-array>
+
+    <string-array name="project_entries">
+        <item></item>
+        <item>AirGap</item>
+        <item>AMR Kenya</item>
+        <item>Bangladesh</item>
+        <item>chemoPAD</item>
+        <item>COIP</item>
+        <item>FHI2020</item>
+        <item>FHI360</item>
+        <item>FHI360-App</item>
+        <item>Liberia 2021</item>
+        <item>MSH Kenya</item>
+        <item>MSH Tanzania</item>
+        <item>NewDrugs</item>
+        <item>T. Lockwood idPAD 2.4</item>
+        <item>USP</item>
+        <item>Veripad idPAD</item>
+    </string-array>
+
+</resources>

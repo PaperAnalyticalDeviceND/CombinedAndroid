@@ -7,4 +7,12 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="switchTrack">#ffd600</color>
+    <color name="switchTrackDisable">#90caf9</color>
+    <color name="switchTrackActive">#1565c0</color>
+    <color name="switchTrackNormal">#90caf9</color>
+    <color name="switchThumbBgActive">#1b5e20</color>
+    <color name="switchThumbActive">#fd1417</color>
+    <color name="switchThumbkNormal">#64b5f6</color>
+    <color name="plainactivitybackground">#b0faf9</color>
 </resources>

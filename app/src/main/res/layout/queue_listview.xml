@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/horizontalgrad_rounded">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:gravity="fill_horizontal"
+        >
+<TextView
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_weight="1"
+    android:paddingLeft="@dimen/text_margin"
+    android:paddingTop="@dimen/text_margin"
+
+    android:id="@+id/queue_time"
+    />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:paddingRight="@dimen/text_margin"
+            android:paddingTop="@dimen/text_margin"
+
+            android:id="@+id/queue_drug"
+            />
+
+    </LinearLayout>
+<TextView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id="@+id/pad_info"
+    android:paddingLeft="@dimen/text_margin"
+    android:paddingBottom="@dimen/text_margin"
+    />
+
+</LinearLayout>

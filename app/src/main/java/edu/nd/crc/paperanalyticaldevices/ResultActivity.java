@@ -1,17 +1,25 @@
 package edu.nd.crc.paperanalyticaldevices;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,13 +39,19 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.Date;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.UUID;
 
 public class ResultActivity extends AppCompatActivity {
     SharedPreferences mPreferences = null;
 
     String qr = "";
     String timestamp = "";
+
+    boolean unsafeForConsumption = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,17 +62,42 @@ public class ResultActivity extends AppCompatActivity {
         mPreferences = getSharedPreferences(MainActivity.PROJECT, MODE_PRIVATE);
 
         // Setup compatability toolbar
-        // 10-27-21 Removed, causes exception, toolbar already present
-        //Toolbar myToolbar = findViewById(R.id.my_toolbar);
-        //setSupportActionBar(myToolbar);
+        // make sure the manifest specifies a NoAppBar theme or this will create an exception
+        Toolbar myToolbar = findViewById(R.id.my_toolbar);
+        setSupportActionBar(myToolbar);
+
+        Switch okToConsumeSwitch = (Switch) findViewById(R.id.oktoconsumetoggleswitch);
+        //set up toggle switch "Suspected unsafe?"
+        //send this value to the API in the Notes
+        okToConsumeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    unsafeForConsumption = true;
+                    Toast.makeText(getBaseContext(), R.string.unsafetoconsume, Toast.LENGTH_SHORT).show();
+                }else{
+                    unsafeForConsumption = false;
+                    Toast.makeText(getBaseContext(), R.string.safetoconsume, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
 
         // Handle calling intent
         Intent intent = getIntent();
 
         ImageView imageView = findViewById(R.id.imageView);
         imageView.setImageURI(intent.getData());
+        if(null == intent.getData()){
 
-        String sPredicted = intent.getStringExtra(MainActivity.EXTRA_PREDICTED);
+            imageView.setImageBitmap(BitmapFactory.decodeStream(this.getClass().getResourceAsStream("/test42401.png")));
+        }
+
+        String sPredicted = "";
+        //String sPredicted = intent.getStringExtra(MainActivity.EXTRA_PREDICTED);
+        //check exists first to avoid exception when passing it to the array adapter
+        if( intent.hasExtra(MainActivity.EXTRA_PREDICTED)){
+            sPredicted = intent.getStringExtra(MainActivity.EXTRA_PREDICTED);
+        }
         Spinner sResult = findViewById(R.id.batchSpinner);
         ArrayAdapter<String> aPredicted = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, Arrays.asList(sPredicted));
         sResult.setEnabled(false);
@@ -68,13 +107,21 @@ public class ResultActivity extends AppCompatActivity {
         if( intent.hasExtra(MainActivity.EXTRA_SAMPLEID) ) {
             this.qr = intent.getStringExtra(MainActivity.EXTRA_SAMPLEID);
             TextView vSample = findViewById(R.id.idText);
-            vSample.setText(parseQR(this.qr));
+            vSample.setText("PAD ID: " + parseQR(this.qr));
         }
 
         if( intent.hasExtra(MainActivity.EXTRA_TIMESTAMP) ) {
             this.timestamp = intent.getStringExtra(MainActivity.EXTRA_TIMESTAMP);
             TextView vTimestamp = findViewById(R.id.timeText);
-            vTimestamp.setText(this.timestamp);
+
+            Timestamp javaTimestamp = new Timestamp(Long.valueOf(this.timestamp));
+            Date date = new Date(javaTimestamp.getTime());
+
+            SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+            String newDate = sdf.format(date);
+
+            //vTimestamp.setText(this.timestamp);
+            vTimestamp.setText(newDate);
         }
 
         // Handle Drug List
@@ -106,6 +153,38 @@ public class ResultActivity extends AppCompatActivity {
         MainActivity.HoldCamera = false;
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+
+        //attach the menu for settings and queue to the app bar
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.maintoolbarmenu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        //main screen app bar overflow menu
+        switch (item.getItemId()) {
+
+            case R.id.app_settings:
+                Intent i = new Intent(this, SettingsActivity.class);
+                startActivity(i);
+                return true;
+            case R.id.upload_queue:
+                Intent iq = new Intent(this, UploadQueueActivity.class);
+                startActivity(iq);
+                return true;
+            default:
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                return super.onOptionsItemSelected(item);
+
+        }
+        //return true;
+    }
+
     public void saveData(View view) {
         Log.i("GB", "Button pushed");
 
@@ -113,6 +192,21 @@ public class ResultActivity extends AppCompatActivity {
         compressedNotes += getBatch();
         compressedNotes += ", ";
         compressedNotes += getNotes();
+
+        if(unsafeForConsumption){
+            // from the Suspected unsafe? toggle button
+            compressedNotes += ", Suspected unsafe.  ";
+        }else{
+            compressedNotes += ", Suspected safe.  ";
+        }
+
+        String userName = mPreferences.getString("username", "Unknown");
+        // attach stored user's name
+        compressedNotes += " User: " + userName + ".  ";
+
+        String neuralnet = mPreferences.getString("neuralnet", "None");
+        //attach stored neural net used
+        compressedNotes += "Neural net: " + neuralnet + ".  ";
 
         Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.UNMETERED)
@@ -137,7 +231,26 @@ public class ResultActivity extends AppCompatActivity {
         WorkManager.getInstance(this).enqueue(myUploadWork);
         Log.d("PAD", "Results added to upload queue.");
 
+        UUID workId = myUploadWork.getId();
+
+        Log.d("ENQUEUED WORK", workId.toString());
+
+        //write to a SQLite table so we can get the info out for the Queue activity
+        ContentValues dbValues = new ContentValues();
+        dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_WORKID, workId.toString());
+        dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLENAME, getDrug());
+        dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLEID, parseQR(this.qr));
+        dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_QUANTITY, getPercentage(getBrand()));
+        dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_NOTES, compressedNotes);
+        dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP, this.timestamp);
+
+        WorkInfoDbHelper dbHelper = new WorkInfoDbHelper(getBaseContext());
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        db.insert(WorkInfoContract.WorkInfoEntry.TABLE_NAME, null, dbValues);
+
         Toast.makeText(this, "Results added to upload queue", Toast.LENGTH_SHORT).show();
+
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
