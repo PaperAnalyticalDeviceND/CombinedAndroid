@@ -26,27 +26,14 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 
 public class UpdatesWorker extends Worker {
 
-    private static final String TAG_LIST = "list";
     private static final String TAG_WEIGHTS = "weights_url";
     private static final String TAG_NAME = "name";
-    private static final String TAG_TYPE = "type";
-    private static final String TAG_DESCRIPTION = "description";
     private static final String TAG_VERSION = "version";
-    private static final String TAG_DRUGS = "drugs";
-
-    private static final String fhiConcName = "fhi360_conc_large_lite";
-    private static final String fhiName = "fhi360_small_lite";
-    private static final String veripadIdName = "idPAD_small_lite";
-    private static final String mshTanzaniaName = "msh_tanzania_3k_10_lite";
-
-    //@TODO make this a setting and fetch a unique one from an API on first start
-    private final String api_key = "5NWT4K7IS60WMLR3J2LV";
 
     public UpdatesWorker(@NonNull Context context, @NonNull WorkerParameters params) {
         super(context, params);
@@ -61,6 +48,8 @@ public class UpdatesWorker extends Worker {
         HttpURLConnection conn = null;
 
         Uri.Builder builder = new Uri.Builder();
+        //@TODO make this a setting and fetch a unique one from an API on first start
+        String api_key = "5NWT4K7IS60WMLR3J2LV";
         builder.scheme("https")
                 .authority("pad.crc.nd.edu")
                 .appendPath("index.php")
@@ -89,11 +78,11 @@ public class UpdatesWorker extends Worker {
 
             reader = new BufferedReader(new InputStreamReader(stream));
 
-            StringBuffer buffer = new StringBuffer();
-            String line = "";
+            StringBuilder buffer = new StringBuilder();
 
+            String line;
             while ((line = reader.readLine()) != null) {
-                buffer.append(line + "\n");
+                buffer.append(line).append("\n");
             }
 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -103,7 +92,7 @@ public class UpdatesWorker extends Worker {
 
             for (String projectSet : projectFolders) {
                 String projectVersionString = prefs.getString(projectSet + "version", "0.0");
-                Double projectVersion = Double.parseDouble(projectVersionString);
+                double projectVersion = Double.parseDouble(projectVersionString);
 
                 JSONObject jsonObject = new JSONObject(buffer.toString());
                 JSONArray listArray = jsonObject.getJSONArray("list");
@@ -117,7 +106,7 @@ public class UpdatesWorker extends Worker {
                         String weightsUrl = item.getString(TAG_WEIGHTS);
                         Log.d("PADS_URL", weightsUrl);
                         String versionString = item.getString(TAG_VERSION);
-                        Double version = Double.parseDouble(versionString);
+                        double version = Double.parseDouble(versionString);
 
                         if (version > projectVersion) {
                             // then get updated files and update the shared preferences with new data
@@ -138,7 +127,7 @@ public class UpdatesWorker extends Worker {
                             //store the values in shared preferences
                             editor.putString(projectSet + "filename", newFileName);
                             editor.putString(projectSet + "version", versionString);
-                            editor.commit();
+                            editor.apply();
 
                             Log.d("UPDATES_WORKER", "Updating: " + projectSet + "filename to " + newFileName);
                             Log.d("UPDATES_WORKER", "Updating: " + projectSet + "version to " + versionString);
@@ -148,12 +137,7 @@ public class UpdatesWorker extends Worker {
                             OutputStream output = new FileOutputStream(newFile);
 
                             byte[] data = new byte[1024];
-
-                            long total = 0;
-
                             while ((count = input.read(data)) != -1) {
-                                total += count;
-
                                 output.write(data, 0, count);
                             }
 
@@ -168,13 +152,7 @@ public class UpdatesWorker extends Worker {
                 }
             } //for each project name
 
-        } catch (MalformedURLException e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
-            e.printStackTrace();
-        } catch (IOException e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
-            e.printStackTrace();
-        } catch (JSONException e) {
+        } catch (IOException | JSONException e) {
             FirebaseCrashlytics.getInstance().recordException(e);
             e.printStackTrace();
         } finally {

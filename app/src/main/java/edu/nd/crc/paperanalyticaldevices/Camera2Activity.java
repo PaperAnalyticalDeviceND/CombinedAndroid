@@ -6,8 +6,6 @@ import static java.lang.Math.sqrt;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -18,17 +16,13 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
-import android.text.Html;
-import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.TextView;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.FileProvider;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.ChecksumException;
@@ -81,32 +75,24 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
     private final BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
-            switch (status) {
-                case LoaderCallbackInterface.SUCCESS: {
-                    Log.i("PADS", "OpenCV loaded successfully");
-                    mOpenCvCameraView.enableView();
-                }
-                break;
-                default: {
-                    super.onManagerConnected(status);
-                }
-                break;
+            if (status == LoaderCallbackInterface.SUCCESS) {
+                Log.i("PADS", "OpenCV loaded successfully");
+                mOpenCvCameraView.enableView();
+            } else {
+                super.onManagerConnected(status);
             }
         }
     };
     private Mat mTemplate;
-    private final String LOG_TAG = "PAD";
-    private ProgressDialog dialog, progdialog;
-    private Mat mRgbaModified;
     private String qrText = "";
     //saved contour results
-    private boolean markersDetected = false;
-    private Mat testMat;
     private Mat cropped;
     private AlertDialog ad = null;
     //UI
-    private FloatingActionButton analyzeButton;
     private final Intent mResultIntent = new Intent();
+
+    public Camera2Activity() {
+    }
 
     public static String readQRCode(Mat mTwod) {
         Bitmap bMap = Bitmap.createBitmap(mTwod.width(), mTwod.height(), Bitmap.Config.ARGB_8888);
@@ -123,15 +109,7 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
         Result result = null;
         try {
             result = reader.decode(bitmap);
-        } catch (NotFoundException e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
-            Log.i("ContoursOut", "QR error" + e.toString());
-            e.printStackTrace();
-        } catch (ChecksumException e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
-            Log.i("ContoursOut", "QR error" + e.toString());
-            e.printStackTrace();
-        } catch (FormatException e) {
+        } catch (NotFoundException | ChecksumException | FormatException e) {
             FirebaseCrashlytics.getInstance().recordException(e);
             Log.i("ContoursOut", "QR error" + e.toString());
             e.printStackTrace();
@@ -140,18 +118,6 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
 
         //return
         return result.getText();
-    }
-
-    public void doAnalysis(View view) {
-        final AlertDialog d = new AlertDialog.Builder(this)
-                .setPositiveButton(android.R.string.ok, null)
-                .setTitle("Paper Analytical Device (PAD) project\nat the University of Notre Dame.")
-                .setMessage(Html.fromHtml("The PAD projects brings crowdsourcing to the testing of theraputic drugs.<br><a href=\"http://padproject.nd.edu\">http://padproject.nd.edu</a>"))
-                .create();
-        d.show();
-
-        // Make the textview clickable. Must be called after show()
-        ((TextView) d.findViewById(android.R.id.message)).setMovementMethod(LinkMovementMethod.getInstance());
     }
 
     @Override
@@ -166,7 +132,7 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
                         Manifest.permission.READ_EXTERNAL_STORAGE,
                         Manifest.permission.WRITE_EXTERNAL_STORAGE}, 91);
 
-        mOpenCvCameraView = (JavaCam2ResView) findViewById(R.id.activity_surface_view);
+        mOpenCvCameraView = findViewById(R.id.activity_surface_view);
     }
 
     @Override
@@ -220,18 +186,18 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
         }
         mRgba = new Mat();
         mRgbaTemp = new Mat();
-        testMat = new Mat();
+        Mat testMat = new Mat();
         cropped = new Mat();
 
         // Parse input template file
-        Bitmap tBM = BitmapFactory.decodeStream(this.getClass().getResourceAsStream("/template.png"));
+        Bitmap tBM = BitmapFactory.decodeStream(getClass().getResourceAsStream("/template.png"));
 
         // Convert to OpenCV matrix
         Mat tMat = new Mat();
         Utils.bitmapToMat(tBM, tMat);
 
         // Parse input test file
-        Bitmap tBM2 = BitmapFactory.decodeStream(this.getClass().getResourceAsStream("/test42401.png"));
+        Bitmap tBM2 = BitmapFactory.decodeStream(getClass().getResourceAsStream("/test42401.png"));
 
         // Convert to OpenCV matrix
         Utils.bitmapToMat(tBM2, testMat);
@@ -282,7 +248,7 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        mRgbaModified = inputFrame.rgba();
+        Mat mRgbaModified = inputFrame.rgba();
 
         //waiting on dialog?
         if (ad != null) return mRgbaModified;
@@ -361,7 +327,7 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
                 Mat smallImg = new Mat(work, roi);
 
                 //grab QR code
-                String qr_data = null;
+                String qr_data;
                 try {
                     qr_data = readQRCode(smallImg);
                     if (qr_data.startsWith("padproject.nd.edu/?s=")) {
@@ -383,7 +349,6 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
                     mRgbaTemp.copyTo(mRgba);
 
                     //flag saved
-                    markersDetected = true;
 
                     // rectify image, include QR/Fiducial points
                     float[][] dest_points = {{85, 1163, 686, 1163, 686, 77, 244, 64, 82, 64, 82, 226}, {85, 1163, 686, 1163, 686, 77, 255, 64, 82, 64, 82, 237}};
@@ -393,7 +358,7 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
 
                     //error?
                     if (transformedOk) {
-                        Log.i("ContoursOut", String.format("Transformed correctly"));
+                        Log.i("ContoursOut", "Transformed correctly");
 
                         //ask if we want to save data for email, also block updates until done.
                         showSaveDialog();
@@ -415,10 +380,10 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
         ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(output)));
 
         byte[] buffer = new byte[4096];
-        for (int i = 0; i < files.length; i++) {
-            BufferedInputStream origin = new BufferedInputStream(new FileInputStream(files[i]), buffer.length);
+        for (File file : files) {
+            BufferedInputStream origin = new BufferedInputStream(new FileInputStream(file), buffer.length);
 
-            ZipEntry entry = new ZipEntry(files[i].getPath().substring(files[i].getPath().lastIndexOf("/") + 1));
+            ZipEntry entry = new ZipEntry(file.getPath().substring(file.getPath().lastIndexOf("/") + 1));
             out.putNextEntry(entry);
 
             int count;
@@ -435,141 +400,116 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
      * Show dialog to save data
      */
     public void showSaveDialog() {
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
-            @Override
-            public void run() {
-                Log.d("UI thread", "I am the UI thread");
+        new Handler(Looper.getMainLooper()).post(() -> {
+            Log.d("UI thread", "I am the UI thread");
 
-                AlertDialog.Builder alert = new AlertDialog.Builder(Camera2Activity.this);
-                alert.setTitle("Fiducials acquired!");
-                alert.setMessage("Store PAD image?");
-                alert.setPositiveButton("OK",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                DateFormat df = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
-                                Date today = Calendar.getInstance().getTime();
+            AlertDialog.Builder alert = new AlertDialog.Builder(this);
+            alert.setTitle("Fiducials acquired!");
+            alert.setMessage("Store PAD image?");
+            alert.setPositiveButton("OK",
+                    (dialog, which) -> {
+                        DateFormat df = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+                        Date today = Calendar.getInstance().getTime();
 
-                                File imagePath = new File(Camera2Activity.this.getFilesDir(), "images");
-                                File padImageDirectory = new File(imagePath + "/PAD/" + df.format(today));
-                                padImageDirectory.mkdirs();
+                        File imagePath = new File(getFilesDir(), "images");
+                        File padImageDirectory = new File(imagePath + "/PAD/" + df.format(today));
+                        padImageDirectory.mkdirs();
 
-                                //save rectified image
-                                File cFile = new File(padImageDirectory, "rectified.png");
-                                Imgproc.cvtColor(cropped, cropped, Imgproc.COLOR_BGRA2RGB);
-                                Imgcodecs.imwrite(cFile.getPath(), cropped);
+                        //save rectified image
+                        File cFile = new File(padImageDirectory, "rectified.png");
+                        Imgproc.cvtColor(cropped, cropped, Imgproc.COLOR_BGRA2RGB);
+                        Imgcodecs.imwrite(cFile.getPath(), cropped);
 
-                                //save original image
-                                File oFile = new File(padImageDirectory, "original.png");
-                                Imgproc.cvtColor(mRgba, mRgba, Imgproc.COLOR_BGRA2RGB);
-                                Imgcodecs.imwrite(oFile.getPath(), mRgba);
+                        //save original image
+                        File oFile = new File(padImageDirectory, "original.png");
+                        Imgproc.cvtColor(mRgba, mRgba, Imgproc.COLOR_BGRA2RGB);
+                        Imgcodecs.imwrite(oFile.getPath(), mRgba);
 
-                                //gallery?
-                                try {
-                                    MediaStore.Images.Media.insertImage(getContentResolver(), cFile.getPath(),
-                                            df.format(today), "Rectified Image");
-                                    MediaStore.Images.Media.insertImage(getContentResolver(), oFile.getPath(),
-                                            df.format(today), "Origional Image");
-                                } catch (Exception e) {
-                                    FirebaseCrashlytics.getInstance().recordException(e);
-                                    Log.i("ContoursOut", "Cannot save to gallery" + e.toString());
-                                }
-
-                                Intent intent = getIntent();
-                                if (intent != null /*&& intent.getData() != null */) {
-                                    try {
-                                        File target = new File(padImageDirectory, "compressed.zip");
-                                        CompressOutputs(new File[]{cFile, oFile}, target);
-                                        mResultIntent.setData(FileProvider.getUriForFile(Camera2Activity.this, "edu.nd.crc.paperanalyticaldevices.fileprovider", target));
-                                        mResultIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                                        mResultIntent.putExtra("qr", qrText);
-                                        mResultIntent.putExtra("timestamp", Calendar.getInstance().getTimeInMillis());
-                                        finish();
-                                    } catch (Exception e) {
-                                        FirebaseCrashlytics.getInstance().recordException(e);
-                                        Log.i("ContoursOut", "Cannot compress files: " + e.toString());
-                                    }
-                                } else {
-                                    Log.i("ContoursOut", cFile.getPath());
-
-                                    Intent i = new Intent(Intent.ACTION_SEND_MULTIPLE);
-                                    i.setType("message/rfc822");
-                                    i.setType("application/image");
-                                    i.putExtra(Intent.EXTRA_EMAIL, new String[]{"mcurran2@nd.edu"});
-                                    i.putExtra(Intent.EXTRA_SUBJECT, "PADs");
-                                    i.putExtra(Intent.EXTRA_TEXT, "Pad image (" + qrText + ")");
-                                    ArrayList<Uri> uris = new ArrayList<Uri>();
-                                    uris.add(FileProvider.getUriForFile(getApplicationContext(), getApplicationContext().getPackageName() + ".fileprovider", new File(cFile.getPath())));
-                                    uris.add(FileProvider.getUriForFile(getApplicationContext(), getApplicationContext().getPackageName() + ".fileprovider", new File(oFile.getPath())));
-                                    i.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
-                                    i.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-                                    try {
-                                        startActivity(i);
-                                    } catch (android.content.ActivityNotFoundException ex) {
-                                        FirebaseCrashlytics.getInstance().recordException(ex);
-                                        Log.i("ContoursOut", "There are no email clients installed.");
-                                    }
-
-                                    //start preview
-                                    mOpenCvCameraView.StartPreview();
-
-                                    dialog.dismiss();
-
-                                    ad = null;
-                                }
-                            }
+                        //gallery?
+                        try {
+                            MediaStore.Images.Media.insertImage(getContentResolver(), cFile.getPath(),
+                                    df.format(today), "Rectified Image");
+                            MediaStore.Images.Media.insertImage(getContentResolver(), oFile.getPath(),
+                                    df.format(today), "Origional Image");
+                        } catch (Exception e) {
+                            FirebaseCrashlytics.getInstance().recordException(e);
+                            Log.i("ContoursOut", "Cannot save to gallery" + e.toString());
                         }
-                );
-                alert.setNegativeButton("Cancel",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                //start preview
-                                mOpenCvCameraView.StartPreview();
 
-                                dialog.dismiss();
-
-                                ad = null;
+                        Intent intent = getIntent();
+                        if (intent != null /*&& intent.getData() != null */) {
+                            try {
+                                File target = new File(padImageDirectory, "compressed.zip");
+                                CompressOutputs(new File[]{cFile, oFile}, target);
+                                mResultIntent.setData(FileProvider.getUriForFile(this, "edu.nd.crc.paperanalyticaldevices.fileprovider", target));
+                                mResultIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                                mResultIntent.putExtra("qr", qrText);
+                                mResultIntent.putExtra("timestamp", Calendar.getInstance().getTimeInMillis());
+                                finish();
+                            } catch (Exception e) {
+                                FirebaseCrashlytics.getInstance().recordException(e);
+                                Log.i("ContoursOut", "Cannot compress files: " + e.toString());
                             }
-                        }
-                );
-                ad = alert.show();
+                        } else {
+                            Log.i("ContoursOut", cFile.getPath());
 
-            }
+                            Intent i = new Intent(Intent.ACTION_SEND_MULTIPLE);
+                            i.setType("message/rfc822");
+                            i.setType("application/image");
+                            i.putExtra(Intent.EXTRA_EMAIL, new String[]{"mcurran2@nd.edu"});
+                            i.putExtra(Intent.EXTRA_SUBJECT, "PADs");
+                            i.putExtra(Intent.EXTRA_TEXT, "Pad image (" + qrText + ")");
+                            ArrayList<Uri> uris = new ArrayList<>();
+                            uris.add(FileProvider.getUriForFile(getApplicationContext(), getApplicationContext().getPackageName() + ".fileprovider", new File(cFile.getPath())));
+                            uris.add(FileProvider.getUriForFile(getApplicationContext(), getApplicationContext().getPackageName() + ".fileprovider", new File(oFile.getPath())));
+                            i.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+                            i.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                            try {
+                                startActivity(i);
+                            } catch (android.content.ActivityNotFoundException ex) {
+                                FirebaseCrashlytics.getInstance().recordException(ex);
+                                Log.i("ContoursOut", "There are no email clients installed.");
+                            }
+
+                            //start preview
+                            mOpenCvCameraView.StartPreview();
+
+                            dialog.dismiss();
+
+                            ad = null;
+                        }
+                    }
+            );
+            alert.setNegativeButton("Cancel",
+                    (dialog, which) -> {
+                        //start preview
+                        mOpenCvCameraView.StartPreview();
+
+                        dialog.dismiss();
+
+                        ad = null;
+                    }
+            );
+            ad = alert.show();
+
         });
     }
 
-    private class DataPoint implements Comparable<DataPoint> {
-        public int i;
-        public float Distance, Diameter;
-        public Point Center;
-        public Boolean valid = true;
-
-        public DataPoint(int ii, float id, float idi, Point imc) {
-            i = ii;
-            Distance = id;
-            Diameter = idi;
-            Center = imc;
-        }
-
-        public int compareTo(DataPoint other) {
-            return new Float(Distance).compareTo(new Float(other.Distance));
-        }
-    }
-
-    public class PredictionGuess implements Comparable<PredictionGuess> {
+    public static class PredictionGuess implements Comparable<PredictionGuess> {
         public int Index;
         public float Confidence;
         public int NetIndex;
 
         public PredictionGuess(int i, float c, int j) {
-            this.Index = i;
-            this.Confidence = c;
-            this.NetIndex = j;
+            Index = i;
+            Confidence = c;
+            NetIndex = j;
         }
 
         @Override
         public int compareTo(PredictionGuess that) {
-            if (this.Confidence > that.Confidence) {
+            if (Confidence > that.Confidence) {
                 return -1;
             } else {
                 return 1;

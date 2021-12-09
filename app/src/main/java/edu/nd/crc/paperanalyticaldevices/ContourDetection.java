@@ -46,7 +46,7 @@ public class ContourDetection {
         //draw target fiducials
         //[85, 1163], [686, 1163], [686, 77], [82, 64], [82, 226], [244, 64]
 
-        double horiz_line = 730 / 2;
+        double horiz_line = 730.0 / 2.0;
         double scale_ratio = min(work.size().height / 1220, 1.0) * .95;
         if (scale_ratio > .85) {
             scale_ratio = 0.85;
@@ -102,7 +102,6 @@ public class ContourDetection {
             List<DataPoint> order = new Vector<>();
             List<Point> outer = new Vector<>();
             List<Point> qr = new Vector<>();
-            List<Float> diameter = new Vector<>();
             for (int i = 0; i < Markers.size(); i++) {
                 Moments mum = Imgproc.moments(contours.get(Markers.get(i)), false);
                 Point mc = new Point(mum.get_m10() / mum.get_m00(), mum.get_m01() / mum.get_m00());
@@ -175,9 +174,9 @@ public class ContourDetection {
     }
 
     //order outer and qr points
-    private static boolean order_points(List<Point> src_points, List<Point> outer, List<Point> qr, float ratio) {
+    private static void order_points(List<Point> src_points, List<Point> outer, List<Point> qr, float ratio) {
         //return data
-        Log.i("ContoursOut", String.format("order points " + outer.size()));
+        Log.i("ContoursOut", "order points " + outer.size());
         //sort outer~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         if (outer.size() == 3) { //all points
             //transpoints = [[85, 1163], [686, 1163], [686, 77]];
@@ -334,9 +333,6 @@ public class ContourDetection {
                 }
             }
         }
-
-        //return OK
-        return true;
     }
 
     public static Mat TransformPoints(List<Point> Source, List<Point> Destination) {
@@ -354,16 +350,14 @@ public class ContourDetection {
         centroid_b.y /= Source.size();
 
         // Remove Centroids
-        List<Point> new_src = Source;
-        List<Point> new_dst = Destination;
         for (int i = 0; i < Source.size(); i++) {
-            new_src.set(i, new Point(new_src.get(i).x - centroid_a.x, new_src.get(i).y - centroid_a.y));
-            new_dst.set(i, new Point(new_dst.get(i).x - centroid_b.y, new_dst.get(i).y - centroid_b.y));
+            Source.set(i, new Point(Source.get(i).x - centroid_a.x, Source.get(i).y - centroid_a.y));
+            Destination.set(i, new Point(Destination.get(i).x - centroid_b.y, Destination.get(i).y - centroid_b.y));
         }
 
         // Get rotation
-        Point v1 = new Point((new_src.get(0).x - new_src.get(1).x), (new_src.get(0).y - new_src.get(1).y));
-        Point v2 = new Point((new_dst.get(0).x - new_dst.get(1).x), (new_dst.get(0).y - new_dst.get(1).y));
+        Point v1 = new Point((Source.get(0).x - Source.get(1).x), (Source.get(0).y - Source.get(1).y));
+        Point v2 = new Point((Destination.get(0).x - Destination.get(1).x), (Destination.get(0).y - Destination.get(1).y));
         double ang = atan2(v2.y, v2.x) - atan2(v1.y, v1.x);
         double cosang = Math.cos(ang);
         double sinang = Math.sin(ang);
@@ -377,17 +371,17 @@ public class ContourDetection {
         double sum_ss = 0;
         double sum_tt = 0;
         for (int i = 0; i < Source.size(); i++) {
-            sum_ss += new_src.get(i).x * new_src.get(i).x;
-            sum_ss += new_src.get(i).y * new_src.get(i).y;
+            sum_ss += Source.get(i).x * Source.get(i).x;
+            sum_ss += Source.get(i).y * Source.get(i).y;
 
             Mat pt = new Mat(1, 2, CvType.CV_32FC1);
-            pt.put(0, 0, new_src.get(i).x, new_src.get(i).y);
+            pt.put(0, 0, Source.get(i).x, Source.get(i).y);
 
             Mat res = new Mat();
             Core.gemm(R, pt.t(), 1, new Mat(), 0, res, 0);
 
-            sum_tt += new_dst.get(i).x * res.get(0, 0)[0];
-            sum_tt += new_dst.get(i).y * res.get(1, 0)[0];
+            sum_tt += Destination.get(i).x * res.get(0, 0)[0];
+            sum_tt += Destination.get(i).y * res.get(1, 0)[0];
         }
 
         // Scale Matrix
@@ -416,7 +410,7 @@ public class ContourDetection {
 
     public static boolean RectifyImage(Mat input, Mat Template, Mat fringe_warped, List<Point> src_points, float[] dest_points) {
 
-        Log.i("ContoursOut", String.format("Pre get persp"));
+        Log.i("ContoursOut", "Pre get persp");
 
         //create points
         float[] data = new float[8];
@@ -523,13 +517,9 @@ public class ContourDetection {
 
         Mat cellmask = Mat.ones(result.size(), CvType.CV_8UC1);
         double cellmaxVal = 1;
-        double cellthr = 0.70;
 
-        while (cellPoints.size() < 2 && cellmaxVal > cellthr) {
+        while (cellPoints.size() < 2) {
             Core.MinMaxLocResult mmResult = Core.minMaxLoc(result, cellmask);
-            if (cellmaxVal <= cellthr) {
-                break;
-            }
             Log.d("Contour", String.format("Max cell point location %f, %f, %f", mmResult.maxLoc.x, mmResult.maxLoc.y, cellmaxVal));
 
             cellPoints.add(new Point(mmResult.maxLoc.x + Template.size().width / 2.0 - 0, mmResult.maxLoc.y + Template.size().height / 2.0 - 0));
@@ -548,7 +538,7 @@ public class ContourDetection {
         }
 
         if (cellPoints.size() != 2) {
-            Log.d("Contour", String.format("Error: Wax target not found with > 0.70 confidence."));
+            Log.d("Contour", "Error: Wax target not found with > 0.70 confidence.");
             // ERROR
             return false;
         }
@@ -604,7 +594,6 @@ public class ContourDetection {
         public int i;
         public float Distance, Diameter;
         public Point Center;
-        public Boolean valid = true;
 
         public DataPoint(int ii, float id, float idi, Point imc) {
             i = ii;
@@ -614,7 +603,7 @@ public class ContourDetection {
         }
 
         public int compareTo(DataPoint other) {
-            return new Float(Distance).compareTo(new Float(other.Distance));
+            return Float.compare(Distance, other.Distance);
         }
     }
 

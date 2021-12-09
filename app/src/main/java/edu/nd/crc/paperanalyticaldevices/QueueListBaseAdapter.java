@@ -41,9 +41,9 @@ public class QueueListBaseAdapter extends BaseAdapter {
             convertView = mInflater.inflate(R.layout.queue_listview, null);
             holder = new ViewHolder();
 
-            holder.drugName = (TextView) convertView.findViewById(R.id.queue_drug);
-            holder.datetime = (TextView) convertView.findViewById(R.id.queue_time);
-            holder.padId = (TextView) convertView.findViewById(R.id.pad_info);
+            holder.drugName = convertView.findViewById(R.id.queue_drug);
+            holder.datetime = convertView.findViewById(R.id.queue_time);
+            holder.padId = convertView.findViewById(R.id.pad_info);
 
             convertView.setTag(holder);
         } else {

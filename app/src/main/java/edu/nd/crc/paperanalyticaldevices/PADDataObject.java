@@ -1,15 +1,10 @@
 package edu.nd.crc.paperanalyticaldevices;
 
 public class PADDataObject {
-
     //data model to display in a multi-line ListView row
-
-
     private String padId;
     private String drugName;
     private String datetime;
-    private String notes;
-    private String drugOk;
     private String project;
 
     public String getPadId() {
@@ -34,22 +29,6 @@ public class PADDataObject {
 
     public void setDatetime(String datetime) {
         this.datetime = datetime;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
-    }
-
-    public String getDrugOk() {
-        return drugOk;
-    }
-
-    public void setDrugOk(String drugOk) {
-        this.drugOk = drugOk;
     }
 
     public String getProject() {

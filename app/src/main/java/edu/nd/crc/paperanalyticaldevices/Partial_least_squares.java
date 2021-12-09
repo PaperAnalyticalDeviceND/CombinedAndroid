@@ -1,7 +1,6 @@
 package edu.nd.crc.paperanalyticaldevices;
 
 import static org.opencv.imgproc.Imgproc.cvtColor;
-import static java.lang.String.valueOf;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -19,19 +18,16 @@ import org.opencv.imgproc.Imgproc;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
 public class Partial_least_squares {
-    // sizes
-    int label_length, coeff_length = 0;
     // labels
-    private final List<String> labels = new ArrayList<String>();
+    private final List<String> labels = new ArrayList<>();
     // coefficients
-    private final List<List<Float>> coeffs = new ArrayList<List<Float>>();
+    private final List<List<Float>> coeffs = new ArrayList<>();
 
     // initialize
     public Partial_least_squares(Context context) {
@@ -55,7 +51,7 @@ public class Partial_least_squares {
                 labels.add(csv.get(i)[0]);
 
                 //add new coeff list
-                coeffs.add(new ArrayList<Float>());
+                coeffs.add(new ArrayList<>());
 
                 // coeffs
                 for (int j = 1; j < coeff_length; j++) {
@@ -85,7 +81,7 @@ public class Partial_least_squares {
         }
 
         // save results
-        double concentration = 0.0;
+        double concentration;
 
         List<double[]> results = new ArrayList<>();
 
@@ -183,7 +179,7 @@ public class Partial_least_squares {
     // determined by cosine such that a point at the center has weight 1,
     // and a point at the extremes has weight ~0.
     public double cosCorrectFactor(double dx, double dy, double centerX, double centerY) {
-        double relevantD = Math.max(((double) dx / (double) centerX), (double) dy / (double) centerY);
+        double relevantD = Math.max((dx / centerX), dy / centerY);
         double relevnatDRads = (Math.PI / 2.0) * relevantD;
         return Math.cos(relevnatDRads);
     }
@@ -213,13 +209,12 @@ public class Partial_least_squares {
         }
 
         // return averages
-        double[] ret = new double[]{totalR, totalG, totalB};
-        return ret;
+        return new double[]{totalR, totalG, totalB};
     }
 
     // calculate concentration using PLSR
     private double calc_concentration(List<double[]> results, int drug_idnx) {
-        double conc = 0.0;
+        double conc;
 
         // get coefficients to use
         List<Float> drug_coeffs = coeffs.get(drug_idnx);

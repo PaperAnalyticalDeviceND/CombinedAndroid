@@ -9,6 +9,8 @@ import android.util.Base64;
 import androidx.preference.PreferenceManager;
 import androidx.work.Data;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -18,15 +20,16 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class UploadData {
-    protected Context mContext;
-    protected String Category, Camera, SampleName, SampleID, Notes, Quantity, Timestamp, OriginalImage, RectifiedImage;
+    private final Context mContext;
+    private String Category, Camera, SampleName, SampleID, Notes, Quantity, Timestamp, OriginalImage, RectifiedImage;
 
-    public UploadData(Context context) {
+    private UploadData(Context context) {
         mContext = context;
     }
 
     // Creation Functions
-    public static UploadData from(final Data input, final Context context) {
+    @NotNull
+    public static UploadData from(@NotNull Data input, @NotNull Context context) {
         UploadData retVal = new UploadData(context);
         retVal.Category = PreferenceManager.getDefaultSharedPreferences(context).getString("project", "JCSTest");
         retVal.Camera = Build.MANUFACTURER + " " + Build.MODEL;
@@ -55,16 +58,17 @@ public class UploadData {
         return Base64.encodeToString(bytes, Base64.NO_WRAP);
     }
 
-    public static String MD5(final String s) throws NoSuchAlgorithmException {
+    @NotNull
+    public static String MD5(@NotNull String s) throws NoSuchAlgorithmException {
         // Create MD5 Hash
         MessageDigest digest = MessageDigest.getInstance("MD5");
         digest.update(s.getBytes());
         byte[] messageDigest = digest.digest();
 
         // Create Hex String
-        StringBuffer hexString = new StringBuffer();
-        for (int i = 0; i < messageDigest.length; i++) {
-            hexString.append(String.format("%1$02X", (0xFF & messageDigest[i])));
+        StringBuilder hexString = new StringBuilder();
+        for (byte b : messageDigest) {
+            hexString.append(String.format("%1$02X", (0xFF & b)));
         }
         return hexString.toString().toLowerCase();
     }
@@ -73,39 +77,41 @@ public class UploadData {
         return Category != null && Camera != null && SampleName != null && SampleID != null && Notes != null && Quantity != null && Timestamp != null && OriginalImage != null && RectifiedImage != null;
     }
 
+    @NotNull
     public Bundle toBundle() {
-        Bundle retVal = new Bundle();
-        retVal.putString("category", this.Category);
-        retVal.putString("camera", this.Camera);
-        retVal.putString("sample_name", this.SampleName);
-        retVal.putString("sample_id", this.SampleID);
-        retVal.putString("notes", this.Notes);
-        retVal.putString("quantity", this.Quantity);
-        retVal.putString("timestamp", this.Timestamp);
-        retVal.putString("image_original", this.OriginalImage);
-        retVal.putString("image_rectified", this.RectifiedImage);
+        final Bundle retVal = new Bundle();
+        retVal.putString("category", Category);
+        retVal.putString("camera", Camera);
+        retVal.putString("sample_name", SampleName);
+        retVal.putString("sample_id", SampleID);
+        retVal.putString("notes", Notes);
+        retVal.putString("quantity", Quantity);
+        retVal.putString("timestamp", Timestamp);
+        retVal.putString("image_original", OriginalImage);
+        retVal.putString("image_rectified", RectifiedImage);
         return retVal;
     }
 
+    @NotNull
     public String toUrlEncoded() throws IOException, NoSuchAlgorithmException {
         StringBuilder sbParams = new StringBuilder();
 
         sbParams.append("api_key").append("=").append(URLEncoder.encode("D5HDZG76N3ICA3GBUYWC", "UTF-8")).append("&");
-        sbParams.append("category_name").append("=").append(URLEncoder.encode(this.Category, "UTF-8")).append("&");
-        sbParams.append("camera1").append("=").append(URLEncoder.encode(this.Camera, "UTF-8")).append("&");
+        sbParams.append("category_name").append("=").append(URLEncoder.encode(Category, "UTF-8")).append("&");
+        sbParams.append("camera1").append("=").append(URLEncoder.encode(Camera, "UTF-8")).append("&");
         sbParams.append("test_name").append("=").append(URLEncoder.encode("12LanePADKenya2015", "UTF-8")).append("&");
-        sbParams.append("sample_name").append("=").append(URLEncoder.encode(this.SampleName, "UTF-8")).append("&");
-        sbParams.append("sampleid").append("=").append(URLEncoder.encode(this.SampleID, "UTF-8")).append("&");
-        sbParams.append("notes").append("=").append(URLEncoder.encode(this.Notes, "UTF-8")).append("&");
-        sbParams.append("quantity").append("=").append(URLEncoder.encode(this.Quantity, "UTF-8")).append("&");
-        sbParams.append("file_name").append("=").append(URLEncoder.encode("capture." + this.Timestamp + ".png", "UTF-8")).append("&");
-        sbParams.append("file_name2").append("=").append(URLEncoder.encode("rectified." + this.Timestamp + ".png", "UTF-8")).append("&");
+        sbParams.append("sample_name").append("=").append(URLEncoder.encode(SampleName, "UTF-8")).append("&");
+        sbParams.append("sampleid").append("=").append(URLEncoder.encode(SampleID, "UTF-8")).append("&");
+        sbParams.append("notes").append("=").append(URLEncoder.encode(Notes, "UTF-8")).append("&");
+        sbParams.append("quantity").append("=").append(URLEncoder.encode(Quantity, "UTF-8")).append("&");
+        sbParams.append("file_name").append("=").append(URLEncoder.encode("capture." + Timestamp + ".png", "UTF-8")).append("&");
+        sbParams.append("file_name2").append("=").append(URLEncoder.encode("rectified." + Timestamp + ".png", "UTF-8")).append("&");
 
-        String origianlB64 = FileToBase64(mContext, Uri.parse(this.OriginalImage));
+        String origianlB64 = FileToBase64(mContext, Uri.parse(OriginalImage));
         sbParams.append("uploaded_file").append("=").append(URLEncoder.encode(origianlB64, "UTF-8")).append("&");
         sbParams.append("hash_file1").append("=").append(URLEncoder.encode(UploadData.MD5(origianlB64), "UTF-8")).append("&");
 
-        String rectifiedB64 = FileToBase64(mContext, Uri.parse(this.RectifiedImage));
+        String rectifiedB64 = FileToBase64(mContext, Uri.parse(RectifiedImage));
         sbParams.append("uploaded_file2").append("=").append(URLEncoder.encode(rectifiedB64, "UTF-8")).append("&");
         sbParams.append("hash_file2").append("=").append(URLEncoder.encode(UploadData.MD5(rectifiedB64), "UTF-8"));
 
@@ -113,13 +119,13 @@ public class UploadData {
     }
 
     public void CleanupImages() {
-        if (this.OriginalImage != null) {
-            File file = new File(new File(this.OriginalImage).getParent());
-            file.delete();
+        if (OriginalImage != null) {
+            File file = new File(new File(OriginalImage).getParent());
+            file.delete()
         }
 
-        if (this.RectifiedImage != null) {
-            File file = new File(new File(this.RectifiedImage).getParent());
+        if (RectifiedImage != null) {
+            File file = new File(new File(RectifiedImage).getParent());
             file.delete();
         }
     }
