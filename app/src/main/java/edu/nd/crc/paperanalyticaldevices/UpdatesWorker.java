@@ -11,6 +11,8 @@ import androidx.preference.PreferenceManager;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -180,10 +182,13 @@ public class UpdatesWorker extends Worker {
             } //for each project name
 
         }catch(MalformedURLException e){
+            FirebaseCrashlytics.getInstance().recordException(e);
             e.printStackTrace();
         }catch(IOException e) {
+            FirebaseCrashlytics.getInstance().recordException(e);
             e.printStackTrace();
         }catch(JSONException e){
+            FirebaseCrashlytics.getInstance().recordException(e);
             e.printStackTrace();
         }finally {
 

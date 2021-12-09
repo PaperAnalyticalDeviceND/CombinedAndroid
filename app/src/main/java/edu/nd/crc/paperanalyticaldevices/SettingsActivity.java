@@ -27,6 +27,8 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
 
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 //import org.jsoup.Jsoup;
@@ -212,6 +214,7 @@ public class SettingsActivity extends AppCompatActivity {
             InetAddress address = InetAddress.getByName("pad.crc.nd.edu");
             return !address.equals("");
         }catch(UnknownHostException e){
+            FirebaseCrashlytics.getInstance().recordException(e);
             e.printStackTrace();
         }
         return false;
@@ -380,6 +383,7 @@ public class SettingsActivity extends AppCompatActivity {
 
                 }
             }catch(Exception e){
+                FirebaseCrashlytics.getInstance().recordException(e);
                 e.printStackTrace();
             }
 
