@@ -1,7 +1,6 @@
 package edu.nd.crc.paperanalyticaldevices;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -9,8 +8,6 @@ import android.util.Base64;
 
 import androidx.preference.PreferenceManager;
 import androidx.work.Data;
-
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;

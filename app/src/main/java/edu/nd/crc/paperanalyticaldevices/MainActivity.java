@@ -2,14 +2,12 @@
 
     import android.Manifest;
     import android.content.Context;
-    import android.content.DialogInterface;
     import android.content.Intent;
     import android.content.SharedPreferences;
     import android.content.pm.PackageManager;
     import android.graphics.Bitmap;
     import android.graphics.BitmapFactory;
     import android.net.Uri;
-    import android.os.AsyncTask;
     import android.os.Bundle;
     import android.os.Handler;
     import android.util.Log;
@@ -17,12 +15,8 @@
     import android.view.MenuInflater;
     import android.view.MenuItem;
     import android.view.View;
-    import android.webkit.URLUtil;
     import android.widget.ProgressBar;
-    import android.widget.Toast;
 
-    import androidx.activity.result.ActivityResultLauncher;
-    import androidx.appcompat.app.AlertDialog;
     import androidx.appcompat.app.AppCompatActivity;
     import androidx.appcompat.widget.Toolbar;
     import androidx.core.app.ActivityCompat;
@@ -35,10 +29,6 @@
     import androidx.work.WorkManager;
     import androidx.work.WorkRequest;
 
-    //import org.jsoup.Jsoup;
-    //import org.jsoup.nodes.Document;
-    //import org.jsoup.nodes.Element;
-    //import org.jsoup.select.Elements;
     import com.google.firebase.FirebaseApp;
     import com.google.firebase.analytics.FirebaseAnalytics;
     import com.google.firebase.crashlytics.FirebaseCrashlytics;
@@ -64,13 +54,9 @@
     import java.io.IOException;
     import java.io.InputStream;
     import java.io.InputStreamReader;
-    import java.io.OutputStream;
-    import java.net.URL;
-    import java.net.URLConnection;
     import java.nio.MappedByteBuffer;
     import java.nio.channels.FileChannel;
     import java.util.ArrayList;
-    import java.util.Collections;
     import java.util.List;
     import java.util.zip.ZipEntry;
     import java.util.zip.ZipInputStream;

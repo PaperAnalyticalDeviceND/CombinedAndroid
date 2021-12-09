@@ -35,12 +35,10 @@ import androidx.work.WorkRequest;
 
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;

@@ -1,34 +1,15 @@
 package edu.nd.crc.paperanalyticaldevices;
 
-import static android.hardware.Camera.Parameters.FLASH_MODE_TORCH;
-import static android.hardware.Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO;
-
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.Point;
-import android.hardware.Camera;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraCaptureSession;
-import android.hardware.camera2.CameraCharacteristics;
-import android.hardware.camera2.CameraDevice;
-import android.hardware.camera2.CameraManager;
-import android.hardware.camera2.CaptureRequest;
-import android.media.Image;
-import android.media.ImageReader;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.Surface;
 import android.view.WindowManager;
-
-import androidx.preference.PreferenceManager;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.JavaCamera2View;
-
-import java.util.Arrays;
 
 public class JavaCam2ResView extends JavaCamera2View {
 

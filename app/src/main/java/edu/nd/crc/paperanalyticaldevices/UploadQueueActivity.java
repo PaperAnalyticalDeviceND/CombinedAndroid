@@ -1,26 +1,19 @@
 package edu.nd.crc.paperanalyticaldevices;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.LiveData;
-import androidx.work.Data;
-import androidx.work.WorkInfo;
-import androidx.work.WorkManager;
-//import androidx.work.WorkQuery;
-
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.provider.BaseColumns;
 import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 
-//import com.google.common.util.concurrent.ListenableFuture;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.LiveData;
+import androidx.work.Data;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
 
-//import java.util.Arrays;
-import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;

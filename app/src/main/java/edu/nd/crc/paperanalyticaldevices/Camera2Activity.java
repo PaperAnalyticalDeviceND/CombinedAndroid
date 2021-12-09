@@ -1,9 +1,6 @@
 package edu.nd.crc.paperanalyticaldevices;
 
-//import static android.support.v4.content.FileProvider.getUriForFile;
 import static android.Manifest.permission.CAMERA;
-
-import androidx.core.content.FileProvider;
 import static java.lang.Math.sqrt;
 
 import android.Manifest;
@@ -12,7 +9,6 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -22,10 +18,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import androidx.core.app.ActivityCompat;
-import androidx.preference.PreferenceManager;
-
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
@@ -33,6 +25,10 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.FileProvider;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.ChecksumException;
