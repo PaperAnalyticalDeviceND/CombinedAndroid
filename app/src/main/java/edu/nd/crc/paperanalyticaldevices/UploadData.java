@@ -121,7 +121,7 @@ public class UploadData {
     public void CleanupImages() {
         if (OriginalImage != null) {
             File file = new File(new File(OriginalImage).getParent());
-            file.delete()
+            file.delete();
         }
 
         if (RectifiedImage != null) {
