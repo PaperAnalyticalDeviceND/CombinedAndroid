@@ -5,8 +5,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -15,7 +13,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
@@ -33,16 +30,11 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
 
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
-
-import org.json.JSONObject;
-
 import java.io.File;
-import java.io.FileWriter;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.UUID;
 
 public class ResultActivity extends AppCompatActivity {
@@ -66,19 +58,16 @@ public class ResultActivity extends AppCompatActivity {
         Toolbar myToolbar = findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
 
-        Switch okToConsumeSwitch = (Switch) findViewById(R.id.oktoconsumetoggleswitch);
+        Switch okToConsumeSwitch = findViewById(R.id.oktoconsumetoggleswitch);
         //set up toggle switch "Suspected unsafe?"
         //send this value to the API in the Notes
-        okToConsumeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    unsafeForConsumption = true;
-                    Toast.makeText(getBaseContext(), R.string.unsafetoconsume, Toast.LENGTH_SHORT).show();
-                } else {
-                    unsafeForConsumption = false;
-                    Toast.makeText(getBaseContext(), R.string.safetoconsume, Toast.LENGTH_SHORT).show();
-                }
+        okToConsumeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                unsafeForConsumption = true;
+                Toast.makeText(getBaseContext(), R.string.unsafetoconsume, Toast.LENGTH_SHORT).show();
+            } else {
+                unsafeForConsumption = false;
+                Toast.makeText(getBaseContext(), R.string.safetoconsume, Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -89,7 +78,7 @@ public class ResultActivity extends AppCompatActivity {
         imageView.setImageURI(intent.getData());
         if (null == intent.getData()) {
 
-            imageView.setImageBitmap(BitmapFactory.decodeStream(this.getClass().getResourceAsStream("/test42401.png")));
+            imageView.setImageBitmap(BitmapFactory.decodeStream(getClass().getResourceAsStream("/test42401.png")));
         }
 
         String sPredicted = "";
@@ -98,22 +87,22 @@ public class ResultActivity extends AppCompatActivity {
             sPredicted = intent.getStringExtra(MainActivity.EXTRA_PREDICTED);
         }
         Spinner sResult = findViewById(R.id.batchSpinner);
-        ArrayAdapter<String> aPredicted = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, Arrays.asList(sPredicted));
+        ArrayAdapter<String> aPredicted = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, Collections.singletonList(sPredicted));
         sResult.setEnabled(false);
         sResult.setAdapter(aPredicted);
         sResult.setSelection(aPredicted.getPosition(sPredicted));
 
         if (intent.hasExtra(MainActivity.EXTRA_SAMPLEID)) {
-            this.qr = intent.getStringExtra(MainActivity.EXTRA_SAMPLEID);
+            qr = intent.getStringExtra(MainActivity.EXTRA_SAMPLEID);
             TextView vSample = findViewById(R.id.idText);
-            vSample.setText("PAD ID: " + parseQR(this.qr));
+            vSample.setText("PAD ID: " + parseQR(qr));
         }
 
         if (intent.hasExtra(MainActivity.EXTRA_TIMESTAMP)) {
-            this.timestamp = intent.getStringExtra(MainActivity.EXTRA_TIMESTAMP);
+            timestamp = intent.getStringExtra(MainActivity.EXTRA_TIMESTAMP);
             TextView vTimestamp = findViewById(R.id.timeText);
 
-            Timestamp javaTimestamp = new Timestamp(Long.valueOf(this.timestamp));
+            Timestamp javaTimestamp = new Timestamp(Long.parseLong(timestamp));
             Date date = new Date(javaTimestamp.getTime());
 
             SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
@@ -124,14 +113,14 @@ public class ResultActivity extends AppCompatActivity {
         }
 
         // Handle Drug List
-        String tDrugs = "";
-        ArrayAdapter<String> aDrugs = null;
+        String tDrugs;
+        ArrayAdapter<String> aDrugs;
         if (intent.hasExtra(MainActivity.EXTRA_LABEL_DRUGS) && intent.getStringArrayExtra(MainActivity.EXTRA_LABEL_DRUGS) != null) {
             String[] drugs = intent.getStringArrayExtra(MainActivity.EXTRA_LABEL_DRUGS);
-            aDrugs = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, drugs);
+            aDrugs = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, drugs);
             tDrugs = drugs[0];
         } else {
-            aDrugs = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, Defaults.Drugs);
+            aDrugs = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, Defaults.Drugs);
             tDrugs = Defaults.Drugs.get(0);
         }
 
@@ -141,7 +130,7 @@ public class ResultActivity extends AppCompatActivity {
 
         // Handle Brands
         Spinner sBrands = findViewById(R.id.brandSpinner);
-        ArrayAdapter<String> aBrands = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, Defaults.Brands);
+        ArrayAdapter<String> aBrands = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, Defaults.Brands);
         sBrands.setAdapter(aBrands);
         sBrands.setSelection(aBrands.getPosition(mPreferences.getString("Brand", Defaults.Brands.get(0))));
     }
@@ -216,12 +205,12 @@ public class ResultActivity extends AppCompatActivity {
                 .setInputData(
                         new Data.Builder()
                                 .putString("SAMPLE_NAME", getDrug())
-                                .putString("SAMPLE_ID", parseQR(this.qr))
+                                .putString("SAMPLE_ID", parseQR(qr))
                                 .putString("NOTES", compressedNotes)
                                 .putString("QUANTITY", getPercentage(getBrand()))
-                                .putString("TIMESTAMP", this.timestamp)
-                                .putString("ORIGINAL_IMAGE", FileProvider.getUriForFile(this, this.getApplicationContext().getPackageName() + ".fileprovider", new File(new File(this.getFilesDir(), timestamp), "original.png")).toString())
-                                .putString("RECTIFIED_IMAGE", FileProvider.getUriForFile(this, this.getApplicationContext().getPackageName() + ".fileprovider", new File(new File(this.getFilesDir(), timestamp), "rectified.png")).toString())
+                                .putString("TIMESTAMP", timestamp)
+                                .putString("ORIGINAL_IMAGE", FileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".fileprovider", new File(new File(getFilesDir(), timestamp), "original.png")).toString())
+                                .putString("RECTIFIED_IMAGE", FileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".fileprovider", new File(new File(getFilesDir(), timestamp), "rectified.png")).toString())
                                 .build()
                 )
                 .build();
@@ -237,10 +226,10 @@ public class ResultActivity extends AppCompatActivity {
         ContentValues dbValues = new ContentValues();
         dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_WORKID, workId.toString());
         dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLENAME, getDrug());
-        dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLEID, parseQR(this.qr));
+        dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLEID, parseQR(qr));
         dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_QUANTITY, getPercentage(getBrand()));
         dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_NOTES, compressedNotes);
-        dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP, this.timestamp);
+        dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP, timestamp);
 
         WorkInfoDbHelper dbHelper = new WorkInfoDbHelper(getBaseContext());
         SQLiteDatabase db = dbHelper.getWritableDatabase();
@@ -249,55 +238,17 @@ public class ResultActivity extends AppCompatActivity {
 
         Toast.makeText(this, "Results added to upload queue", Toast.LENGTH_SHORT).show();
 
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                finish();
-            }
-        }, 1250);
+        new Handler().postDelayed(this::finish, 1250);
     }
 
     public void discardData(View view) {
         finish();
     }
 
-    private Uri buildJSON() {
-        Uri ret = Uri.EMPTY;
-        try {
-            String compressedNotes = "Predicted drug =";
-            compressedNotes += getBatch();
-            compressedNotes += ", ";
-            compressedNotes += getNotes();
-
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.accumulate("sample_name", getDrug());
-            jsonObject.accumulate("project_name", MainActivity.PROJECT);
-            jsonObject.accumulate("camera1", Build.MANUFACTURER + " " + Build.MODEL);
-            jsonObject.accumulate("sampleid", parseQR(this.qr));
-            jsonObject.accumulate("qr_string", this.qr);
-            jsonObject.accumulate("quantity", getPercentage(getBrand()));
-            jsonObject.accumulate("notes", compressedNotes);
-            jsonObject.accumulate("timestamp", this.timestamp);
-
-            File outputFile = File.createTempFile("data", ".json", this.getCacheDir());
-
-            FileWriter file = new FileWriter(outputFile);
-            file.write(jsonObject.toString());
-            file.flush();
-            file.close();
-
-            ret = FileProvider.getUriForFile(this, this.getApplicationContext().getPackageName() + ".fileprovider", outputFile);
-        } catch (Exception e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
-            e.printStackTrace();
-        }
-        return ret;
-    }
-
     private String getDrug() {
         Spinner spinner = findViewById(R.id.drugSpinner);
         String ret = String.valueOf(spinner.getSelectedItem());
-        mPreferences.edit().putString("Drug", ret).commit();
+        mPreferences.edit().putString("Drug", ret).apply();
         return ret;
     }
 
@@ -307,7 +258,7 @@ public class ResultActivity extends AppCompatActivity {
         if (ret.isEmpty()) {
             return "100%";
         }
-        mPreferences.edit().putString("Brand", ret).commit();
+        mPreferences.edit().putString("Brand", ret).apply();
         return ret;
     }
 

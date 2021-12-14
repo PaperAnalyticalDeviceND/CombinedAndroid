@@ -9,13 +9,11 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ProgressBar;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -33,7 +31,6 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
-import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.OpenCVLoader;
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.Interpreter;
@@ -68,7 +65,6 @@ public class MainActivity extends AppCompatActivity {
     public static final String EXTRA_LABEL_DRUGS = "e.nd.paddatacapture.EXTRA_LABEL_DRUGS";
     static final String PROJECT = "";
     public static boolean HoldCamera = false;
-    private static final String baseUrl = "https://pad.crc.nd.edu/neuralnetworks/tf_lite/";
     private static final String subFhiConc = "fhi360_conc_large_lite";
     private static final String subFhi = "fhi360_small_lite";
     private static final String subId = "idPAD_small_lite";
@@ -92,14 +88,11 @@ public class MainActivity extends AppCompatActivity {
     List<String>[] associatedAxisLabels = (ArrayList<String>[]) new ArrayList[2];
     // pls class
     Partial_least_squares pls = null;
-    ProgressBar progressBar;
+
     /**
      * The loaded TensorFlow Lite model.
      */
     private final MappedByteBuffer[] tfliteModel = {null, null};
-    private final int progressStatus = 0;
-    private final Handler handler = new Handler();
-    private SharedPreferences.OnSharedPreferenceChangeListener listener;
     //these filenames should get updated from SharedPreferences if new versions are published
     //the SettingsActivity will check for a newer version when the project setting is changed.
     private String idPadName = "idPAD_small_1_6.tflite";
@@ -107,11 +100,7 @@ public class MainActivity extends AppCompatActivity {
     private String fhiConcName = "fhi360_conc_large_1_21.tflite";
     private String mshName = "model_small_1_10.tflite";
 
-    private boolean sync = false;
-
-    private FirebaseAnalytics mFirebaseAnalytics;
-
-    private static final int findMaxIndex(float[] arr) {
+    private static int findMaxIndex(float[] arr) {
         float max = arr[0];
         int maxIdx = 0;
         for (int i = 1; i < arr.length; i++) {
@@ -128,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         FirebaseApp.initializeApp(this);
-        mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
+        FirebaseAnalytics mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
 
         //initialize opencv
         if (!OpenCVLoader.initDebug()) {
@@ -144,36 +133,34 @@ public class MainActivity extends AppCompatActivity {
         fhiConcName = prefs.getString(subFhiConc + "filename", fhiConcName);
         mshName = prefs.getString(subMsh + "filename", mshName);
 
-        listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-            @Override
-            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-                if (key.equals("neuralnet")) {
+        //the Project can be separate from the neural net
+        SharedPreferences.OnSharedPreferenceChangeListener listener = (sharedPreferences, key) -> {
+            if (key.equals("neuralnet")) {
 
-                    //the Project can be separate from the neural net
-                    ProjectName = sharedPreferences.getString("neuralnet", "");
+                //the Project can be separate from the neural net
+                ProjectName = sharedPreferences.getString("neuralnet", "");
 
-                    idPadName = sharedPreferences.getString(subId + "filename", idPadName);
-                    fhiName = sharedPreferences.getString(subFhi + "filename", fhiName);
-                    fhiConcName = sharedPreferences.getString(subFhiConc + "filename", fhiConcName);
-                    mshName = sharedPreferences.getString(subMsh + "filename", mshName);
+                idPadName = sharedPreferences.getString(subId + "filename", idPadName);
+                fhiName = sharedPreferences.getString(subFhi + "filename", fhiName);
+                fhiConcName = sharedPreferences.getString(subFhiConc + "filename", fhiConcName);
+                mshName = sharedPreferences.getString(subMsh + "filename", mshName);
 
-                    switch (ProjectName) {
-                        case "FHI360-App":
-                            model_list = new String[]{fhiName, fhiConcName};
-                            number_of_models = 2;
-                            break;
-                        case "Veripad idPAD":
-                            model_list = new String[]{idPadName};
-                            number_of_models = 1;
-                            break;
-                        case "MSH Tanzania":
-                            model_list = new String[]{mshName};
-                            number_of_models = 1;
-                            break;
-                        default:
-                            number_of_models = 0;
-                            break;
-                    }
+                switch (ProjectName) {
+                    case "FHI360-App":
+                        model_list = new String[]{fhiName, fhiConcName};
+                        number_of_models = 2;
+                        break;
+                    case "Veripad idPAD":
+                        model_list = new String[]{idPadName};
+                        number_of_models = 1;
+                        break;
+                    case "MSH Tanzania":
+                        model_list = new String[]{mshName};
+                        number_of_models = 1;
+                        break;
+                    default:
+                        number_of_models = 0;
+                        break;
                 }
             }
         };
@@ -183,7 +170,7 @@ public class MainActivity extends AppCompatActivity {
         String project = prefs.getString("neuralnet", "");
         ProjectName = project;
 
-        sync = prefs.getBoolean("sync", false);
+        boolean sync = prefs.getBoolean("sync", false);
 
         if (sync) {
             checkForUpdates(project);
@@ -197,13 +184,8 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(myToolbar);
     }
 
-    protected List<? extends CameraBridgeViewBase> getCameraViewList() {
-        return new ArrayList<CameraBridgeViewBase>();
-
-    }
-
     public void checkForUpdates(String project) {
-        String[] projectFolders = {};
+        String[] projectFolders;
 
         // check the currently selected project for updated NN files on app start
         if (project.length() > 0) {
@@ -387,6 +369,11 @@ public class MainActivity extends AppCompatActivity {
             while ((entry = stream.getNextEntry()) != null) {
 
                 File f = new File(targetDirectory.getPath(), entry.getName());
+                String canonicalPath = f.getCanonicalPath();
+                if (!canonicalPath.startsWith(targetDirectory.getPath())) {
+                    throw new SecurityException();
+                }
+
                 try (FileOutputStream fos = new FileOutputStream(targetDirectory.getPath() + "/" + entry.getName());
                      BufferedOutputStream bos = new BufferedOutputStream(fos, buffer.length)) {
 
@@ -415,7 +402,7 @@ public class MainActivity extends AppCompatActivity {
                     if (data.hasExtra("timestamp"))
                         timestamp = String.format("%d", data.getExtras().getLong("timestamp"));
 
-                    File targetDir = new File(this.getFilesDir(), timestamp);
+                    File targetDir = new File(getFilesDir(), timestamp);
                     targetDir.mkdirs();
 
                     // Extract Files
@@ -429,7 +416,7 @@ public class MainActivity extends AppCompatActivity {
                     Bitmap bm = Bitmap.createBitmap(bmRect, 71, 359, 636, 490);
 
                     // create output string
-                    String output_string = "";
+                    StringBuilder output_string = new StringBuilder();
 
                     // categorize for each model in list
                     for (int num_mod = 0; num_mod < number_of_models; num_mod++) {
@@ -444,13 +431,13 @@ public class MainActivity extends AppCompatActivity {
                             int maxidx = findMaxIndex(probArray);
 
                             // concat to output string
-                            output_string += associatedAxisLabels[num_mod].get(maxidx);
+                            output_string.append(associatedAxisLabels[num_mod].get(maxidx));
                             if (num_mod == 0) {
-                                output_string += String.format(" (%.3f)", probabilityBuffer[num_mod].getFloatArray()[maxidx]);
+                                output_string.append(String.format(" (%.3f)", probabilityBuffer[num_mod].getFloatArray()[maxidx]));
                             }
 
                             if (num_mod != number_of_models - 1) {
-                                output_string += ", ";
+                                output_string.append(", ");
                             }
                             // print results
                             Log.i("GBR", String.valueOf(probabilityBuffer[num_mod].getFloatArray()[0]));
@@ -461,7 +448,7 @@ public class MainActivity extends AppCompatActivity {
 
                     // calculate concentration from PLSR method
                     // get drug if available
-                    String[] drug = output_string.split(" ", 2);
+                    String[] drug = output_string.toString().split(" ", 2);
                     String drugStr = "albendazole";
                     if (drug.length > 1) {
                         drugStr = drug[0].toLowerCase();
@@ -472,17 +459,17 @@ public class MainActivity extends AppCompatActivity {
                         double concentration = pls.do_pls(bmRect, drugStr);
 
                         // add conc. result to string
-                        output_string += "%, (PLS " + (int) concentration + "%)";
+                        output_string.append("%, (PLS ").append((int) concentration).append("%)");
                     }
 
                     Intent intent = new Intent(this, ResultActivity.class);
                     intent.setData(Uri.fromFile(rectifiedFile));
-                    intent.putExtra(EXTRA_PREDICTED, output_string);
+                    intent.putExtra(EXTRA_PREDICTED, output_string.toString());
                     if (data.hasExtra("qr"))
                         intent.putExtra(EXTRA_SAMPLEID, data.getExtras().getString("qr"));
                     if (data.hasExtra("timestamp")) intent.putExtra(EXTRA_TIMESTAMP, timestamp);
                     if (null != associatedAxisLabels[0] && associatedAxisLabels[0].size() > 0)
-                        intent.putExtra(EXTRA_LABEL_DRUGS, (String[]) associatedAxisLabels[0].toArray(new String[0]));
+                        intent.putExtra(EXTRA_LABEL_DRUGS, associatedAxisLabels[0].toArray(new String[0]));
                     startActivity(intent);
 
                     HoldCamera = true;
@@ -493,8 +480,6 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-        } else if (resultCode == RESULT_CANCELED) {
-            // do nothing for now
         }
 
         Log.i("GBR", String.valueOf(resultCode));

@@ -4,6 +4,8 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import org.jetbrains.annotations.NotNull;
+
 public class WorkInfoDbHelper extends SQLiteOpenHelper {
 
     public static final int DATABASE_VERSION = 1;
@@ -18,18 +20,18 @@ public class WorkInfoDbHelper extends SQLiteOpenHelper {
     private static final String SQL_DELETE_ENTRIES =
             "DROP TABLE IF EXISTS " + WorkInfoContract.WorkInfoEntry.TABLE_NAME;
 
-    public WorkInfoDbHelper(Context context) {
+    public WorkInfoDbHelper(@NotNull Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
 
     }
 
     @Override
-    public void onCreate(SQLiteDatabase db) {
+    public void onCreate(@NotNull SQLiteDatabase db) {
         db.execSQL(SQL_CREATE_ENTRIES);
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+    public void onUpgrade(@NotNull SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL(SQL_DELETE_ENTRIES);
         onCreate(db);
 

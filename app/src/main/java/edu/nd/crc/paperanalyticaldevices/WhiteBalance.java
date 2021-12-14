@@ -1,9 +1,13 @@
 package edu.nd.crc.paperanalyticaldevices;
 
+import androidx.annotation.NonNull;
+
+import org.jetbrains.annotations.NotNull;
 import org.opencv.core.Mat;
 
 public class WhiteBalance {
-    public static int[][] CalculateHistogram(Mat mat) {
+    @NonNull
+    public static int[][] CalculateHistogram(@NotNull Mat mat) {
         int[][] hists = new int[3][256];
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 256; j++) {
@@ -24,7 +28,7 @@ public class WhiteBalance {
         return hists;
     }
 
-    public static void InPlace(Mat mat) {
+    public static void InPlace(@NotNull Mat mat) {
         double discard_ratio = 0.05;
         int[][] hists = CalculateHistogram(mat);
 
@@ -36,7 +40,7 @@ public class WhiteBalance {
             for (int j = 0; j < 255; ++j) {
                 hists[i][j + 1] += hists[i][j];
             }
-            vmin[i] = 0;
+
             vmax[i] = 255;
             while (vmin[i] < 255 && hists[i][vmin[i]] < discard_ratio * total) {
                 vmin[i] += 1;

@@ -10,7 +10,6 @@ import android.widget.ListView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.LiveData;
-import androidx.work.Data;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
@@ -21,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class UploadQueueActivity extends AppCompatActivity {
+public final class UploadQueueActivity extends AppCompatActivity {
     //Activity to display pending uploads in a ListView
     //details are stored in an SQLite DB, keyed by the WorkID, so we get the WorkIDs of non-finished work and query the DB to get drug name, sample id, timestamp
 
@@ -53,13 +52,10 @@ public class UploadQueueActivity extends AppCompatActivity {
             dbHelper = new WorkInfoDbHelper(getBaseContext());
             SQLiteDatabase db = dbHelper.getReadableDatabase();
 
-            int countInQueue = 0;
             //Create a list of objects to display in the ListView for the queue
-            ArrayList<PADDataObject> workList = new ArrayList<PADDataObject>();
+            ArrayList<PADDataObject> workList = new ArrayList<>();
 
             for (WorkInfo workInfo : listOfWorkInfo) {
-                Data workData = workInfo.getOutputData();
-
                 UUID workId = workInfo.getId();
                 Log.d("Queue TAG", "Work ID: " + workId);
 
@@ -77,34 +73,26 @@ public class UploadQueueActivity extends AppCompatActivity {
                     String[] selectionArgs = {workId.toString()};
                     String sortOrder = WorkInfoContract.WorkInfoEntry.COLUMN_NAME_WORKID + " ASC";
 
-                    Cursor cursor = db.query(WorkInfoContract.WorkInfoEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
+                    try( Cursor cursor = db.query(WorkInfoContract.WorkInfoEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder)) {
+                        PADDataObject padInfo = new PADDataObject();
+                        while (cursor.moveToNext()) {
+                            String drugName = cursor.getString(cursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLENAME));
+                            padInfo.setDrugName(drugName);
 
-                    //String workMessage = "";
-                    String newDate = "";
-                    String drugName = "";
-                    String padId = "";
+                            long timestamp = cursor.getLong(cursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP));
 
-                    List items = new ArrayList<>();
-                    while (cursor.moveToNext()) {
-                        drugName = cursor.getString(cursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLENAME));
-                        Long timestamp = cursor.getLong(cursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP));
+                            String padId = "PAD ID: " + cursor.getString(cursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLEID));
+                            padInfo.setPadId(padId);
 
-                        padId = "PAD ID: " + cursor.getString(cursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLEID));
+                            Timestamp javaTimestamp = new Timestamp(timestamp);
+                            Date date = new Date(javaTimestamp.getTime());
 
-                        Timestamp javaTimestamp = new Timestamp(timestamp);
-                        Date date = new Date(javaTimestamp.getTime());
-
-                        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-                        newDate = sdf.format(date);
+                            SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+                            String newDate = sdf.format(date);
+                            padInfo.setDatetime(newDate);
+                        }
+                        workList.add(padInfo);
                     }
-
-                    PADDataObject padInfo = new PADDataObject();
-                    padInfo.setDatetime(newDate);
-                    padInfo.setPadId(padId);
-                    padInfo.setDrugName(drugName);
-
-                    workList.add(padInfo);
-
                 } else {
                     //Delete finished records from the SQLite db
 

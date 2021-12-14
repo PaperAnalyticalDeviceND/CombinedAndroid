@@ -21,6 +21,8 @@ import androidx.work.WorkerParameters;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -42,9 +44,10 @@ public class UploadWorker extends Worker {
         notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
     }
 
+    @NotNull
     @Override
     public Result doWork() {
-        UploadData data = UploadData.from(getInputData(), this.getApplicationContext());
+        UploadData data = UploadData.from(getInputData(), getApplicationContext());
         if (!data.isValid()) {
             return Result.failure();
         }
@@ -144,7 +147,7 @@ public class UploadWorker extends Worker {
                 .addAction(android.R.drawable.ic_delete, "Cancel", intent)
                 .build();
 
-        return new ForegroundInfo(this.hashCode(), notification);
+        return new ForegroundInfo(hashCode(), notification);
     }
 
 

@@ -39,14 +39,4 @@ public class Defaults {
         add("50%");
         add("20%");
     }};
-
-    public static final ArrayList<String> Batches = new ArrayList<String>() {{
-        add("n/a");
-    }};
-
-    public static final ArrayList<String> TensorModels = new ArrayList<String>() {{
-        add("fhi360");
-        add("idpads");
-        add("mshtanzania");
-    }};
 }
