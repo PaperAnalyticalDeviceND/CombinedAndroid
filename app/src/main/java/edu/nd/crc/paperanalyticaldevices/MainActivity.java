@@ -362,29 +362,72 @@ public class MainActivity extends AppCompatActivity {
         InitializeModels();
     }
 
-    private void UncompressOutputs(InputStream fin, File targetDirectory) throws Exception {
-        byte[] buffer = new byte[4096];
-        try (BufferedInputStream bis = new BufferedInputStream(fin); ZipInputStream stream = new ZipInputStream(bis)) {
-            ZipEntry entry;
-            while ((entry = stream.getNextEntry()) != null) {
+    private static String validateZipEntry(String zipEntryRelativePath, File destDir) throws IOException {
+        File zipEntryTarget = new File(destDir, zipEntryRelativePath);
+        String zipCanonicalPath = zipEntryTarget.getCanonicalPath();
 
-                File f = new File(targetDirectory.getPath(), entry.getName());
-                String canonicalPath = f.getCanonicalPath();
-                if (!canonicalPath.startsWith(targetDirectory.getPath())) {
-                    throw new SecurityException();
-                }
+        if (zipCanonicalPath.startsWith(destDir.getCanonicalPath())) {
+            return (zipCanonicalPath);
+        }
 
-                try (FileOutputStream fos = new FileOutputStream(targetDirectory.getPath() + "/" + entry.getName());
-                     BufferedOutputStream bos = new BufferedOutputStream(fos, buffer.length)) {
+        throw new IllegalStateException("ZIP entry tried to write outside destination directory");
+    }
 
-                    int len;
-                    while ((len = stream.read(buffer)) > 0) {
-                        bos.write(buffer, 0, len);
+    private void UncompressOutputs(InputStream fin, File destDir) throws Exception {
+        final int BUFFER_SIZE = 16384;
+        final int DEFAULT_MAX_ENTRIES = 1024;
+        final int DEFAULT_MAX_SIZE = 1024 * 1024 * 64;
+
+        if (destDir.exists()) {
+            if (destDir.list().length > 0) {
+                throw new IOException("Your destination directory is not empty!");
+            }
+        } else {
+            destDir.mkdirs();
+        }
+
+        try {
+            try (ZipInputStream zis = new ZipInputStream(new BufferedInputStream(fin))) {
+                ZipEntry entry;
+                int entries = 0;
+                long total = 0;
+                while ((entry = zis.getNextEntry()) != null) {
+                    int bytesRead;
+                    final byte[] data = new byte[BUFFER_SIZE];
+                    final String zipCanonicalPath = validateZipEntry(entry.getName(), destDir);
+
+                    if (entry.isDirectory()) {
+                        new File(zipCanonicalPath).mkdirs();
+                    } else {
+                        new File(zipCanonicalPath).getParentFile().mkdirs();
+
+                        final FileOutputStream fos = new FileOutputStream(zipCanonicalPath);
+                        final BufferedOutputStream dest = new BufferedOutputStream(fos, BUFFER_SIZE);
+
+                        while (total + BUFFER_SIZE <= DEFAULT_MAX_SIZE && (bytesRead = zis.read(data, 0, BUFFER_SIZE)) != -1) {
+                            dest.write(data, 0, bytesRead);
+                            total += bytesRead;
+                        }
+
+                        dest.flush();
+                        fos.getFD().sync();
+                        dest.close();
+
+                        if (total + BUFFER_SIZE > DEFAULT_MAX_SIZE) {
+                            throw new IllegalStateException("Too much output from ZIP");
+                        }
+                    }
+
+                    zis.closeEntry();
+                    entries++;
+
+                    if (entries > DEFAULT_MAX_ENTRIES) {
+                        throw new IllegalStateException("Too many entries in ZIP");
                     }
                 }
-
-
             }
+        } catch (Throwable t) {
+            throw new Exception("Problem in unzip operation, rolling back", t);
         }
     }
 
