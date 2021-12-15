@@ -50,15 +50,13 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
 
     private String CurrentProject = "";
     private List<TensorflowNetwork> networks = new ArrayList<>();
-    private Partial_least_squares pls;
+    private PartialLeastSquares pls = null;
 
     public PredictionModel(@NonNull Application application) {
         super(application);
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(application.getApplicationContext());
 
         LoadModel(preferences, preferences.getString("neuralnet", ""));
-        pls = new Partial_least_squares(getApplication().getApplicationContext());
-
         preferences.registerOnSharedPreferenceChangeListener(this);
     }
 
@@ -119,9 +117,9 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                     drugStr = drug[0].toLowerCase();
                 }
 
-                if (CurrentProject.equals("FHI360-App")) {
+                if (CurrentProject.equals("FHI360-App") && pls != null) {
                     // call
-                    double concentration = pls.do_pls(bmRect, drugStr);
+                    double concentration = pls.calculate(bmRect, drugStr);
 
                     // add conc. result to string
                     output_string.append("%, (PLS ").append((int) concentration).append("%)");
@@ -234,6 +232,9 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                 default:
                     networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(), sharedPreferences.getString(subFhi + "filename", fhiName)));
                     networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(), sharedPreferences.getString(subFhiConc + "filename", fhiConcName)));
+                    if( pls == null ){
+                        pls = PartialLeastSquares.from(getApplication().getApplicationContext());
+                    }
                     break;
             }
             CurrentProject = project;

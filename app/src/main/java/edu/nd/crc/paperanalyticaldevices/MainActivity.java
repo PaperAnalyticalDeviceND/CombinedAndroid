@@ -29,15 +29,6 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.analytics.FirebaseAnalytics;
 
 import org.opencv.android.OpenCVLoader;
-import org.tensorflow.lite.Interpreter;
-import org.tensorflow.lite.support.image.ImageProcessor;
-import org.tensorflow.lite.support.image.TensorImage;
-import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
-
-import java.io.File;
-import java.nio.MappedByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -46,36 +37,16 @@ public class MainActivity extends AppCompatActivity {
     public static final String EXTRA_TIMESTAMP = "e.nd.paddatacapture.EXTRA_TIMESTAMP";
     public static final String EXTRA_PREDICTED = "e.nd.paddatacapture.EXTRA_PREDICTED";
     public static final String EXTRA_LABEL_DRUGS = "e.nd.paddatacapture.EXTRA_LABEL_DRUGS";
+
     static final String PROJECT = "";
+
     public static boolean HoldCamera = false;
+
     private static final String subFhiConc = "fhi360_conc_large_lite";
     private static final String subFhi = "fhi360_small_lite";
     private static final String subId = "idPAD_small_lite";
     private static final String subMsh = "msh_tanzania_3k_10_lite";
-    final String[] ASSOCIATED_AXIS_LABELS = {"labels.txt", "labels.txt"};
-    /**
-     * Options for configuring the Interpreter.
-     */
-    private final Interpreter.Options[] tfliteOptions = {new Interpreter.Options(), new Interpreter.Options()};
-    /**
-     * An instance of the driver class to run model inference with Tensorflow Lite.
-     */
-    protected Interpreter[] tflite = {null, null};
-    String ProjectName;
-    // NN storage, now setting up array for multiple NN
-    int number_of_models;
-    String[] model_list = {};
-    ImageProcessor[] imageProcessor = {null, null};
-    TensorImage[] tImage = {null, null};
-    TensorBuffer[] probabilityBuffer = {null, null};
-    List<String>[] associatedAxisLabels = (ArrayList<String>[]) new ArrayList[2];
-    // pls class
-    Partial_least_squares pls = null;
 
-    /**
-     * The loaded TensorFlow Lite model.
-     */
-    private final MappedByteBuffer[] tfliteModel = {null, null};
     //these filenames should get updated from SharedPreferences if new versions are published
     //the SettingsActivity will check for a newer version when the project setting is changed.
     private String idPadName = "idPAD_small_1_6.tflite";
@@ -83,9 +54,9 @@ public class MainActivity extends AppCompatActivity {
     private String fhiConcName = "fhi360_conc_large_1_21.tflite";
     private String mshName = "model_small_1_10.tflite";
 
-    private PredictionModel tensorflowView;
-    private File rectifiedFile;
+    String ProjectName;
 
+    private PredictionModel tensorflowView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,8 +93,6 @@ public class MainActivity extends AppCompatActivity {
         //put in a top toolbar with a menu dropdown
         Toolbar myToolbar = findViewById(R.id.toolbar);
         setSupportActionBar(myToolbar);
-
-        pls = new Partial_least_squares(this);
 
         tensorflowView = new ViewModelProvider(this).get(PredictionModel.class);
         tensorflowView.getResult().observe(this, new Observer<PredictionModel.Result>() {
@@ -230,13 +199,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        Log.i("GBT", "onActivityResult");
         if (resultCode == RESULT_OK && requestCode == 10) {
             tensorflowView.predict(data);
         }
-
-        Log.i("GBR", String.valueOf(resultCode));
-        Log.i("GBR", String.valueOf(requestCode));
     }
 
     @Override

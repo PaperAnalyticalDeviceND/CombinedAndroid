@@ -20,60 +20,23 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
+import java.util.stream.Collectors;
 
-public class Partial_least_squares {
-    // labels
-    private final List<String> labels = new ArrayList<>();
-    // coefficients
-    private final List<List<Float>> coeffs = new ArrayList<>();
+public class PartialLeastSquares {
+    private final List<String> Labels;
+    private final List<List<Float>> Coefficients;
 
-    // initialize
-    public Partial_least_squares(Context context) {
-        Log.i("GBT-PLS", "PLS created-");
-
-        // load csv from assets
-        try {
-            // read csv file
-            InputStream is = context.getAssets().open("pls_coefficients.csv");
-            InputStreamReader reader = new InputStreamReader(is, StandardCharsets.UTF_8);
-            List<String[]> csv = new CSVReader(reader).readAll();
-            Log.i("GBT-PLS", csv.get(0)[0]);
-
-            // get sizes
-            final int label_length = csv.size();
-            final int coeff_length = csv.get(0).length;
-
-            // loop to put coeffs into matrix (List List)
-            for (int i = 0; i < label_length; i++) {
-                // load labels
-                labels.add(csv.get(i)[0]);
-
-                //add new coeff list
-                coeffs.add(new ArrayList<>());
-
-                // coeffs
-                for (int j = 1; j < coeff_length; j++) {
-                    coeffs.get(i).add(Float.parseFloat(csv.get(i)[j]));
-                }
-            }
-
-            Log.i("GBT-PLS", csv.get(0)[0]);
-            Log.i("GBT-PLS", coeffs.get(0).get(0) + ", " + labels.get(0));
-        } catch (IOException e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
-            Log.i("GBT-PLS", "PLS error");
-            e.printStackTrace();
-        }
-
+    public PartialLeastSquares(final List<String> labels, final List<List<Float>> coefficients){
+        Labels = labels;
+        Coefficients = coefficients;
     }
 
-    // actually perform the pls
-    public double do_pls(Bitmap bmp, String drug) {
-
+    public double calculate(Bitmap bmp, String drug) {
         // find drug index
-        int drug_idnx = labels.indexOf(drug);
+        int drug_idnx = Labels.indexOf(drug);
         Log.i("GBT-PLS", "drug, " + drug + ", index " + drug_idnx);
 
         if (drug_idnx < 0) {
@@ -217,7 +180,7 @@ public class Partial_least_squares {
         double conc;
 
         // get coefficients to use
-        List<Float> drug_coeffs = coeffs.get(drug_idnx);
+        List<Float> drug_coeffs = Coefficients.get(drug_idnx);
 
         // first coeff is intercept
         conc = drug_coeffs.get(0);
@@ -231,5 +194,20 @@ public class Partial_least_squares {
 
         // return concentration
         return conc;
+    }
+
+    public static PartialLeastSquares from(Context context) throws IOException {
+        List<String> labels = new ArrayList<>();
+        List<List<Float>> coefficients = new ArrayList<>();
+
+        try (InputStreamReader reader = new InputStreamReader(context.getAssets().open("pls_coefficients.csv"), StandardCharsets.UTF_8)) {
+            CSVReader csv = new CSVReader(reader);
+            for( String[] record: csv){
+                labels.add(record[0]);
+                coefficients.add(Arrays.stream(record).skip(1).map(s -> Float.parseFloat(s)).collect(Collectors.toList()));
+            }
+        }
+
+        return new PartialLeastSquares(labels, coefficients);
     }
 }
