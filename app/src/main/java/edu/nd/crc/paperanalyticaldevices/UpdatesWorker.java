@@ -1,13 +1,25 @@
 package edu.nd.crc.paperanalyticaldevices;
 
+import static android.content.Context.NOTIFICATION_SERVICE;
+
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Build;
 import android.util.Log;
 import android.webkit.URLUtil;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.core.app.NotificationCompat;
 import androidx.preference.PreferenceManager;
+import androidx.work.Data;
+import androidx.work.ForegroundInfo;
+import androidx.work.WorkManager;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
@@ -35,8 +47,45 @@ public class UpdatesWorker extends Worker {
     private static final String TAG_NAME = "name";
     private static final String TAG_VERSION = "version";
 
+    private static final String PROGRESS = "PROGRESS";
+
+    private NotificationManager notificationManager;
+
+
     public UpdatesWorker(@NonNull Context context, @NonNull WorkerParameters params) {
         super(context, params);
+
+        setProgressAsync(new Data.Builder().putInt(PROGRESS, 0).build());
+        notificationManager = (NotificationManager)
+                context.getSystemService(NOTIFICATION_SERVICE);
+
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private void createChannel() {
+        NotificationChannel channel = new NotificationChannel(MainActivity.PROJECT, "Upload", NotificationManager.IMPORTANCE_LOW);
+        notificationManager.createNotificationChannel(channel);
+    }
+
+    @NonNull
+    private ForegroundInfo createForegroundInfo(int current, int max) {
+
+        Context context = getApplicationContext();
+
+        PendingIntent intent = WorkManager.getInstance(context).createCancelPendingIntent(getId());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            createChannel();
+        }
+
+        Notification notification = new NotificationCompat.Builder(context, MainActivity.PROJECT)
+                .setOngoing(true)
+                .setContentTitle("Data Download")
+                .setProgress(max, current, false)
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .addAction(android.R.drawable.ic_delete, "Cancel", intent)
+                .build();
+
+        return new ForegroundInfo(hashCode(), notification);
     }
 
     @NonNull
@@ -136,9 +185,18 @@ public class UpdatesWorker extends Worker {
 
                             OutputStream output = new FileOutputStream(newFile);
 
+                            int lengthOfFile = connection.getContentLength();
+                            long total = 0;
+
+                            setForegroundAsync(createForegroundInfo(0, lengthOfFile));
+
                             byte[] data = new byte[1024];
                             while ((count = input.read(data)) != -1) {
                                 output.write(data, 0, count);
+                                total += count;
+                                int prog = Integer.parseInt(String.valueOf( (total * 100) / lengthOfFile) );
+                                setProgressAsync(new Data.Builder().putInt(PROGRESS, prog).build());
+
                             }
 
                             output.flush();
@@ -170,6 +228,7 @@ public class UpdatesWorker extends Worker {
 
         }
 
+        setProgressAsync(new Data.Builder().putInt(PROGRESS, 100).build());
 
         return Result.success();
     }

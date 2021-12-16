@@ -10,6 +10,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -22,13 +23,18 @@ import androidx.work.Constraints;
 import androidx.work.Data;
 import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.analytics.FirebaseAnalytics;
 
 import org.opencv.android.OpenCVLoader;
+
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import javax.annotation.Nullable;
 
@@ -185,8 +191,32 @@ public class MainActivity extends AppCompatActivity {
                 | (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 90);
         } else {
-            Intent intent = new Intent(this, Camera2Activity.class);
-            startActivityForResult(intent, 10);
+
+            try {
+                ListenableFuture<List<WorkInfo>> workInfoListenable = WorkManager.getInstance(this).getWorkInfosByTag("neuralnet_download");
+
+                // get any download workers
+                List<WorkInfo> workinfos = workInfoListenable.get();
+
+                boolean Continue = true;
+
+                //check if they are all finished or not
+                for(WorkInfo inf : workinfos){
+                    if(!inf.getState().isFinished()){
+                        Continue = false;
+                        Toast.makeText(getBaseContext(), R.string.pleasewaitdownload, Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                // only allow proceeding if all downloads are finished
+                if(Continue) {
+                    Intent intent = new Intent(this, Camera2Activity.class);
+                    startActivityForResult(intent, 10);
+                }
+
+            }catch(InterruptedException | ExecutionException e){
+                e.printStackTrace();
+            }
         }
     }
 
@@ -200,6 +230,8 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (resultCode == RESULT_OK && requestCode == 10) {
+            //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+            //tensorflowView.onSharedPreferenceChanged(prefs, "neuralnet");
             tensorflowView.predict(data);
         }
     }

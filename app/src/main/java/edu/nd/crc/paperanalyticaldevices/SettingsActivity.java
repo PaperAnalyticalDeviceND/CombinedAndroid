@@ -12,6 +12,7 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 
@@ -37,8 +38,8 @@ public class SettingsActivity extends AppCompatActivity {
     private static final String subFhi = "fhi360_small_lite";
     private static final String subId = "idPAD_small_lite";
     private static final String subMsh = "msh_tanzania_3k_10_lite";
-    private ProgressBar progressBar;
-    private Button doneButton;
+    public static ProgressBar progressBar;
+    public static Button doneButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +61,7 @@ public class SettingsActivity extends AppCompatActivity {
         // set up a listener so that if a new model is selected its expected file path can be checked, and then if not exists it can be created and
         //the file(s) fetched
 
+        /*
         SharedPreferences.OnSharedPreferenceChangeListener listener = (sharedPreferences, key) -> {
             if (key.equals("neuralnet")) {
                 String settingValue = sharedPreferences.getString("neuralnet", "");
@@ -79,11 +81,13 @@ public class SettingsActivity extends AppCompatActivity {
                         return;
                 }
 
+                // move this into PredictionModel so it can't try to load a non-existent file
                 new UpdatesAsyncTask().execute(projectFolder);
             }
         };
 
         prefs.registerOnSharedPreferenceChangeListener(listener);
+        */
     }
 
     /*
@@ -94,9 +98,14 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     public static class SettingsFragment extends PreferenceFragmentCompat {
+
+        private PredictionModel tensorflowView;
+
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
+
+            tensorflowView = new ViewModelProvider(this).get(PredictionModel.class);
         }
     }
 

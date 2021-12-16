@@ -1,26 +1,49 @@
 package edu.nd.crc.paperanalyticaldevices;
 
+import android.app.Activity;
 import android.app.Application;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
+import android.util.Log;
+import android.view.View;
+import android.webkit.URLUtil;
+import android.widget.Button;
+import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.preference.PreferenceManager;
+import androidx.work.Constraints;
+import androidx.work.Data;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
+import androidx.work.WorkRequest;
 
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -222,25 +245,293 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
     private void LoadModel(SharedPreferences sharedPreferences, String project){
         networks.clear();
         try {
+            String projectFolder;
             switch (sharedPreferences.getString("neuralnet", "")) {
                 case "Veripad idPAD":
-                    networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(), sharedPreferences.getString(subId + "filename", idPadName)));
+                    //projectFolder = subId;
+                    File idpadFile = new File(getApplication().getApplicationContext().getDir("tflitemodels", Context.MODE_PRIVATE).getPath(), sharedPreferences.getString(subId + "filename", idPadName));
+                    if(idpadFile.exists()) {
+                        networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(), sharedPreferences.getString(subId + "filename", idPadName)));
+                    }else{
+                        DownloadModels(sharedPreferences);
+                    }
                     break;
                 case "MSH Tanzania":
-                    networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(), sharedPreferences.getString(subMsh + "filename", mshName)));
+                    //projectFolder = subMsh;
+                    File mshFile = new File(getApplication().getApplicationContext().getDir("tflitemodels", Context.MODE_PRIVATE).getPath(), sharedPreferences.getString(subMsh + "filename", mshName));
+                    if(mshFile.exists()) {
+                        networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(), sharedPreferences.getString(subMsh + "filename", mshName)));
+                    }else{
+                        DownloadModels(sharedPreferences);
+                    }
                     break;
                 default:
-                    networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(), sharedPreferences.getString(subFhi + "filename", fhiName)));
-                    networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(), sharedPreferences.getString(subFhiConc + "filename", fhiConcName)));
-                    if( pls == null ){
-                        pls = PartialLeastSquares.from(getApplication().getApplicationContext());
+                    File fhiFile = new File(getApplication().getApplicationContext().getDir("tflitemodels", Context.MODE_PRIVATE).getPath(), sharedPreferences.getString(subFhi + "filename", fhiName));
+                    if(fhiFile.exists()) {
+                        networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(), sharedPreferences.getString(subFhi + "filename", fhiName)));
+                        networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(), sharedPreferences.getString(subFhiConc + "filename", fhiConcName)));
+                        if (pls == null) {
+                            pls = PartialLeastSquares.from(getApplication().getApplicationContext());
+                        }
+                    }else{
+                        DownloadModels(sharedPreferences);
                     }
+                    //projectFolder = subFhi;
                     break;
             }
             CurrentProject = project;
+
+            //new UpdatesAsyncTask().execute(projectFolder);
+
+
         } catch (IOException e) {
             FirebaseCrashlytics.getInstance().recordException(e);
             e.printStackTrace();
+/*
+            String[] projectFolders;
+            switch (sharedPreferences.getString("neuralnet", "")) {
+                case "FHI360-App":
+
+                    projectFolders = new String[]{subFhi, subFhiConc};
+                    break;
+                case "Veripad idPAD":
+
+                    projectFolders = new String[]{subId};
+                    break;
+                case "MSH Tanzania":
+
+                    projectFolders = new String[]{subMsh};
+                    break;
+                default:
+                    //12-06-21 allow running without neural net so all projects can be captured
+                    return;
+            }
+
+            Constraints constraints = new Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.UNMETERED)
+                    .build();
+
+            WorkRequest myUploadWork = new OneTimeWorkRequest.Builder(UpdatesWorker.class).setConstraints(constraints)
+                    .addTag("neuralnet_download").setInputData(new Data.Builder()
+                            .putStringArray("projectkeys", projectFolders)
+                            .build()
+                    )
+                    .build();
+
+            Log.d("PredictionModel", "Queueing neuralnet_download worker.");
+            WorkManager.getInstance(this.getApplication().getApplicationContext()).enqueue(myUploadWork);
+*/
         }
     }
+
+    public void DownloadModels(SharedPreferences sharedPreferences){
+
+        String[] projectFolders;
+        switch (sharedPreferences.getString("neuralnet", "")) {
+            case "FHI360-App":
+
+                projectFolders = new String[]{subFhi, subFhiConc};
+                break;
+            case "Veripad idPAD":
+
+                projectFolders = new String[]{subId};
+                break;
+            case "MSH Tanzania":
+
+                projectFolders = new String[]{subMsh};
+                break;
+            default:
+                //12-06-21 allow running without neural net so all projects can be captured
+                return;
+        }
+
+        Constraints constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.UNMETERED)
+                .build();
+
+        WorkRequest myUploadWork = new OneTimeWorkRequest.Builder(UpdatesWorker.class).setConstraints(constraints)
+                .addTag("neuralnet_download").setInputData(new Data.Builder()
+                        .putStringArray("projectkeys", projectFolders)
+                        .build()
+                )
+                .build();
+
+        Log.d("PredictionModel", "Queueing neuralnet_download worker.");
+        WorkManager.getInstance(this.getApplication().getApplicationContext()).enqueue(myUploadWork);
+    }
+
+    /**
+     * Query API for newer versions of neural nets and download, or do fresh download on settings change.
+     */
+/*
+    public class UpdatesAsyncTask extends AsyncTask<String, String, String> {
+
+        //private ProgressBar progressBar;
+        //private Button doneButton;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            //Context context =
+
+            //progressBar = findViewById(R.id.simpleProgressBar);
+            SettingsActivity.progressBar.setVisibility(View.INVISIBLE);
+
+            //doneButton = findViewById(R.id.button6);
+            SettingsActivity.doneButton.setClickable(false);
+            SettingsActivity.progressBar.setVisibility(View.VISIBLE);
+            SettingsActivity.progressBar.setMax(100);
+        }
+
+        @Override
+        protected String doInBackground(String... project) {
+            int count;
+            BufferedReader reader;
+            HttpURLConnection conn;
+
+            String[] projectFolders = {project[0]};
+            if (project[0].equals(subFhi)) {
+                projectFolders = new String[]{project[0], subFhiConc};
+            }
+
+            Uri.Builder builder = new Uri.Builder();
+            //@TODO make this a setting and fetch a unique one from an API on first start
+            String api_key = "5NWT4K7IS60WMLR3J2LV";
+            builder.scheme("https")
+                    .authority("pad.crc.nd.edu")
+                    .appendPath("index.php")
+                    .appendQueryParameter("option", "com_jbackend")
+                    .appendQueryParameter("view", "request")
+                    .appendQueryParameter("module", "querytojson")
+                    .appendQueryParameter("resource", "list")
+                    .appendQueryParameter("action", "get")
+                    .appendQueryParameter("api_key", api_key)
+                    .appendQueryParameter("queryname", "network_info");
+
+            try {
+                URL urlObj = new URL(builder.build().toString());
+
+                conn = (HttpURLConnection) urlObj.openConnection();
+                conn.setDoOutput(true);
+                conn.setRequestMethod("GET");
+                conn.setRequestProperty("Accept-Charset", "UTF-8");
+                conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+                conn.setRequestProperty("charset", "utf-8");
+                conn.setReadTimeout(10000);
+                conn.setConnectTimeout(15000);
+                conn.connect();
+
+                InputStream stream = conn.getInputStream();
+
+                reader = new BufferedReader(new InputStreamReader(stream));
+
+                StringBuilder buffer = new StringBuilder();
+                String line;
+
+                while ((line = reader.readLine()) != null) {
+                    buffer.append(line).append("\n");
+                }
+
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplication().getApplicationContext());
+                SharedPreferences.Editor editor = prefs.edit();
+
+                for (String projectSet : projectFolders) {
+
+                    String projectVersionString = prefs.getString(projectSet + "version", "0.0");
+                    double projectVersion = Double.parseDouble(projectVersionString);
+
+                    JSONObject jsonObject = new JSONObject(buffer.toString());
+                    String TAG_LIST = "list";
+                    JSONArray listArray = jsonObject.getJSONArray(TAG_LIST);
+
+                    for (int i = 0; i < listArray.length(); i++) {
+                        JSONObject item = listArray.getJSONObject(i);
+
+                        String TAG_NAME = "name";
+                        String projectName = item.getString(TAG_NAME);
+                        if (projectName.equals(projectSet)) {
+
+                            String TAG_WEIGHTS = "weights_url";
+                            String weightsUrl = item.getString(TAG_WEIGHTS);
+                            Log.d("PADS_URL", weightsUrl);
+                            String TAG_VERSION = "version";
+                            String versionString = item.getString(TAG_VERSION);
+                            double version = Double.parseDouble(versionString);
+
+                            if (version > projectVersion) {
+                                // then get updated files and update the shared preferences with new data
+
+                                URL url = new URL(weightsUrl);
+                                URLConnection connection = url.openConnection();
+                                connection.connect();
+
+                                int lengthOfFile = connection.getContentLength();
+
+                                InputStream input = new BufferedInputStream(url.openStream(), 8192);
+
+                                //Context context = getBaseContext();
+                                Context context = getApplication().getBaseContext();
+                                File newDir = context.getDir("tflitemodels", Context.MODE_PRIVATE);
+                                if (!newDir.exists()) {
+                                    newDir.mkdirs();
+                                }
+
+                                String newFileName = URLUtil.guessFileName(String.valueOf(url), null, null);
+                                //store the values in shared preferences
+                                editor.putString(projectSet + "filename", newFileName);
+                                editor.putString(projectSet + "version", versionString);
+                                editor.apply();
+
+                                Log.d("UPDATES_WORKER", "Updating: " + projectSet + "filename to " + newFileName);
+                                Log.d("UPDATES_WORKER", "Updating: " + projectSet + "version to " + versionString);
+
+                                File newFile = new File(newDir, newFileName);
+
+                                OutputStream output = new FileOutputStream(newFile);
+
+                                byte[] data = new byte[1024];
+
+                                long total = 0;
+
+                                while ((count = input.read(data)) != -1) {
+                                    total += count;
+
+                                    publishProgress(String.valueOf((total * 100) / lengthOfFile));
+                                    output.write(data, 0, count);
+                                }
+
+                                output.flush();
+
+                                output.close();
+                                input.close();
+
+                            }
+
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                FirebaseCrashlytics.getInstance().recordException(e);
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+        protected void onProgressUpdate(String... progress) {
+
+            SettingsActivity.progressBar.setProgress(Integer.parseInt(progress[0]));
+
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            SettingsActivity.progressBar.setVisibility(View.INVISIBLE);
+            SettingsActivity.doneButton.setClickable(true);
+
+        }
+    }
+*/
+
 }
