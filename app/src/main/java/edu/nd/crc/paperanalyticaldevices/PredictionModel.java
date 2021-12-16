@@ -239,6 +239,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
             }
             CurrentProject = project;
         } catch (IOException e) {
+            FirebaseCrashlytics.getInstance().recordException(e);
             e.printStackTrace();
         }
     }
