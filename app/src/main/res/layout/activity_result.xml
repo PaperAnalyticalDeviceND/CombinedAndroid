@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ResultActivity"
-    android:background="@color/plainactivitybackground"
+    android:background="@color/offwhite"
     tools:layout_editor_absoluteY="81dp">
 
     <androidx.appcompat.widget.Toolbar
@@ -153,13 +153,22 @@
             tools:layout_editor_absoluteX="136dp"
             tools:layout_editor_absoluteY="85dp" />
 
-        <Spinner
+        <!--Spinner
             android:id="@+id/batchSpinner"
             android:layout_width="match_parent"
             android:layout_height="37dp"
             android:dropDownHeight="wrap_content"
             tools:layout_editor_absoluteX="132dp"
-            tools:layout_editor_absoluteY="111dp" />
+            tools:layout_editor_absoluteY="111dp" /-->
+        <TextView
+            android:id="@+id/predicteddrugtext"
+            android:text="@color/switchThumbActive"
+            android:layout_width="match_parent"
+            android:layout_height="37dp"
+            android:paddingLeft="8dp"
+            tools:layout_editor_absoluteX="132dp"
+            tools:layout_editor_absoluteY="111dp"
+            />
 
         <Switch
             android:layout_width="match_parent"

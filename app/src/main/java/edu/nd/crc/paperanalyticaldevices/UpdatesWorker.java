@@ -188,7 +188,8 @@ public class UpdatesWorker extends Worker {
                             int lengthOfFile = connection.getContentLength();
                             long total = 0;
 
-                            setForegroundAsync(createForegroundInfo(0, lengthOfFile));
+                            //setForegroundAsync(createForegroundInfo(0, lengthOfFile));
+                            setForegroundAsync(createForegroundInfo(0, 100));
 
                             byte[] data = new byte[1024];
                             while ((count = input.read(data)) != -1) {
@@ -197,6 +198,9 @@ public class UpdatesWorker extends Worker {
                                 int prog = Integer.parseInt(String.valueOf( (total * 100) / lengthOfFile) );
                                 setProgressAsync(new Data.Builder().putInt(PROGRESS, prog).build());
 
+                                if(prog % 10 == 0) {
+                                    setForegroundAsync(createForegroundInfo(prog, 100));
+                                }
                             }
 
                             output.flush();

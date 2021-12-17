@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -29,6 +30,8 @@ import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
+
+import org.w3c.dom.Text;
 
 import java.io.File;
 import java.sql.Date;
@@ -86,11 +89,17 @@ public class ResultActivity extends AppCompatActivity {
         if (intent.hasExtra(MainActivity.EXTRA_PREDICTED)) {
             sPredicted = intent.getStringExtra(MainActivity.EXTRA_PREDICTED);
         }
+  /*
         Spinner sResult = findViewById(R.id.batchSpinner);
         ArrayAdapter<String> aPredicted = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, Collections.singletonList(sPredicted));
         sResult.setEnabled(false);
         sResult.setAdapter(aPredicted);
         sResult.setSelection(aPredicted.getPosition(sPredicted));
+*/
+
+        TextView predictedTextView = findViewById(R.id.predicteddrugtext);
+        predictedTextView.setText(sPredicted);
+        predictedTextView.setTextColor(Color.RED);
 
         if (intent.hasExtra(MainActivity.EXTRA_SAMPLEID)) {
             qr = intent.getStringExtra(MainActivity.EXTRA_SAMPLEID);
@@ -267,8 +276,12 @@ public class ResultActivity extends AppCompatActivity {
     }
 
     private String getBatch() {
+        /*
         Spinner spinner = findViewById(R.id.batchSpinner);
         String ret = String.valueOf(spinner.getSelectedItem());
+        */
+        TextView predictedText = findViewById(R.id.predicteddrugtext);
+        String ret = predictedText.getText().toString();
         if (ret.isEmpty()) {
             ret = "n/a";
         }

@@ -16,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.PreferenceManager;
@@ -64,6 +65,8 @@ public class MainActivity extends AppCompatActivity {
 
     private PredictionModel tensorflowView;
 
+    public static boolean workerSemaphore;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -100,6 +103,8 @@ public class MainActivity extends AppCompatActivity {
         Toolbar myToolbar = findViewById(R.id.toolbar);
         setSupportActionBar(myToolbar);
 
+        workerSemaphore = true;
+
         tensorflowView = new ViewModelProvider(this).get(PredictionModel.class);
         tensorflowView.getResult().observe(this, new Observer<PredictionModel.Result>() {
             @Override
@@ -116,6 +121,8 @@ public class MainActivity extends AppCompatActivity {
                 HoldCamera = true;
             }
         });
+
+
     }
 
     public void checkForUpdates(String project) {
@@ -193,7 +200,8 @@ public class MainActivity extends AppCompatActivity {
         } else {
 
             try {
-                ListenableFuture<List<WorkInfo>> workInfoListenable = WorkManager.getInstance(this).getWorkInfosByTag("neuralnet_download");
+  /*
+                ListenableFuture<List<WorkInfo>> workInfoListenable = WorkManager.getInstance(getApplicationContext()).getWorkInfosByTag("neuralnet_download");
 
                 // get any download workers
                 List<WorkInfo> workinfos = workInfoListenable.get();
@@ -204,17 +212,19 @@ public class MainActivity extends AppCompatActivity {
                 for(WorkInfo inf : workinfos){
                     if(!inf.getState().isFinished()){
                         Continue = false;
-                        Toast.makeText(getBaseContext(), R.string.pleasewaitdownload, Toast.LENGTH_SHORT).show();
+
                     }
                 }
-
+*/
                 // only allow proceeding if all downloads are finished
-                if(Continue) {
+                if(workerSemaphore) {
                     Intent intent = new Intent(this, Camera2Activity.class);
                     startActivityForResult(intent, 10);
+                }else{
+                    Toast.makeText(getBaseContext(), R.string.pleasewaitdownload, Toast.LENGTH_SHORT).show();
                 }
 
-            }catch(InterruptedException | ExecutionException e){
+            }catch(Exception e){
                 e.printStackTrace();
             }
         }
@@ -223,6 +233,36 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        WorkManager manager = WorkManager.getInstance(getApplicationContext());
+        LiveData<List<WorkInfo>> workInfos = manager.getWorkInfosByTagLiveData("neuralnet_download");
+
+        workInfos.observe(this, listOfWorkInfo -> {
+
+            Log.d("WORKER_OBSERVER", "In Observer, onResume.");
+            if (listOfWorkInfo == null || listOfWorkInfo.isEmpty()) {
+                workerSemaphore = true;
+                return;
+            }
+
+            boolean foundBusy = false;
+
+            for (WorkInfo workInfo : listOfWorkInfo) {
+                if (!workInfo.getState().isFinished()) {
+                    foundBusy = true;
+                    Log.d("WORKER_OBSERVER", "Found busy worker.");
+                    workerSemaphore = false;
+                }
+            }
+
+            if(foundBusy){
+                workerSemaphore = false;
+            }else{
+                workerSemaphore = true;
+            }
+
+        });
+
     }
 
     @Override
@@ -230,8 +270,11 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (resultCode == RESULT_OK && requestCode == 10) {
-            //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+            // this is just here to make sure it calls LoadModels if we've just downloaded a new NN file
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
             //tensorflowView.onSharedPreferenceChanged(prefs, "neuralnet");
+            String proj = prefs.getString("neuralnet", "");
+            tensorflowView.LoadModel(prefs, proj);
             tensorflowView.predict(data);
         }
     }

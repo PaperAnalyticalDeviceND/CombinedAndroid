@@ -99,13 +99,13 @@ public class SettingsActivity extends AppCompatActivity {
 
     public static class SettingsFragment extends PreferenceFragmentCompat {
 
-        private PredictionModel tensorflowView;
+        //private PredictionModel tensorflowView;
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
 
-            tensorflowView = new ViewModelProvider(this).get(PredictionModel.class);
+            //tensorflowView = new ViewModelProvider(this).get(PredictionModel.class);
         }
     }
 
