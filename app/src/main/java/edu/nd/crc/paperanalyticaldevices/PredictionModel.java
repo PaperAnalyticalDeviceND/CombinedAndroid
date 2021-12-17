@@ -325,6 +325,8 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
 
         Log.d("PredictionModel", "Queueing neuralnet_download worker.");
         WorkManager.getInstance(this.getApplication().getApplicationContext()).enqueue(myUploadWork);
+        //bit of a workaround, locks out the camera until the background download worker is finished
+        MainActivity.setSemaphore(false);
     }
 
 

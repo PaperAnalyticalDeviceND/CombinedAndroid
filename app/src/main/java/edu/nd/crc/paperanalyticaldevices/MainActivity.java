@@ -67,6 +67,10 @@ public class MainActivity extends AppCompatActivity {
 
     public static boolean workerSemaphore;
 
+    public static void setSemaphore(boolean val){
+        workerSemaphore = val;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -239,8 +243,9 @@ public class MainActivity extends AppCompatActivity {
 
         workInfos.observe(this, listOfWorkInfo -> {
 
-            Log.d("WORKER_OBSERVER", "In Observer, onResume.");
+            //Log.d("WORKER_OBSERVER", "In Observer, onResume.");
             if (listOfWorkInfo == null || listOfWorkInfo.isEmpty()) {
+                //Log.d("WORKER_OBSERVER", "No workers found.");
                 workerSemaphore = true;
                 return;
             }
@@ -250,7 +255,7 @@ public class MainActivity extends AppCompatActivity {
             for (WorkInfo workInfo : listOfWorkInfo) {
                 if (!workInfo.getState().isFinished()) {
                     foundBusy = true;
-                    Log.d("WORKER_OBSERVER", "Found busy worker.");
+                    //Log.d("WORKER_OBSERVER", "Found busy worker.");
                     workerSemaphore = false;
                 }
             }
@@ -259,6 +264,7 @@ public class MainActivity extends AppCompatActivity {
                 workerSemaphore = false;
             }else{
                 workerSemaphore = true;
+                //Log.d("WORKER_OBSERVER", "Setting semaphore true.");
             }
 
         });
