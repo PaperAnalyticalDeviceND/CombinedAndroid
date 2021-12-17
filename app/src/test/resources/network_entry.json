@@ -1,0 +1,9 @@
+{
+    "SHA256": "6d6f72b0ddfd8aa58672b3b1fd60a0c3fa8ef628a3bbe1383a083ee70c915121",
+    "description": "PLSD method using 10 sections per lane.",
+    "drugs": "Albendazole,Amoxicillin,Ampicillin,Azithromycin,Benzyl,Penicillin,Ceftriaxone,Chloroquine,Ciprofloxacin,Doxycycline,Epinephrine,Ethambutol,Ferrous,Sulfate,Hydroxychloroquine,Isoniazid,Promethazine,Hydrochloride,Pyrazinamide,Rifampicin,RIPE,Sulfamethoxazole,Tetracycline,Distractor",
+    "name": "pls_fhi360_conc",
+    "type": "pls",
+    "version": "1.0",
+    "weights_url": "https://pad.crc.nd.edu/neuralnetworks/pls/fhi360_concentration/1.0/pls_fhi360_conc_coefficients.csv"
+}
