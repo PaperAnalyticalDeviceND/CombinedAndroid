@@ -16,7 +16,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.preference.PreferenceManager;
-import androidx.work.Data;
 import androidx.work.ForegroundInfo;
 import androidx.work.WorkManager;
 import androidx.work.Worker;
@@ -32,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import edu.nd.crc.paperanalyticaldevices.api.ProgressResponseBody;
 import edu.nd.crc.paperanalyticaldevices.api.NetworkEntry;
 import edu.nd.crc.paperanalyticaldevices.api.ResponseList;
 import edu.nd.crc.paperanalyticaldevices.api.WebService;
@@ -39,24 +39,15 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import retrofit2.Response;
 
-public class UpdatesWorker extends Worker {
-
-    private static final String TAG_WEIGHTS = "weights_url";
-    private static final String TAG_NAME = "name";
-    private static final String TAG_VERSION = "version";
-
-    private static final String PROGRESS = "PROGRESS";
+public class UpdatesWorker extends Worker implements ProgressResponseBody.Listener {
+    private static final int serialVersionUID = 841333472;
 
     private NotificationManager notificationManager;
-
+    private String filename;
 
     public UpdatesWorker(@NonNull Context context, @NonNull WorkerParameters params) {
         super(context, params);
-
-        setProgressAsync(new Data.Builder().putInt(PROGRESS, 0).build());
-        notificationManager = (NotificationManager)
-                context.getSystemService(NOTIFICATION_SERVICE);
-
+        notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -67,31 +58,35 @@ public class UpdatesWorker extends Worker {
 
     @NonNull
     private ForegroundInfo createForegroundInfo(int current, int max) {
-
-        Context context = getApplicationContext();
-
-        PendingIntent intent = WorkManager.getInstance(context).createCancelPendingIntent(getId());
+        PendingIntent intent = WorkManager.getInstance(getApplicationContext()).createCancelPendingIntent(getId());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createChannel();
         }
 
-        Notification notification = new NotificationCompat.Builder(context, MainActivity.PROJECT)
+        Notification notification = new NotificationCompat.Builder(getApplicationContext(), MainActivity.PROJECT)
                 .setOngoing(true)
-                .setContentTitle("Data Download")
+                .setContentTitle("Downloading neural network")
                 .setProgress(max, current, false)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .addAction(android.R.drawable.ic_delete, "Cancel", intent)
                 .build();
 
-        return new ForegroundInfo(hashCode(), notification);
+        return new ForegroundInfo(serialVersionUID, notification);
     }
 
     @NonNull
     @Override
     public Result doWork() {
-        final OkHttpClient client = new OkHttpClient();
-        final WebService service = WebService.instantiate();
+        final OkHttpClient client = new OkHttpClient.Builder()
+                .addNetworkInterceptor(chain -> {
+                    okhttp3.Response originalResponse = chain.proceed(chain.request());
+                    return originalResponse.newBuilder()
+                            .body(new ProgressResponseBody(originalResponse.body(), this))
+                            .build();
+                })
+                .build();
 
+        final WebService service = WebService.instantiate();
         try {
             Response<ResponseList<NetworkEntry>> resp = service.GetNetworkInfo("5NWT4K7IS60WMLR3J2LV").execute();
             if (!resp.isSuccessful() || !resp.body().Status.equals("ok")) {
@@ -99,7 +94,6 @@ public class UpdatesWorker extends Worker {
             }
 
             ResponseList<NetworkEntry> result = resp.body();
-
 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
             for (String projectSet : getInputData().getStringArray("projectkeys")) {
@@ -126,15 +120,14 @@ public class UpdatesWorker extends Worker {
                             return Result.failure();
                         }
 
-                        File newDir = getApplicationContext().getDir("tflitemodels", Context.MODE_PRIVATE);
-                        if (!newDir.mkdirs()) {
-                            return Result.failure();
-                        }
-
                         String newFileName = URLUtil.guessFileName(String.valueOf(network.Weights), null, null);
-
                         Log.d("UPDATES_WORKER", "Updating: " + projectSet + "filename to " + newFileName);
                         Log.d("UPDATES_WORKER", "Updating: " + projectSet + "version to " + network.Version.toString());
+                        filename = newFileName;
+
+
+                        File newDir = getApplicationContext().getDir("tflitemodels", Context.MODE_PRIVATE);
+                        newDir.mkdirs();
 
                         try (InputStream input = response.body().byteStream(); OutputStream output = new FileOutputStream(new File(newDir, newFileName))) {
                             ByteStreams.copy(input, output);
@@ -150,8 +143,17 @@ public class UpdatesWorker extends Worker {
         } catch (IOException e) {
             FirebaseCrashlytics.getInstance().recordException(e);
             e.printStackTrace();
+            return Result.failure();
         }
 
         return Result.success();
+    }
+
+    @Override
+    public void onUpdate(long bytes, long contentLength, boolean done) {
+        if (contentLength > 0 && bytes < contentLength) {
+            final int progress = (int) Math.round((((double) bytes / contentLength) * 100));
+            setForegroundAsync(createForegroundInfo(progress, 100));
+        }
     }
 }
