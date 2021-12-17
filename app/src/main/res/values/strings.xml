@@ -44,6 +44,8 @@
     <string name="camera">Camera</string>
     <string name="torchonwithcamera">Flashlight</string>
     <string name="pleasewaitdownload">Please wait for neural net download to complete.</string>
+    <string name="pendingqueue">Pending</string>
+    <string name="finishedqueue">Finished</string>
     <string name="large_text">
         "Material is the metaphor.\n\n"
 

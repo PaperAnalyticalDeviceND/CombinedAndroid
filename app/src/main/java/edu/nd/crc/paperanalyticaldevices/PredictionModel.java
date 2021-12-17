@@ -251,6 +251,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                     //projectFolder = subId;
                     File idpadFile = new File(getApplication().getApplicationContext().getDir("tflitemodels", Context.MODE_PRIVATE).getPath(), sharedPreferences.getString(subId + "filename", idPadName));
                     if(idpadFile.exists()) {
+                        MainActivity.setSemaphore(true);
                         networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(), sharedPreferences.getString(subId + "filename", idPadName)));
                     }else{
                         DownloadModels(sharedPreferences);
@@ -260,6 +261,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                     //projectFolder = subMsh;
                     File mshFile = new File(getApplication().getApplicationContext().getDir("tflitemodels", Context.MODE_PRIVATE).getPath(), sharedPreferences.getString(subMsh + "filename", mshName));
                     if(mshFile.exists()) {
+                        MainActivity.setSemaphore(true);
                         networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(), sharedPreferences.getString(subMsh + "filename", mshName)));
                     }else{
                         DownloadModels(sharedPreferences);
@@ -268,6 +270,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                 default:
                     File fhiFile = new File(getApplication().getApplicationContext().getDir("tflitemodels", Context.MODE_PRIVATE).getPath(), sharedPreferences.getString(subFhi + "filename", fhiName));
                     if(fhiFile.exists()) {
+                        MainActivity.setSemaphore(true);
                         networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(), sharedPreferences.getString(subFhi + "filename", fhiName)));
                         networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(), sharedPreferences.getString(subFhiConc + "filename", fhiConcName)));
                         if (pls == null) {
