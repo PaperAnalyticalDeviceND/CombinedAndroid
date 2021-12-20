@@ -7,8 +7,6 @@ import okhttp3.Response
 /**
  * Finds requests tagged with [ProgressCallback] instances, and wraps the request
  * in a [ProgressRequestBody] that will issue updates to this callback.
- *
- * These callbacks are added in [StreamFileUploader].
  */
 internal class ProgressInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -16,17 +14,32 @@ internal class ProgressInterceptor : Interceptor {
 
         val progressCallback = request.tag(ProgressCallback::class.java)
         if (progressCallback != null) {
-            return chain.proceed(wrapRequest(request, progressCallback))
+            if (request.body() != null) {
+                return chain.proceed(wrapRequest(request, progressCallback))
+            }
+
+            val response = chain.proceed(request)
+            if (response.body() != null) {
+                return wrapResponse(response, progressCallback)
+            }
         }
 
         return chain.proceed(request)
     }
 
     private fun wrapRequest(request: Request, progressCallback: ProgressCallback): Request {
+        requireNotNull(request.body())
+
         return request.newBuilder()
-            // Assume that any request tagged with a ProgressCallback is a POST
-            // request and has a non-null body
             .post(ProgressRequestBody(request.body()!!, progressCallback))
+            .build()
+    }
+
+    private fun wrapResponse(response: Response, progressCallback: ProgressCallback): Response {
+        requireNotNull(response.body())
+
+        return response.newBuilder()
+            .body(ProgressResponseBody(response.body()!!, progressCallback))
             .build()
     }
 }

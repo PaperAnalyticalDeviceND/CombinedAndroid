@@ -11,7 +11,6 @@ import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.work.ForegroundInfo;
@@ -95,7 +94,7 @@ public class UploadWorker extends Worker implements ProgressCallback {
             }
             LogEvent(parameters);
 
-            Response<JsonObject> resp = service.UploadResult(parameters).execute();
+            Response<JsonObject> resp = service.UploadResult(parameters, this).execute();
             if (!resp.isSuccessful() || resp.body().has("status") && resp.body().get("status").getAsString().equals("ko")) {
                 return Result.failure();
             }
@@ -115,10 +114,5 @@ public class UploadWorker extends Worker implements ProgressCallback {
             final int progress = (int) Math.round((((double) bytes / contentLength) * 100));
             setForegroundAsync(createForegroundInfo(progress, 100));
         }
-    }
-
-    @Override
-    public void onSuccess(@Nullable String url) {
-
     }
 }

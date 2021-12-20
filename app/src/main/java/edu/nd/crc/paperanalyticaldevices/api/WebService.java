@@ -9,6 +9,7 @@ import com.vdurmont.semver4j.Semver;
 import java.util.List;
 import java.util.Map;
 
+import edu.nd.crc.paperanalyticaldevices.api.utils.ProgressCallback;
 import okhttp3.OkHttpClient;
 import retrofit2.Call;
 import retrofit2.Retrofit;
@@ -18,6 +19,7 @@ import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
+import retrofit2.http.Tag;
 
 public interface WebService {
     @GET("/index.php?option=com_jbackend&view=request&module=querytojson&action=get&resource=list&queryname=network_info")
@@ -25,7 +27,7 @@ public interface WebService {
 
     @FormUrlEncoded
     @POST("/index.php?option=com_jbackend&view=request&module=querytojson&action=post&resource=upload")
-    Call<JsonObject> UploadResult(@FieldMap Map<String, String> names);
+    Call<JsonObject> UploadResult(@FieldMap Map<String, String> names, @Tag ProgressCallback progress);
 
     static WebService instantiate(OkHttpClient client) {
         Gson gson = new GsonBuilder()

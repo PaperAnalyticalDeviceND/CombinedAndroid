@@ -10,7 +10,7 @@ internal class ProgressRequestBody(
     private val callback: ProgressCallback
 ) : RequestBody() {
     companion object {
-        const val BYTES_PER_CHUNK = 16L * 1024;
+        const val BYTES_PER_CHUNK = 16L * 1024
     }
 
     override fun contentType(): MediaType? = delegate.contentType()
@@ -26,11 +26,11 @@ internal class ProgressRequestBody(
         val total = contentLength()
         var uploaded = 0L
         override fun write(source: Buffer, byteCount: Long) {
-            var remaining = byteCount;
+            var remaining = byteCount
             while (remaining > 0) {
                 val toSend = min(remaining, Companion.BYTES_PER_CHUNK)
                 super.write(source, toSend)
-                remaining -= toSend;
+                remaining -= toSend
 
                 uploaded += toSend
                 callback.onProgress(uploaded, total)

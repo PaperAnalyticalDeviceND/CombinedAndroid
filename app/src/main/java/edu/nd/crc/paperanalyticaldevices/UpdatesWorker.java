@@ -31,19 +31,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import edu.nd.crc.paperanalyticaldevices.api.ProgressResponseBody;
 import edu.nd.crc.paperanalyticaldevices.api.NetworkEntry;
 import edu.nd.crc.paperanalyticaldevices.api.ResponseList;
 import edu.nd.crc.paperanalyticaldevices.api.WebService;
+import edu.nd.crc.paperanalyticaldevices.api.utils.ProgressCallback;
+import edu.nd.crc.paperanalyticaldevices.api.utils.ProgressInterceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import retrofit2.Response;
 
-public class UpdatesWorker extends Worker implements ProgressResponseBody.Listener {
+public class UpdatesWorker extends Worker implements ProgressCallback {
     private static final int serialVersionUID = 841333472;
 
     private NotificationManager notificationManager;
-    private String filename;
 
     public UpdatesWorker(@NonNull Context context, @NonNull WorkerParameters params) {
         super(context, params);
@@ -78,12 +78,7 @@ public class UpdatesWorker extends Worker implements ProgressResponseBody.Listen
     @Override
     public Result doWork() {
         final OkHttpClient client = new OkHttpClient.Builder()
-                .addNetworkInterceptor(chain -> {
-                    okhttp3.Response originalResponse = chain.proceed(chain.request());
-                    return originalResponse.newBuilder()
-                            .body(new ProgressResponseBody(originalResponse.body(), this))
-                            .build();
-                })
+                .addNetworkInterceptor(new ProgressInterceptor())
                 .build();
 
         final WebService service = WebService.instantiate(client);
@@ -113,6 +108,7 @@ public class UpdatesWorker extends Worker implements ProgressResponseBody.Listen
 
                     Request request = new Request.Builder()
                             .url(network.Weights)
+                            .tag(ProgressCallback.class, this)
                             .build();
 
                     try (okhttp3.Response response = client.newCall(request).execute()) {
@@ -123,8 +119,6 @@ public class UpdatesWorker extends Worker implements ProgressResponseBody.Listen
                         String newFileName = URLUtil.guessFileName(String.valueOf(network.Weights), null, null);
                         Log.d("UPDATES_WORKER", "Updating: " + projectSet + "filename to " + newFileName);
                         Log.d("UPDATES_WORKER", "Updating: " + projectSet + "version to " + network.Version.toString());
-                        filename = newFileName;
-
 
                         File newDir = getApplicationContext().getDir("tflitemodels", Context.MODE_PRIVATE);
                         newDir.mkdirs();
@@ -150,9 +144,9 @@ public class UpdatesWorker extends Worker implements ProgressResponseBody.Listen
     }
 
     @Override
-    public void onUpdate(long bytes, long contentLength, boolean done) {
-        if (contentLength > 0 && bytes < contentLength) {
-            final int progress = (int) Math.round((((double) bytes / contentLength) * 100));
+    public void onProgress(long bytes, long totalBytes) {
+        if (totalBytes > 0 && bytes < totalBytes) {
+            final int progress = (int) Math.round((((double) bytes / totalBytes) * 100));
             setForegroundAsync(createForegroundInfo(progress, 100));
         }
     }
