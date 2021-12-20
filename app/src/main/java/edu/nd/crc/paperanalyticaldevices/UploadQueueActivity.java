@@ -1,5 +1,6 @@
 package edu.nd.crc.paperanalyticaldevices;
 
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -17,6 +18,7 @@ import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,6 +28,7 @@ public final class UploadQueueActivity extends AppCompatActivity {
 
 
     ListView queueListView;
+    ListView doneListView;
 
     WorkInfoDbHelper dbHelper;
 
@@ -34,10 +37,13 @@ public final class UploadQueueActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upload_queue);
 
+
+
         WorkManager manager = WorkManager.getInstance(this);
 
         //ListView that holds the PAD data in queue
         queueListView = findViewById(R.id.queue_list);
+        doneListView = findViewById(R.id.finishedListView);
 
         //get all the work that's tagged 'result_upload'
         LiveData<List<WorkInfo>> workInfos = manager.getWorkInfosByTagLiveData("result_upload");
@@ -54,12 +60,22 @@ public final class UploadQueueActivity extends AppCompatActivity {
 
             //Create a list of objects to display in the ListView for the queue
             ArrayList<PADDataObject> workList = new ArrayList<>();
+            ArrayList<PADDataObject> doneList = new ArrayList<>();
+            String[] projection = {
+                    BaseColumns._ID,
+                    WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLENAME,
+                    WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLEID,
+                    WorkInfoContract.WorkInfoEntry.COLUMN_NAME_QUANTITY,
+                    WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP,
+
+            };
 
             for (WorkInfo workInfo : listOfWorkInfo) {
                 UUID workId = workInfo.getId();
                 Log.d("Queue TAG", "Work ID: " + workId);
 
                 if (!workInfo.getState().isFinished()) {
+  /*
                     String[] projection = {
                             BaseColumns._ID,
                             WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLENAME,
@@ -68,7 +84,7 @@ public final class UploadQueueActivity extends AppCompatActivity {
                             WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP,
 
                     };
-
+*/
                     String selection = WorkInfoContract.WorkInfoEntry.COLUMN_NAME_WORKID + " = ?";
                     String[] selectionArgs = {workId.toString()};
                     String sortOrder = WorkInfoContract.WorkInfoEntry.COLUMN_NAME_WORKID + " ASC";
@@ -95,15 +111,52 @@ public final class UploadQueueActivity extends AppCompatActivity {
                     }
                 } else {
                     //Delete finished records from the SQLite db
+                    //where they are older than one week
+                    long oneWeekAgo = Calendar.getInstance().getTimeInMillis() - 604800;
 
-                    String deleteSelection = WorkInfoContract.WorkInfoEntry.COLUMN_NAME_WORKID + " = ?";
-                    String[] deleteSelectionArgs = {workId.toString()};
+                    //String deleteSelection = WorkInfoContract.WorkInfoEntry.COLUMN_NAME_WORKID + " = ?";
+                    String deleteSelection = WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP + " < ?";
+                    //String[] deleteSelectionArgs = {workId.toString()};
+                    String[] deleteSelectionArgs = {String.valueOf(oneWeekAgo)};
                     int deletedRows = db.delete(WorkInfoContract.WorkInfoEntry.TABLE_NAME, deleteSelection, deleteSelectionArgs);
                     Log.d("Queue TAG", "Rows deleted from WorkInfo Table: " + deletedRows);
+
+                    //change newer finished ones to WorkId = Finished
+                    ContentValues cv = new ContentValues();
+                    cv.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_WORKID, "Finished");
+                    String selection = WorkInfoContract.WorkInfoEntry.COLUMN_NAME_WORKID + " = ?";
+                    String[] selectionArgs = {workId.toString()};
+                    db.update(WorkInfoContract.WorkInfoEntry.TABLE_NAME, cv, selection, selectionArgs);
                 }
             }
 
             queueListView.setAdapter(new QueueListBaseAdapter(this, workList));
+
+            String finSelection = WorkInfoContract.WorkInfoEntry.COLUMN_NAME_WORKID + " = ?";
+            String[] finSelectionArgs = {"Finished"};
+            String finSortOrder = WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP + " DESC";
+            try(Cursor finCursor = db.query(WorkInfoContract.WorkInfoEntry.TABLE_NAME, projection, finSelection, finSelectionArgs, null, null, finSortOrder) ){
+
+                while(finCursor.moveToNext()){
+                    PADDataObject doneInfo = new PADDataObject();
+                    String doneDrugName = finCursor.getString(finCursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLENAME));
+                    long doneTimestamp = finCursor.getLong(finCursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP));
+                    String donePadId = "PAD ID: " + finCursor.getString(finCursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLEID));
+                    Timestamp javaTimestamp = new Timestamp(doneTimestamp);
+                    Date date = new Date(javaTimestamp.getTime());
+
+                    SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+                    String newDate = sdf.format(date);
+                    doneInfo.setDatetime(newDate);
+                    doneInfo.setDrugName(doneDrugName);
+                    doneInfo.setPadId(donePadId);
+
+                    doneList.add(doneInfo);
+                }
+            }
+
+            doneListView.setAdapter(new FinishedListBaseAdapter(this, doneList));
+
         });
 
 
