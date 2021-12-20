@@ -64,6 +64,6 @@ public class ProgressRequestBody extends RequestBody {
     }
 
     public static interface Listener {
-        public void onUpdate(long bytesWritten, long contentLength);
+        void onUpdate(long bytes, long contentLength);
     }
 }

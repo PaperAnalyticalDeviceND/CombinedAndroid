@@ -52,7 +52,7 @@ public class UpdatesWorker extends Worker implements ProgressResponseBody.Listen
 
     @RequiresApi(Build.VERSION_CODES.O)
     private void createChannel() {
-        NotificationChannel channel = new NotificationChannel(MainActivity.PROJECT, "Upload", NotificationManager.IMPORTANCE_LOW);
+        NotificationChannel channel = new NotificationChannel(MainActivity.PROJECT, "Update", NotificationManager.IMPORTANCE_LOW);
         notificationManager.createNotificationChannel(channel);
     }
 
@@ -86,7 +86,7 @@ public class UpdatesWorker extends Worker implements ProgressResponseBody.Listen
                 })
                 .build();
 
-        final WebService service = WebService.instantiate();
+        final WebService service = WebService.instantiate(client);
         try {
             Response<ResponseList<NetworkEntry>> resp = service.GetNetworkInfo("5NWT4K7IS60WMLR3J2LV").execute();
             if (!resp.isSuccessful() || !resp.body().Status.equals("ok")) {

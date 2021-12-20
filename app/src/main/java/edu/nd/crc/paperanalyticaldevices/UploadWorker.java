@@ -7,10 +7,11 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
-import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.work.ForegroundInfo;
@@ -20,21 +21,21 @@ import androidx.work.WorkerParameters;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
+import com.google.gson.JsonObject;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.security.NoSuchAlgorithmException;
+import java.util.Map;
 
-public class UploadWorker extends Worker {
+import edu.nd.crc.paperanalyticaldevices.api.WebService;
+import edu.nd.crc.paperanalyticaldevices.api.utils.ProgressCallback;
+import edu.nd.crc.paperanalyticaldevices.api.utils.ProgressInterceptor;
+import okhttp3.OkHttpClient;
+import retrofit2.Response;
+
+public class UploadWorker extends Worker implements ProgressCallback {
+    private static final int serialVersionUID = 841333473;
+
     private final NotificationManager notificationManager;
     private final FirebaseAnalytics mFirebaseAnalytics;
 
@@ -42,6 +43,36 @@ public class UploadWorker extends Worker {
         super(context, params);
         mFirebaseAnalytics = FirebaseAnalytics.getInstance(context);
         notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private void createChannel() {
+        NotificationChannel channel = new NotificationChannel(MainActivity.PROJECT, "Upload", NotificationManager.IMPORTANCE_LOW);
+        notificationManager.createNotificationChannel(channel);
+    }
+
+    @NonNull
+    private ForegroundInfo createForegroundInfo(int current, int max) {
+        PendingIntent intent = WorkManager.getInstance(getApplicationContext()).createCancelPendingIntent(getId());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            createChannel();
+        }
+
+        Notification notification = new NotificationCompat.Builder(getApplicationContext(), MainActivity.PROJECT)
+                .setOngoing(true)
+                .setContentTitle("Uploading Result")
+                .setProgress(max, current, false)
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .addAction(android.R.drawable.ic_delete, "Cancel", intent)
+                .build();
+
+        return new ForegroundInfo(serialVersionUID, notification);
+    }
+
+    private void LogEvent(final Map<String, String> data) {
+        Bundle bundle = new Bundle();
+        data.forEach((key, value) -> bundle.putString(key, value));
+        mFirebaseAnalytics.logEvent("image_upload", bundle);
     }
 
     @NotNull
@@ -52,108 +83,42 @@ public class UploadWorker extends Worker {
             return Result.failure();
         }
 
-        mFirebaseAnalytics.logEvent("image_upload", data.toBundle());
+        OkHttpClient client = new OkHttpClient.Builder()
+                .addNetworkInterceptor(new ProgressInterceptor())
+                .build();
 
-        String formData;
+        final WebService service = WebService.instantiate(client);
         try {
-            formData = data.toUrlEncoded();
-        } catch (IOException | NoSuchAlgorithmException e) {
-            FirebaseCrashlytics.getInstance().recordException(e);
-            return Result.failure();
-        }
-
-        // Update notification
-        setForegroundAsync(createForegroundInfo(0, formData.length()));
-
-        // Build Request
-        Uri.Builder builder = new Uri.Builder();
-        builder.scheme("https")
-                .authority("pad.crc.nd.edu")
-                .appendPath("index.php")
-                .appendQueryParameter("option", "com_jbackend")
-                .appendQueryParameter("view", "request")
-                .appendQueryParameter("module", "querytojson")
-                .appendQueryParameter("resource", "upload")
-                .appendQueryParameter("action", "post");
-
-        // Send Data
-        try {
-            URL urlObj = new URL(builder.build().toString());
-
-            HttpURLConnection conn = (HttpURLConnection) urlObj.openConnection();
-            conn.setDoOutput(true);
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Accept-Charset", "UTF-8");
-            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            conn.setRequestProperty("charset", "utf-8");
-            conn.setReadTimeout(10000);
-            conn.setConnectTimeout(15000);
-            conn.connect();
-
-            BufferedOutputStream bof = new BufferedOutputStream(conn.getOutputStream());
-            InputStream sData = new ByteArrayInputStream(formData.getBytes());
-
-            byte[] buffer = new byte[8096];
-
-            int totalRead = 0;
-
-            int bytesRead;
-            while ((bytesRead = sData.read(buffer)) != -1) {
-                bof.write(buffer, 0, bytesRead);
-                bof.flush();
-                totalRead += bytesRead;
-                setForegroundAsync(createForegroundInfo(totalRead, formData.length()));
+            final Map<String, String> parameters = UploadData.asMap(getInputData(), getApplicationContext());
+            if (parameters.containsValue(null)) {
+                return Result.failure();
             }
-            bof.close();
-            sData.close();
+            LogEvent(parameters);
 
-            InputStream in = new BufferedInputStream(conn.getInputStream());
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-            StringBuilder result = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                result.append(line);
+            Response<JsonObject> resp = service.UploadResult(parameters).execute();
+            if (!resp.isSuccessful() || resp.body().has("status") && resp.body().get("status").getAsString().equals("ko")) {
+                return Result.failure();
             }
+
+            data.CleanupImages();
         } catch (Exception e) {
             FirebaseCrashlytics.getInstance().recordException(e);
             return Result.failure();
         }
 
-        // Cleanup images as they are extracted in the main activity again
-        data.CleanupImages();
-
-        // Update the notification
-        setForegroundAsync(createForegroundInfo(0, 0));
-
-        // Mark as succeeded
         return Result.success();
     }
 
-
-    @NonNull
-    private ForegroundInfo createForegroundInfo(int current, int max) {
-        Context context = getApplicationContext();
-
-        PendingIntent intent = WorkManager.getInstance(context).createCancelPendingIntent(getId());
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            createChannel();
+    @Override
+    public void onProgress(long bytes, long contentLength) {
+        if (contentLength > 0 && bytes < contentLength) {
+            final int progress = (int) Math.round((((double) bytes / contentLength) * 100));
+            setForegroundAsync(createForegroundInfo(progress, 100));
         }
-
-        Notification notification = new NotificationCompat.Builder(context, MainActivity.PROJECT)
-                .setOngoing(true)
-                .setContentTitle("Data Upload")
-                .setProgress(max, current, false)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .addAction(android.R.drawable.ic_delete, "Cancel", intent)
-                .build();
-
-        return new ForegroundInfo(hashCode(), notification);
     }
 
+    @Override
+    public void onSuccess(@Nullable String url) {
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private void createChannel() {
-        NotificationChannel channel = new NotificationChannel(MainActivity.PROJECT, "Upload", NotificationManager.IMPORTANCE_LOW);
-        notificationManager.createNotificationChannel(channel);
     }
 }
