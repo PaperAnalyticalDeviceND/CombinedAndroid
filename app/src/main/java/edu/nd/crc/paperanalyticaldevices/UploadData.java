@@ -18,6 +18,8 @@ import java.io.InputStream;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class UploadData {
     private final Context mContext;
@@ -40,6 +42,31 @@ public class UploadData {
         retVal.Timestamp = input.getString("TIMESTAMP");
         retVal.OriginalImage = input.getString("ORIGINAL_IMAGE");
         retVal.RectifiedImage = input.getString("RECTIFIED_IMAGE");
+        return retVal;
+    }
+
+    public static Map<String, String> asMap(@NotNull Data input, @NotNull Context context) throws Exception {
+        final String origianlB64 = FileToBase64(context, Uri.parse(input.getString("ORIGINAL_IMAGE")));
+        final String rectifiedB64 = FileToBase64(context, Uri.parse(input.getString("RECTIFIED_IMAGE")));
+
+        Map<String, String> retVal = new HashMap<>();
+        retVal.put("api_key", "5NWT4K7IS60WMLR3J2LV");
+        retVal.put("category_name", PreferenceManager.getDefaultSharedPreferences(context).getString("project", "JCSTest"));
+        retVal.put("camera1", Build.MANUFACTURER + " " + Build.MODEL);
+        retVal.put("test_name", "12LanePADKenya2015");
+        retVal.put("sample_name", input.getString("SAMPLE_NAME"));
+        retVal.put("sampleid", input.getString("SAMPLE_ID"));
+        retVal.put("notes", input.getString("NOTES"));
+        retVal.put("quantity", input.getString("QUANTITY"));
+        retVal.put("file_name", "capture." + input.getString("TIMESTAMP") + ".png");
+        retVal.put("file_name2", "rectified." + input.getString("TIMESTAMP") + ".png");
+        retVal.put("uploaded_file", origianlB64);
+        retVal.put("hash_file1", UploadData.MD5(origianlB64));
+        retVal.put("uploaded_file2", rectifiedB64);
+        retVal.put("hash_file2", UploadData.MD5(rectifiedB64));
+
+        if (retVal.containsValue(null)) throw new Exception("Invalid or missing data");
+
         return retVal;
     }
 
@@ -75,47 +102,6 @@ public class UploadData {
 
     public boolean isValid() {
         return Category != null && Camera != null && SampleName != null && SampleID != null && Notes != null && Quantity != null && Timestamp != null && OriginalImage != null && RectifiedImage != null;
-    }
-
-    @NotNull
-    public Bundle toBundle() {
-        final Bundle retVal = new Bundle();
-        retVal.putString("category", Category);
-        retVal.putString("camera", Camera);
-        retVal.putString("sample_name", SampleName);
-        retVal.putString("sample_id", SampleID);
-        retVal.putString("notes", Notes);
-        retVal.putString("quantity", Quantity);
-        retVal.putString("timestamp", Timestamp);
-        retVal.putString("image_original", OriginalImage);
-        retVal.putString("image_rectified", RectifiedImage);
-        return retVal;
-    }
-
-    @NotNull
-    public String toUrlEncoded() throws IOException, NoSuchAlgorithmException {
-        StringBuilder sbParams = new StringBuilder();
-
-        sbParams.append("api_key").append("=").append(URLEncoder.encode("D5HDZG76N3ICA3GBUYWC", "UTF-8")).append("&");
-        sbParams.append("category_name").append("=").append(URLEncoder.encode(Category, "UTF-8")).append("&");
-        sbParams.append("camera1").append("=").append(URLEncoder.encode(Camera, "UTF-8")).append("&");
-        sbParams.append("test_name").append("=").append(URLEncoder.encode("12LanePADKenya2015", "UTF-8")).append("&");
-        sbParams.append("sample_name").append("=").append(URLEncoder.encode(SampleName, "UTF-8")).append("&");
-        sbParams.append("sampleid").append("=").append(URLEncoder.encode(SampleID, "UTF-8")).append("&");
-        sbParams.append("notes").append("=").append(URLEncoder.encode(Notes, "UTF-8")).append("&");
-        sbParams.append("quantity").append("=").append(URLEncoder.encode(Quantity, "UTF-8")).append("&");
-        sbParams.append("file_name").append("=").append(URLEncoder.encode("capture." + Timestamp + ".png", "UTF-8")).append("&");
-        sbParams.append("file_name2").append("=").append(URLEncoder.encode("rectified." + Timestamp + ".png", "UTF-8")).append("&");
-
-        String origianlB64 = FileToBase64(mContext, Uri.parse(OriginalImage));
-        sbParams.append("uploaded_file").append("=").append(URLEncoder.encode(origianlB64, "UTF-8")).append("&");
-        sbParams.append("hash_file1").append("=").append(URLEncoder.encode(UploadData.MD5(origianlB64), "UTF-8")).append("&");
-
-        String rectifiedB64 = FileToBase64(mContext, Uri.parse(RectifiedImage));
-        sbParams.append("uploaded_file2").append("=").append(URLEncoder.encode(rectifiedB64, "UTF-8")).append("&");
-        sbParams.append("hash_file2").append("=").append(URLEncoder.encode(UploadData.MD5(rectifiedB64), "UTF-8"));
-
-        return sbParams.toString();
     }
 
     public void CleanupImages() {
