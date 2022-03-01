@@ -1,0 +1,95 @@
+{
+    "list": [
+        {
+            "SHA256": null,
+            "description": "9 drug NN, 100 images/drug (Tensorflow version), generated using +/-75px height distortion, image brightness set to 165.5 and image hight 490px.",
+            "drugs": "Amoxicillin rerun,Acetaminophen,Ciprofloxacin,Ceftriaxone,Metformin,Ampicillin,Azithromycin,Cefuroxime Axetil,Levofloxacin",
+            "name": "tensor_100_9",
+            "type": "tensorflow",
+            "version": "1.0",
+            "weights_url": null
+        },
+        {
+            "SHA256": null,
+            "description": "MSH Tanzania data: 10 drug NN, 3k images (Tensorflow version), image brightness set to 165.5. 700 epocs.",
+            "drugs": "Paracetamol Starch,Penicillin Procaine,Starch,Lactose,Amoxicillin,Cellulose,Vitamin C,Quinine,Benzyl Penicillin,Paracetamol",
+            "name": "msh_tanzania_3k_10",
+            "type": "tensorflow",
+            "version": "1.0",
+            "weights_url": null
+        },
+        {
+            "SHA256": null,
+            "description": "9 drug NN generated using color variation of +/-0.5 and +/-75px height distortion.",
+            "drugs": "Amoxicillin rerun,Acetaminophen,Ciprofloxacin,Ceftriaxone,Metformin,Ampicillin,Azithromycin,Cefuroxime Axetil,Levofloxacin",
+            "name": "color500_9",
+            "type": "caffe",
+            "version": "1.0",
+            "weights_url": null
+        },
+        {
+            "SHA256": null,
+            "description": "9 drug NN generated using +/-75px height distortion, image brightness set to 165.5 and image hight 490px.",
+            "drugs": "Amoxicillin rerun,Acetaminophen,Ciprofloxacin,Ceftriaxone,Metformin,Ampicillin,Azithromycin,Cefuroxime Axetil,Levofloxacin",
+            "name": "distort_500_9",
+            "type": "caffe",
+            "version": "1.0",
+            "weights_url": null
+        },
+        {
+            "SHA256": null,
+            "description": "MSH Tanzania data with blank and DI water cards: 12 drug/distractor NN, 3k images (Tensorflow version), image brightness not leveled. 1000 epocs.",
+            "drugs": "Paracetamol Starch,Penicillin Procaine,Starch,Lactose,Amoxicillin,Cellulose,Vitamin C,Quinine,Benzyl Penicillin,Paracetamol,,DI water,Blank PAD",
+            "name": "msh_tanzania_3k_12",
+            "type": "tensorflow",
+            "version": "1.0",
+            "weights_url": null
+        },
+        {
+            "SHA256": "c686850b957fe7e0bb5338a76c22e795659432e588b99b35fb645f4017966e9b",
+            "description": "MSH Tanzania image classifier: Identify the PAD image from a set of 10 categories such as Paracetamol Starch, Lactose, Vitamin C, Benzyl Penicillin, etc.",
+            "drugs": "Paracetamol Starch,Penicillin Procaine,Starch,Lactose,Amoxicillin,Cellulose,Vitamin C,Quinine,Benzyl Penicillin,Paracetamol",
+            "name": "msh_tanzania_3k_10_lite",
+            "type": "tf_lite",
+            "version": "1.0",
+            "weights_url": "https://pad.crc.nd.edu/neuralnetworks/tf_lite/msh_tanzania_3k_10_lite/1.0/model_small_1_10.tflite"
+        },
+        {
+            "SHA256": "ff15f7a5224a65693d6e80e17a915e9d8a030b2cfc59fac983ebe5b702a180b5",
+            "description": "FHI360 image classifier: Identify the PAD image from a set of 21 categories such as Albendazole, Amoxicillin, Ampicillin, etc.",
+            "drugs": "Albendazole,Amoxicillin,Ampicillin,Azithromycin,Benzyl,Penicillin,Ceftriaxone,Chloroquine,Ciprofloxacin,Doxycycline,Epinephrine,Ethambutol,Ferrous,Sulfate,Hydroxychloroquine,Isoniazid,Promethazine,Hydrochloride,Pyrazinamide,Rifampicin,RIPE,Sulfamethoxazole,Tetracycline,Distractor",
+            "name": "fhi360_small_lite",
+            "type": "tf_lite",
+            "version": "1.0",
+            "weights_url": "https://pad.crc.nd.edu/neuralnetworks/tf_lite/fhi360_small_lite/1.0/fhi360_small_1_21.tflite"
+        },
+        {
+            "SHA256": "bac3a744ce8c29baf96a3d92e5e4cb21593c7a2e17bd2aec53e420f9a1223ebd",
+            "description": "FHI360 image classifier for concentration: Identify the PAD image from a set of 4 categories such as 100%, 80%, 50% and 20%.",
+            "drugs": "Albendazole,Amoxicillin,Ampicillin,Azithromycin,Benzyl,Penicillin,Ceftriaxone,Chloroquine,Ciprofloxacin,Doxycycline,Epinephrine,Ethambutol,Ferrous,Sulfate,Hydroxychloroquine,Isoniazid,Promethazine,Hydrochloride,Pyrazinamide,Rifampicin,RIPE,Sulfamethoxazole,Tetracycline,Distractor",
+            "name": "fhi360_conc_large_lite",
+            "type": "tf_lite",
+            "version": "1.0",
+            "weights_url": "https://pad.crc.nd.edu/neuralnetworks/tf_lite/fhi360_conc_large_lite/1.0/fhi360_conc_large_1_21.tflite"
+        },
+        {
+            "SHA256": "5fbaf27079b901eed9b268ea496d19483dc3ad78f31cefa28262136be7295fdb",
+            "description": "idPAD image classifier: Identify the PAD image from a set of 6 categories such as Cocaine HCL, Crack Cocaine, Diphenhydramine, etc.",
+            "drugs": "Cocaine HCL,Crack Cocaine,Diphenhydramine, Heroin,Lactose,Methamphetamine",
+            "name": "idPAD_small_lite",
+            "type": "tf_lite",
+            "version": "1.0",
+            "weights_url": "https://pad.crc.nd.edu/neuralnetworks/tf_lite/idPAD_small_lite/1.0/idPAD_small_1_6.tflite"
+        },
+        {
+            "SHA256": "6d6f72b0ddfd8aa58672b3b1fd60a0c3fa8ef628a3bbe1383a083ee70c915121",
+            "description": "PLSD method using 10 sections per lane.",
+            "drugs": "Albendazole,Amoxicillin,Ampicillin,Azithromycin,Benzyl,Penicillin,Ceftriaxone,Chloroquine,Ciprofloxacin,Doxycycline,Epinephrine,Ethambutol,Ferrous,Sulfate,Hydroxychloroquine,Isoniazid,Promethazine,Hydrochloride,Pyrazinamide,Rifampicin,RIPE,Sulfamethoxazole,Tetracycline,Distractor",
+            "name": "pls_fhi360_conc",
+            "type": "pls",
+            "version": "1.0",
+            "weights_url": "https://pad.crc.nd.edu/neuralnetworks/pls/fhi360_concentration/1.0/pls_fhi360_conc_coefficients.csv"
+        }
+    ],
+    "status": "ok"
+}

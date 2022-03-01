@@ -8,7 +8,6 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 import android.webkit.URLUtil;
@@ -17,225 +16,138 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.preference.PreferenceManager;
-import androidx.work.Data;
 import androidx.work.ForegroundInfo;
 import androidx.work.WorkManager;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
+import com.google.common.io.ByteStreams;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
+import com.vdurmont.semver4j.Semver;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
 
-public class UpdatesWorker extends Worker {
+import edu.nd.crc.paperanalyticaldevices.api.NetworkEntry;
+import edu.nd.crc.paperanalyticaldevices.api.ResponseList;
+import edu.nd.crc.paperanalyticaldevices.api.WebService;
+import edu.nd.crc.paperanalyticaldevices.api.utils.ProgressCallback;
+import edu.nd.crc.paperanalyticaldevices.api.utils.ProgressInterceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import retrofit2.Response;
 
-    private static final String TAG_WEIGHTS = "weights_url";
-    private static final String TAG_NAME = "name";
-    private static final String TAG_VERSION = "version";
-
-    private static final String PROGRESS = "PROGRESS";
+public class UpdatesWorker extends Worker implements ProgressCallback {
+    private static final int serialVersionUID = 841333472;
 
     private NotificationManager notificationManager;
 
-
     public UpdatesWorker(@NonNull Context context, @NonNull WorkerParameters params) {
         super(context, params);
-
-        setProgressAsync(new Data.Builder().putInt(PROGRESS, 0).build());
-        notificationManager = (NotificationManager)
-                context.getSystemService(NOTIFICATION_SERVICE);
-
+        notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private void createChannel() {
-        NotificationChannel channel = new NotificationChannel(MainActivity.PROJECT, "Upload", NotificationManager.IMPORTANCE_LOW);
+        NotificationChannel channel = new NotificationChannel(MainActivity.PROJECT, "Update", NotificationManager.IMPORTANCE_LOW);
         notificationManager.createNotificationChannel(channel);
     }
 
     @NonNull
     private ForegroundInfo createForegroundInfo(int current, int max) {
-
-        Context context = getApplicationContext();
-
-        PendingIntent intent = WorkManager.getInstance(context).createCancelPendingIntent(getId());
+        PendingIntent intent = WorkManager.getInstance(getApplicationContext()).createCancelPendingIntent(getId());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createChannel();
         }
 
-        Notification notification = new NotificationCompat.Builder(context, MainActivity.PROJECT)
+        Notification notification = new NotificationCompat.Builder(getApplicationContext(), MainActivity.PROJECT)
                 .setOngoing(true)
-                .setContentTitle("Data Download")
+                .setContentTitle("Downloading neural network")
                 .setProgress(max, current, false)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .addAction(android.R.drawable.ic_delete, "Cancel", intent)
                 .build();
 
-        return new ForegroundInfo(hashCode(), notification);
+        return new ForegroundInfo(serialVersionUID, notification);
     }
 
     @NonNull
     @Override
     public Result doWork() {
+        final OkHttpClient client = new OkHttpClient.Builder()
+                .addNetworkInterceptor(new ProgressInterceptor())
+                .build();
 
-        int count;
-        BufferedReader reader = null;
-        HttpURLConnection conn = null;
-
-        Uri.Builder builder = new Uri.Builder();
-        //@TODO make this a setting and fetch a unique one from an API on first start
-        String api_key = "5NWT4K7IS60WMLR3J2LV";
-        builder.scheme("https")
-                .authority("pad.crc.nd.edu")
-                .appendPath("index.php")
-                .appendQueryParameter("option", "com_jbackend")
-                .appendQueryParameter("view", "request")
-                .appendQueryParameter("module", "querytojson")
-                .appendQueryParameter("resource", "list")
-                .appendQueryParameter("action", "get")
-                .appendQueryParameter("api_key", api_key)
-                .appendQueryParameter("queryname", "network_info");
-
+        final WebService service = WebService.instantiate(client);
         try {
-            URL urlObj = new URL(builder.build().toString());
-
-            conn = (HttpURLConnection) urlObj.openConnection();
-            conn.setDoOutput(true);
-            conn.setRequestMethod("GET");
-            conn.setRequestProperty("Accept-Charset", "UTF-8");
-            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            conn.setRequestProperty("charset", "utf-8");
-            conn.setReadTimeout(10000);
-            conn.setConnectTimeout(15000);
-            conn.connect();
-
-            InputStream stream = conn.getInputStream();
-
-            reader = new BufferedReader(new InputStreamReader(stream));
-
-            StringBuilder buffer = new StringBuilder();
-
-            String line;
-            while ((line = reader.readLine()) != null) {
-                buffer.append(line).append("\n");
+            Response<ResponseList<NetworkEntry>> resp = service.GetNetworkInfo("5NWT4K7IS60WMLR3J2LV").execute();
+            if (!resp.isSuccessful() || !resp.body().Status.equals("ok")) {
+                return Result.failure();
             }
+
+            ResponseList<NetworkEntry> result = resp.body();
 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-            SharedPreferences.Editor editor = prefs.edit();
+            for (String projectSet : getInputData().getStringArray("projectkeys")) {
+                Semver currentVersion = new Semver(prefs.getString(projectSet + "version", "0.0"), Semver.SemverType.LOOSE);
 
-            String[] projectFolders = getInputData().getStringArray("projectkeys");
+                for (NetworkEntry network : result.Entries) {
+                    if (!projectSet.equals(network.Name)) {
+                        continue;
+                    }
 
-            for (String projectSet : projectFolders) {
-                String projectVersionString = prefs.getString(projectSet + "version", "0.0");
-                double projectVersion = Double.parseDouble(projectVersionString);
+                    // Ignore older versions
+                    if (!network.Version.isGreaterThan(currentVersion)) {
+                        continue;
+                    }
 
-                JSONObject jsonObject = new JSONObject(buffer.toString());
-                JSONArray listArray = jsonObject.getJSONArray("list");
+                    Log.d("PADS_URL", network.Weights);
 
-                for (int i = 0; i < listArray.length(); i++) {
-                    JSONObject item = listArray.getJSONObject(i);
+                    Request request = new Request.Builder()
+                            .url(network.Weights)
+                            .tag(ProgressCallback.class, this)
+                            .build();
 
-                    String projectName = item.getString(TAG_NAME);
-                    if (projectName.equals(projectSet)) {
-
-                        String weightsUrl = item.getString(TAG_WEIGHTS);
-                        Log.d("PADS_URL", weightsUrl);
-                        String versionString = item.getString(TAG_VERSION);
-                        double version = Double.parseDouble(versionString);
-
-                        if (version > projectVersion) {
-                            // then get updated files and update the shared preferences with new data
-
-                            URL url = new URL(weightsUrl);
-                            URLConnection connection = url.openConnection();
-                            connection.connect();
-
-                            InputStream input = new BufferedInputStream(url.openStream(), 8192);
-
-                            Context context = getApplicationContext();
-                            File newDir = context.getDir("tflitemodels", Context.MODE_PRIVATE);
-                            if (!newDir.exists()) {
-                                newDir.mkdirs();
-                            }
-
-                            String newFileName = URLUtil.guessFileName(String.valueOf(url), null, null);
-                            //store the values in shared preferences
-                            editor.putString(projectSet + "filename", newFileName);
-                            editor.putString(projectSet + "version", versionString);
-                            editor.apply();
-
-                            Log.d("UPDATES_WORKER", "Updating: " + projectSet + "filename to " + newFileName);
-                            Log.d("UPDATES_WORKER", "Updating: " + projectSet + "version to " + versionString);
-
-                            File newFile = new File(newDir, newFileName);
-
-                            OutputStream output = new FileOutputStream(newFile);
-
-                            int lengthOfFile = connection.getContentLength();
-                            long total = 0;
-
-                            //setForegroundAsync(createForegroundInfo(0, lengthOfFile));
-                            setForegroundAsync(createForegroundInfo(0, 100));
-
-                            byte[] data = new byte[1024];
-                            while ((count = input.read(data)) != -1) {
-                                output.write(data, 0, count);
-                                total += count;
-                                int prog = Integer.parseInt(String.valueOf( (total * 100) / lengthOfFile) );
-                                setProgressAsync(new Data.Builder().putInt(PROGRESS, prog).build());
-
-                                if(prog % 10 == 0) {
-                                    setForegroundAsync(createForegroundInfo(prog, 100));
-                                }
-                            }
-
-                            output.flush();
-
-                            output.close();
-                            input.close();
-
+                    try (okhttp3.Response response = client.newCall(request).execute()) {
+                        if (!response.isSuccessful() || response.body() == null) {
+                            return Result.failure();
                         }
 
+                        String newFileName = URLUtil.guessFileName(String.valueOf(network.Weights), null, null);
+                        Log.d("UPDATES_WORKER", "Updating: " + projectSet + "filename to " + newFileName);
+                        Log.d("UPDATES_WORKER", "Updating: " + projectSet + "version to " + network.Version.toString());
+
+                        File newDir = getApplicationContext().getDir("tflitemodels", Context.MODE_PRIVATE);
+                        newDir.mkdirs();
+
+                        try (InputStream input = response.body().byteStream(); OutputStream output = new FileOutputStream(new File(newDir, newFileName))) {
+                            ByteStreams.copy(input, output);
+                        }
+
+                        SharedPreferences.Editor editor = prefs.edit();
+                        editor.putString(projectSet + "filename", newFileName);
+                        editor.putString(projectSet + "version", network.Version.toString());
+                        editor.apply();
                     }
                 }
-            } //for each project name
-
-        } catch (IOException | JSONException e) {
+            }
+        } catch (IOException e) {
             FirebaseCrashlytics.getInstance().recordException(e);
             e.printStackTrace();
-        } finally {
-
-            if (conn != null) {
-                conn.disconnect();
-            }
-            try {
-                if (reader != null) {
-                    reader.close();
-                }
-            } catch (IOException e2) {
-                e2.printStackTrace();
-            }
-
+            return Result.failure();
         }
-
-        setProgressAsync(new Data.Builder().putInt(PROGRESS, 100).build());
 
         return Result.success();
     }
 
-
+    @Override
+    public void onProgress(long bytes, long totalBytes) {
+        if (totalBytes > 0 && bytes < totalBytes) {
+            final int progress = (int) Math.round((((double) bytes / totalBytes) * 100));
+            setForegroundAsync(createForegroundInfo(progress, 100));
+        }
+    }
 }
