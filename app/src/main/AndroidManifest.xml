@@ -67,7 +67,7 @@
         <activity
             android:name=".ResultActivity"
             android:exported="true"
-            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" >
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" >
             <intent-filter android:label="@string/activity_result">
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT" />
