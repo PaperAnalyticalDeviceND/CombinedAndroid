@@ -48,7 +48,7 @@
             android:layout_weight="1"
             android:paddingBottom="5dp"
             android:onClick="discardData"
-            android:background="@drawable/pillbutton"
+            android:background="@drawable/cancelpillbutton"
             android:text="@string/cancel" />
 
         <Button

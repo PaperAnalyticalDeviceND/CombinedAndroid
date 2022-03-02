@@ -23,6 +23,19 @@
             app:title="@string/neuralnet"
             app:useSimpleSummaryProvider="true" />
 
+        <ListPreference
+            app:defaultValue=""
+            app:entries="@array/neuralnet_entries"
+            app:entryValues="@array/neuralnet_values"
+            app:key="secondary"
+            app:title="@string/secondary_network"
+            app:useSimpleSummaryProvider="true"
+            />
+        <SwitchPreferenceCompat
+            app:key="pls"
+            app:title="@string/use_pls"
+            />
+
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/sync_header">

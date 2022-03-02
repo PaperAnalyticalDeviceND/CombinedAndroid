@@ -25,6 +25,12 @@ public interface WebService {
     @GET("/index.php?option=com_jbackend&view=request&module=querytojson&action=get&resource=list&queryname=network_info")
     Call<ResponseList<NetworkEntry>> GetNetworkInfo(@Query("api_key") String api_key);
 
+    @GET("/index.php?option=com_jbackend&view=request&module=querytojson&action=get&resource=list&queryname=projects")
+    Call<ResponseList<String[]>> GetProjects(@Query("api_key") String api_key);
+
+    @GET("/index.php?option=com_jbackend&view=request&module=querytojson&action=get&resource=list&queryname=networks")
+    Call<ResponseList<String[]>> GetNetworkNames(@Query("api_key") String api_key);
+
     @FormUrlEncoded
     @POST("/index.php?option=com_jbackend&view=request&module=querytojson&action=post&resource=upload")
     Call<JsonObject> UploadResult(@FieldMap Map<String, String> names, @Tag ProgressCallback progress);

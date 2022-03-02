@@ -6,8 +6,10 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
 import android.util.Log;
 import android.webkit.URLUtil;
@@ -83,6 +85,37 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
 
         final WebService service = WebService.instantiate(client);
         try {
+
+            // First get the project names and neural net names
+            Response<ResponseList<String[]>> projectsResp = service.GetProjects("5NWT4K7IS60WMLR3J2LV").execute();
+            //load projects into database
+
+            ResponseList<String[]> projectsResult = projectsResp.body();
+
+            ProjectsDbHelper dbHelper = new ProjectsDbHelper(getApplicationContext());
+
+            SQLiteDatabase db = dbHelper.getWritableDatabase();
+            // delete any previous entries
+            dbHelper.clearProjects(db);
+            dbHelper.clearNetworks(db);
+            dbHelper.clearDrugs(db);
+
+            for(String[] p : projectsResult.Entries){
+                //Log.d("API Result", p[0]);
+
+                ContentValues dbValues = new ContentValues();
+
+                dbValues.put(ProjectContract.ProjectEntry.COLUMN_NAME_PROJECTID, p[0]);
+                dbValues.put(ProjectContract.ProjectEntry.COLUMN_NAME_PROJECTNAME, p[0]);
+                db.insert(ProjectContract.ProjectEntry.TABLE_NAME, null, dbValues);
+
+            }
+
+
+            //load networks and details into database
+            //Response<ResponseList<String[]>> networksResp = service.GetNetworkNames("5NWT4K7IS60WMLR3J2LV").execute();
+            //ResponseList<String[]> networksResult = networksResp.body();
+
             Response<ResponseList<NetworkEntry>> resp = service.GetNetworkInfo("5NWT4K7IS60WMLR3J2LV").execute();
             if (!resp.isSuccessful() || !resp.body().Status.equals("ok")) {
                 return Result.failure();
@@ -90,11 +123,43 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
 
             ResponseList<NetworkEntry> result = resp.body();
 
+            for (NetworkEntry network : result.Entries) {
+
+                //write to the DB first
+                ContentValues dbValues = new ContentValues();
+                dbValues.put(NetworksContract.NetworksEntry.COLUMN_NAME_NETWORKID, network.Name);
+                dbValues.put(NetworksContract.NetworksEntry.COLUMN_NAME_NETWORKNAME, network.Name);
+                dbValues.put(NetworksContract.NetworksEntry.COLUMN_NAME_WEIGHTSURL, network.Weights);
+                dbValues.put(NetworksContract.NetworksEntry.COLUMN_NAME_VERSIONSTRING, String.valueOf(network.Version));
+                dbValues.put(NetworksContract.NetworksEntry.COLUMN_NAME_DESCRIPTION, network.Description);
+                dbValues.put(NetworksContract.NetworksEntry.COLUMN_NAME_DRUGS, network.Drugs.toString());
+                dbValues.put(NetworksContract.NetworksEntry.COLUMN_NAME_TYPE, network.Type);
+                Log.d("UPDATESWORKER", network.Drugs.toString());
+                if(network.Weights != "" ){
+                    String fileName = URLUtil.guessFileName(String.valueOf(network.Weights), null, null);
+                    dbValues.put(NetworksContract.NetworksEntry.COLUMN_NAME_FILENAME, fileName);
+                }
+                db.insert(NetworksContract.NetworksEntry.TABLE_NAME, null, dbValues);
+
+                for(String drugName : network.Drugs){
+                    ContentValues drugValues = new ContentValues();
+                    drugValues.put(DrugsContract.DrugsEntry.COLUMN_NAME_NETWORK, network.Name);
+                    drugValues.put(DrugsContract.DrugsEntry.COLUMN_NAME_DRUGID, drugName);
+                    drugValues.put(DrugsContract.DrugsEntry.COLUMN_NAME_DRUGNAME, drugName);
+
+                    db.insert(DrugsContract.DrugsEntry.TABLE_NAME, null, drugValues);
+                }
+
+            }
+
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
             for (String projectSet : getInputData().getStringArray("projectkeys")) {
+              if(projectSet != ""){
+
                 Semver currentVersion = new Semver(prefs.getString(projectSet + "version", "0.0"), Semver.SemverType.LOOSE);
 
                 for (NetworkEntry network : result.Entries) {
+
                     if (!projectSet.equals(network.Name)) {
                         continue;
                     }
@@ -133,7 +198,9 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
                         editor.apply();
                     }
                 }
+              }// end if project != ""
             }
+
         } catch (IOException e) {
             FirebaseCrashlytics.getInstance().recordException(e);
             e.printStackTrace();

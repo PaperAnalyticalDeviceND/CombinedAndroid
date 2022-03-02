@@ -75,12 +75,16 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
     private List<TensorflowNetwork> networks = new ArrayList<>();
     private PartialLeastSquares pls = null;
 
+    private Boolean usePls;
+
     public PredictionModel(@NonNull Application application) {
         super(application);
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(application.getApplicationContext());
 
         LoadModel(preferences, preferences.getString("neuralnet", ""));
         preferences.registerOnSharedPreferenceChangeListener(this);
+
+        usePls = preferences.getBoolean("pls", false);
     }
 
     public LiveData<Result> getResult() {
@@ -132,6 +136,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                     }
                 }
 
+
                 // calculate concentration from PLSR method
                 // get drug if available
                 String[] drug = output_string.toString().split(" ", 2);
@@ -140,7 +145,8 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                     drugStr = drug[0].toLowerCase();
                 }
 
-                if (CurrentProject.equals("FHI360-App") && pls != null) {
+                //if (CurrentProject.equals("FHI360-App") && pls != null) {
+                if (usePls && pls != null) {
                     // call
                     double concentration = pls.calculate(bmRect, drugStr);
 
@@ -240,13 +246,22 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
 
             LoadModel(sharedPreferences, project);
         }
+        if(key.equals("secondary")){
+            String secondary = sharedPreferences.getString("secondary", "");
+            LoadModel(sharedPreferences, secondary);
+        }
     }
 
     public void LoadModel(SharedPreferences sharedPreferences, String project){
         networks.clear();
         try {
             String projectFolder;
-            switch (sharedPreferences.getString("neuralnet", "")) {
+
+            String[] selectedNetworks = new String[]{sharedPreferences.getString("neuralnet", ""), sharedPreferences.getString("secondary", "")};
+          for(String selected : selectedNetworks){
+              //switch (sharedPreferences.getString("neuralnet", "")) {
+              // leave the old values for backwards compatibility, but use new values in default case
+            switch (selected) {
                 case "Veripad idPAD":
                     //projectFolder = subId;
                     File idpadFile = new File(getApplication().getApplicationContext().getDir("tflitemodels", Context.MODE_PRIVATE).getPath(), sharedPreferences.getString(subId + "filename", idPadName));
@@ -267,7 +282,8 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                         DownloadModels(sharedPreferences);
                     }
                     break;
-                default:
+                //default:
+                case "FHI360-App":
                     File fhiFile = new File(getApplication().getApplicationContext().getDir("tflitemodels", Context.MODE_PRIVATE).getPath(), sharedPreferences.getString(subFhi + "filename", fhiName));
                     if(fhiFile.exists()) {
                         MainActivity.setSemaphore(true);
@@ -281,7 +297,30 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                     }
                     //projectFolder = subFhi;
                     break;
-            }
+
+                case "":
+                    break;
+
+                default:
+                    File networkFile = new File(getApplication().getApplicationContext().getDir("tflitemodels", Context.MODE_PRIVATE).getPath(), sharedPreferences.getString(selected + "filename", "notafile"));
+                    if(networkFile.exists()){
+                        MainActivity.setSemaphore(true);
+                        networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(), sharedPreferences.getString(selected + "filename", "")));
+
+                        Boolean usePls = sharedPreferences.getBoolean("pls", false);
+                        if(usePls && pls == null){
+                            pls = PartialLeastSquares.from(getApplication().getApplicationContext());
+                        }
+                    }else{
+                        DownloadSpecifiedModel(sharedPreferences, selected);
+                    }
+
+                    break;
+            } //end switch case
+
+          } //end for loop
+
+
             CurrentProject = project;
 
             //new UpdatesAsyncTask().execute(projectFolder);
@@ -294,10 +333,11 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
         }
     }
 
-    public void DownloadModels(SharedPreferences sharedPreferences){
+    public void DownloadSpecifiedModel(SharedPreferences sharedPreferences, String networkName){
 
         String[] projectFolders;
-        switch (sharedPreferences.getString("neuralnet", "")) {
+
+        switch(networkName){
             case "FHI360-App":
 
                 projectFolders = new String[]{subFhi, subFhiConc};
@@ -312,7 +352,50 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                 break;
             default:
                 //12-06-21 allow running without neural net so all projects can be captured
-                return;
+                //return;
+                projectFolders = new String[]{networkName};
+        }
+
+        Constraints constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.UNMETERED)
+                .build();
+
+        WorkRequest myUploadWork = new OneTimeWorkRequest.Builder(UpdatesWorker.class).setConstraints(constraints)
+                .addTag("neuralnet_download").setInputData(new Data.Builder()
+                        .putStringArray("projectkeys", projectFolders)
+                        .build()
+                )
+                .build();
+
+        Log.d("PredictionModel", "Queueing neuralnet_download worker.");
+        WorkManager.getInstance(this.getApplication().getApplicationContext()).enqueue(myUploadWork);
+        //bit of a workaround, locks out the camera until the background download worker is finished
+        MainActivity.setSemaphore(false);
+
+    }
+
+    public void DownloadModels(SharedPreferences sharedPreferences){
+
+        String[] projectFolders;
+        String selected = sharedPreferences.getString("neuralnet", "");
+        //switch (sharedPreferences.getString("neuralnet", "")) {
+        switch(selected){
+            case "FHI360-App":
+
+                projectFolders = new String[]{subFhi, subFhiConc};
+                break;
+            case "Veripad idPAD":
+
+                projectFolders = new String[]{subId};
+                break;
+            case "MSH Tanzania":
+
+                projectFolders = new String[]{subMsh};
+                break;
+            default:
+                //12-06-21 allow running without neural net so all projects can be captured
+                //return;
+                projectFolders = new String[]{selected};
         }
 
         Constraints constraints = new Constraints.Builder()
