@@ -4,8 +4,8 @@
     <string name="stored_drug_string">Stated Drug (Unknown if not known)</string>
     <string name="brand_string">Drug %</string>
     <string name="batch_string">Predicted Drug</string>
-    <string name="upload">Save</string>
-    <string name="cancel">Retry</string>
+    <string name="upload">Upload</string>
+    <string name="cancel">Discard</string>
     <string name="cont">Continue</string>
     <string name="maininstructions">Use the alignment squares to center the image and hold the phone very steady.  When a clear image is possible you will be notified.</string>
     <string name="appsettings">Settings</string>
@@ -18,7 +18,8 @@
     <string name="sync_header">Sync</string>
     <string name="projectsettings">Project Settings</string>
     <string name="user_name">User Name</string>
-    <string name="secondary_network">Secondary</string>
+    <string name="drugclassifier">Drug Classifier</string>
+    <string name="secondary_network">Conc. Classifier</string>
     <string name="use_pls">Use PLS</string>
 
     <!-- Messages Preferences -->

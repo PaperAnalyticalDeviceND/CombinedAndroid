@@ -67,10 +67,10 @@ public class ResultActivity extends AppCompatActivity {
         okToConsumeSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
                 unsafeForConsumption = true;
-                Toast.makeText(getBaseContext(), R.string.unsafetoconsume, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getBaseContext(), R.string.unsafetoconsume, Toast.LENGTH_SHORT).show();
             } else {
                 unsafeForConsumption = false;
-                Toast.makeText(getBaseContext(), R.string.safetoconsume, Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getBaseContext(), R.string.safetoconsume, Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -133,15 +133,38 @@ public class ResultActivity extends AppCompatActivity {
             tDrugs = Defaults.Drugs.get(0);
         }
 
+        // expected drug
         Spinner sDrugs = findViewById(R.id.drugSpinner);
         sDrugs.setAdapter(aDrugs);
-        sDrugs.setSelection(aDrugs.getPosition(mPreferences.getString("Drug", tDrugs)));
+        //sDrugs.setSelection(aDrugs.getPosition(mPreferences.getString("Drug", tDrugs)));
+        String statedDrug;
+        if(intent.hasExtra(MainActivity.EXTRA_STATED_DRUG) && intent.getStringExtra(MainActivity.EXTRA_STATED_DRUG) != null){
+            statedDrug = intent.getStringExtra(MainActivity.EXTRA_STATED_DRUG);
 
-        // Handle Brands
+        }else{
+            //sDrugs.setSelection(aDrugs.getPosition(mPreferences.getString("Drug", tDrugs)));
+            statedDrug = mPreferences.getString("Drug", tDrugs);
+        }
+        sDrugs.setSelection(aDrugs.getPosition(statedDrug));
+
+        if(!sPredicted.substring(0, statedDrug.length()).equals(statedDrug) ){
+            okToConsumeSwitch.setChecked(true);
+            unsafeForConsumption = true;
+        }
+
+
+        // Handle Brands  (Drug concentration)
         Spinner sBrands = findViewById(R.id.brandSpinner);
         ArrayAdapter<String> aBrands = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, Defaults.Brands);
         sBrands.setAdapter(aBrands);
-        sBrands.setSelection(aBrands.getPosition(mPreferences.getString("Brand", Defaults.Brands.get(0))));
+
+        if(intent.hasExtra(MainActivity.EXTRA_STATED_CONC) && intent.getStringExtra(MainActivity.EXTRA_STATED_CONC) != null){
+            String statedConc = intent.getStringExtra(MainActivity.EXTRA_STATED_CONC);
+            sBrands.setSelection(aBrands.getPosition(statedConc));
+        }else {
+
+            sBrands.setSelection(aBrands.getPosition(mPreferences.getString("Brand", Defaults.Brands.get(0))));
+        }
     }
 
     @Override
@@ -155,7 +178,8 @@ public class ResultActivity extends AppCompatActivity {
 
         //attach the menu for settings and queue to the app bar
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.maintoolbarmenu, menu);
+        //inflater.inflate(R.menu.maintoolbarmenu, menu);
+        inflater.inflate(R.menu.iconmenutoolbar, menu);
         return true;
     }
 
@@ -172,6 +196,14 @@ public class ResultActivity extends AppCompatActivity {
             case R.id.upload_queue:
                 Intent iq = new Intent(this, UploadQueueActivity.class);
                 startActivity(iq);
+                return true;
+            case R.id.menu_settings:
+                Intent is = new Intent(this, SettingsActivity.class);
+                startActivity(is);
+                return true;
+            case R.id.menu_queue:
+                Intent iq2 = new Intent(this, UploadQueueActivity.class);
+                startActivity(iq2);
                 return true;
             default:
                 // If we got here, the user's action was not recognized.
@@ -234,7 +266,8 @@ public class ResultActivity extends AppCompatActivity {
         //write to a SQLite table so we can get the info out for the Queue activity
         ContentValues dbValues = new ContentValues();
         dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_WORKID, workId.toString());
-        dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLENAME, getDrug());
+        //dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLENAME, getDrug());
+        dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLENAME, getBatch());
         dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLEID, parseQR(qr));
         dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_QUANTITY, getPercentage(getBrand()));
         dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_NOTES, compressedNotes);

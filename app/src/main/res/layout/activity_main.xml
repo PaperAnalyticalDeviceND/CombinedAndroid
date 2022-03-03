@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+
     tools:context=".MainActivity">
 
     <!--ImageView
@@ -109,7 +109,7 @@
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="5dp"
         android:layout_weight="0"
-        android:background="@color/white"
+
         android:paddingLeft="10dp"
         android:paddingTop="10dp"
         android:text="@string/stored_drug_string"
@@ -140,7 +140,7 @@
         android:layout_marginTop="24dp"
         android:layout_marginEnd="16dp"
         android:layout_weight="0"
-        android:background="@color/white"
+
         android:paddingLeft="10dp"
         android:paddingTop="10dp"
         android:text="@string/brand_string"
@@ -162,17 +162,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/concDrugView" />
 
-    <!--ImageButton
-        android:id="@+id/camera_icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:onClick="startImageCapture"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/button3"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/concDrugSpinner"
-        app:srcCompat="@drawable/outline_photo_camera_24" /-->
+
 
     <Button
         android:id="@+id/button3"
@@ -183,7 +173,9 @@
         android:padding="10dp"
         android:textColor="#000FFF"
         android:textSize="24dp"
-        android:background="@color/white"
+        app:icon="@drawable/outline_photo_camera_24"
+        style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+        app:iconTint="#000FFF"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -193,13 +185,16 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme"
         app:layout_constraintBottom_toTopOf="@id/project_label"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:navigationIcon="@drawable/ic_analyze_pads"
+
+        app:popupTheme="@style/MyToolbarStyle" />
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

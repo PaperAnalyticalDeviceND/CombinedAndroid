@@ -10,6 +10,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.preference.ListPreference;
 import androidx.preference.PreferenceFragmentCompat;
 
@@ -39,6 +40,9 @@ public class SettingsActivity extends AppCompatActivity {
 
         doneButton = findViewById(R.id.button6);
 
+        //put in a top toolbar with a button
+        Toolbar myToolbar = findViewById(R.id.settingstoolbar);
+        setSupportActionBar(myToolbar);
 
 
     }

@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.ListView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.LiveData;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
@@ -38,6 +39,9 @@ public final class UploadQueueActivity extends AppCompatActivity {
         setContentView(R.layout.activity_upload_queue);
 
 
+        //put in a top toolbar with a button
+        Toolbar myToolbar = findViewById(R.id.queuetoolbar);
+        setSupportActionBar(myToolbar);
 
         WorkManager manager = WorkManager.getInstance(this);
 

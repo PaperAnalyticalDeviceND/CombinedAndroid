@@ -28,14 +28,14 @@
             android:name=".UploadQueueActivity"
             android:exported="false"
             android:label="@string/title_activity_queue"
-            android:theme="@style/Theme.AppCompat.DayNight"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
             />
 
         <activity
             android:name=".SettingsActivity"
             android:exported="false"
             android:label="@string/title_activity_settings"
-            android:theme="@style/Theme.AppCompat.DayNight"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
              />
 
         <provider
@@ -52,7 +52,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -67,7 +67,7 @@
         <activity
             android:name=".ResultActivity"
             android:exported="true"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar" >
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" >
             <intent-filter android:label="@string/activity_result">
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT" />

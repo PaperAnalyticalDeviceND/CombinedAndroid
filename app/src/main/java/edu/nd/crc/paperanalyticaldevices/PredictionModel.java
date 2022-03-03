@@ -131,7 +131,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                         output_string.append(String.format(" (%.3f)", results.get(i).Probability));
                     }
 
-                    if (results.size() > 0) {
+                    if (results.size() > 1) {
                         output_string.append(", ");
                     }
                 }

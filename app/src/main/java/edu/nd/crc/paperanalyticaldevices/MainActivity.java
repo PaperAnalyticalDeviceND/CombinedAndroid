@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String EXTRA_PREDICTED = "e.nd.paddatacapture.EXTRA_PREDICTED";
     public static final String EXTRA_LABEL_DRUGS = "e.nd.paddatacapture.EXTRA_LABEL_DRUGS";
     public static final String EXTRA_STATED_DRUG = "e.nd.paddatacapture.EXTRA_STATED_DRUG";
-    public static final String EXTRA_STATE_CONC = "e.nd.paddatacapture.EXTRA_STATED_CONC";
+    public static final String EXTRA_STATED_CONC = "e.nd.paddatacapture.EXTRA_STATED_CONC";
 
     static final String PROJECT = "";
 
@@ -150,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
         sDrugs.setAdapter(aDrugs);
 
         // prepare picker for drug %
-        ArrayAdapter<String> aConcentrations = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, concentrations);
+        ArrayAdapter<String> aConcentrations = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, Defaults.Brands);
         Spinner sConc = findViewById(R.id.concDrugSpinner);
         sConc.setAdapter(aConcentrations);
 
@@ -174,6 +174,15 @@ public class MainActivity extends AppCompatActivity {
                 if (result.Timestamp.isPresent())
                     intent.putExtra(EXTRA_TIMESTAMP, result.Timestamp.get());
                 if (result.Labels.length > 0) intent.putExtra(EXTRA_LABEL_DRUGS, result.Labels);
+
+                Spinner spinnerDrugs = findViewById(R.id.statedDrugSpinner);
+                String ret = String.valueOf(spinnerDrugs.getSelectedItem());
+                intent.putExtra(EXTRA_STATED_DRUG, ret);
+
+                Spinner spinnerConc = findViewById(R.id.concDrugSpinner);
+                String conc = String.valueOf(spinnerConc.getSelectedItem());
+                intent.putExtra(EXTRA_STATED_CONC, conc);
+
                 startActivity(intent);
 
                 HoldCamera = true;
@@ -272,7 +281,8 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         //attach the menu for settings and queue to the app bar
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.maintoolbarmenu, menu);
+        //inflater.inflate(R.menu.maintoolbarmenu, menu);
+        inflater.inflate(R.menu.iconmenutoolbar, menu);
         return true;
     }
 
@@ -284,6 +294,14 @@ public class MainActivity extends AppCompatActivity {
             case R.id.app_settings:
                 Intent i = new Intent(this, SettingsActivity.class);
                 startActivity(i);
+                return true;
+            case R.id.menu_settings:
+                Intent is = new Intent(this, SettingsActivity.class);
+                startActivity(is);
+                return true;
+            case R.id.menu_queue:
+                Intent iq2 = new Intent(this, UploadQueueActivity.class);
+                startActivity(iq2);
                 return true;
             case R.id.upload_queue:
                 Intent iq = new Intent(this, UploadQueueActivity.class);
