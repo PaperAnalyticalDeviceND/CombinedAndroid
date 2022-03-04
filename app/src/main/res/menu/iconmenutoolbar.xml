@@ -19,6 +19,11 @@
                 android:icon="@drawable/ic_baseline_upgrade_24"
                 android:title="@string/title_activity_queue"
                 />
+            <item
+                android:id="@+id/menu_about"
+                android:icon="@drawable/ic_baseline_info_blue_24"
+                android:title="@string/about"
+                />
         </menu>
 
     </item>

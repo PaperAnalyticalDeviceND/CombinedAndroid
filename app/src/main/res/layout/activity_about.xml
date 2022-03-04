@@ -4,17 +4,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    tools:context=".AboutActivity">
 
-    tools:context=".UploadQueueActivity">
 
     <androidx.appcompat.widget.Toolbar
-        android:id="@+id/queuetoolbar"
+        android:id="@+id/abouttoolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:navigationIcon="@drawable/ic_baseline_file_upload_black_24"
+        app:navigationIcon="@drawable/ic_baseline_info_24"
         >
         <LinearLayout
             android:layout_width="match_parent"
@@ -33,54 +33,34 @@
         </LinearLayout>
     </androidx.appcompat.widget.Toolbar>
 
-    <TextView
-        android:id="@+id/queueTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/pendingqueue"
-        app:layout_constraintBottom_toTopOf="@id/queue_list"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/queuetoolbar" />
 
-    <ListView
-        android:id="@+id/queue_list"
+    <TextView
+        android:id="@+id/about_description_textview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        app:layout_constraintBottom_toTopOf="@id/finished_textview"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/queueTextView"
-        app:layout_constraintVertical_weight="5" />
+        app:layout_constraintTop_toBottomOf="@id/abouttoolbar"
+        android:padding="24dp"
+        android:text="@string/app_description"
+        />
 
 
     <TextView
-        android:id="@+id/finished_textview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/queue_list"
-        app:layout_constraintBottom_toTopOf="@id/finishedListView"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:text="@string/finishedqueue"
-        />
-
-    <ListView
-        android:id="@+id/finishedListView"
+        android:id="@+id/privacy_link"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        app:layout_constraintTop_toBottomOf="@id/finished_textview"
-
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        android:padding="24dp"
+        app:layout_constraintTop_toBottomOf="@id/about_description_textview"
         />
 
-    <!--Button
-        android:id="@+id/button4"
+    <TextView
+        android:id="@+id/homepage_link"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="24dp"
+        app:layout_constraintTop_toBottomOf="@id/privacy_link"
+        />
+    <Button
+        android:id="@+id/button7"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/donetext"
@@ -95,6 +75,6 @@
         app:layout_constraintVertical_weight="1"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/queue_list" /-->
+        app:layout_constraintStart_toStartOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

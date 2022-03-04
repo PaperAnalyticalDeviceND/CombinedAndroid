@@ -118,7 +118,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/network_label" />
 
-    <Spinner
+    <!--Spinner
         android:id="@+id/statedDrugSpinner"
         android:layout_width="match_parent"
         android:layout_height="37dp"
@@ -130,7 +130,17 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/statedDrugView" />
+        app:layout_constraintTop_toBottomOf="@+id/statedDrugView" /-->
+
+    <NumberPicker
+        android:id="@+id/statedDrugSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/statedDrugView"
+        />
 
     <TextView
         android:id="@+id/concDrugView"
@@ -149,7 +159,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/statedDrugSpinner" />
 
-    <Spinner
+    <!--Spinner
         android:id="@+id/concDrugSpinner"
         android:layout_width="match_parent"
         android:layout_height="37dp"
@@ -160,9 +170,18 @@
         app:layout_constraintEnd_toEndOf="parent"
 
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/concDrugView" />
+        app:layout_constraintTop_toBottomOf="@+id/concDrugView" /-->
 
 
+    <NumberPicker
+        android:id="@+id/concDrugSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/concDrugView"
+        />
 
     <Button
         android:id="@+id/button3"

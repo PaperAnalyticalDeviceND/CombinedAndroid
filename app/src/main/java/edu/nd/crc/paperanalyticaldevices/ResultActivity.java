@@ -205,6 +205,10 @@ public class ResultActivity extends AppCompatActivity {
                 Intent iq2 = new Intent(this, UploadQueueActivity.class);
                 startActivity(iq2);
                 return true;
+            case R.id.menu_about:
+                Intent a = new Intent(this, AboutActivity.class);
+                startActivity(a);
+                return true;
             default:
                 // If we got here, the user's action was not recognized.
                 // Invoke the superclass to handle it.

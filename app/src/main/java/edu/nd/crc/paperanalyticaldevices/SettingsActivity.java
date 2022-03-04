@@ -35,10 +35,10 @@ public class SettingsActivity extends AppCompatActivity {
                     .commit();
         }
 
-        progressBar = findViewById(R.id.simpleProgressBar);
-        progressBar.setVisibility(View.INVISIBLE);
+        //progressBar = findViewById(R.id.simpleProgressBar);
+        //progressBar.setVisibility(View.INVISIBLE);
 
-        doneButton = findViewById(R.id.button6);
+        //doneButton = findViewById(R.id.button6);
 
         //put in a top toolbar with a button
         Toolbar myToolbar = findViewById(R.id.settingstoolbar);

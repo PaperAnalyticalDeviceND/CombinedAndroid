@@ -14,6 +14,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.Spinner;
@@ -85,6 +86,12 @@ public class MainActivity extends AppCompatActivity {
         workerSemaphore = val;
     }
 
+    ProjectsDbHelper dbHelper;
+    SQLiteDatabase db;
+
+    TextView networkLabel;
+    TextView projectLabel;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -123,27 +130,12 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(myToolbar);
 
         //get drug labels stored for primary neural net
-        ProjectsDbHelper dbHelper = new ProjectsDbHelper(this);
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        ArrayList<String> drugEntries = new ArrayList<>();
-        String[] projection = {
-                BaseColumns._ID,
-                DrugsContract.DrugsEntry.COLUMN_NAME_DRUGNAME,
-        };
 
-        String selection = DrugsContract.DrugsEntry.COLUMN_NAME_NETWORK + " = ?";
-        String[] selectionArgs = {project};
-        String sortOrder = DrugsContract.DrugsEntry.COLUMN_NAME_DRUGNAME + " ASC";
+        dbHelper = new ProjectsDbHelper(this);
+        db = dbHelper.getReadableDatabase();
+        setDrugSpinnerItems();
 
-        String drugName;
-        try( Cursor cursor = db.query(DrugsContract.DrugsEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder)) {
-            while(cursor.moveToNext()){
-
-                drugName = cursor.getString(cursor.getColumnIndexOrThrow(DrugsContract.DrugsEntry.COLUMN_NAME_DRUGNAME));
-                drugEntries.add(drugName);
-            }
-        }
-
+/*
         Spinner sDrugs = findViewById(R.id.statedDrugSpinner);
         String[] drugsArray = drugEntries.toArray(new String[drugEntries.size()]);
         ArrayAdapter<String> aDrugs = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, drugsArray);
@@ -153,11 +145,17 @@ public class MainActivity extends AppCompatActivity {
         ArrayAdapter<String> aConcentrations = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, Defaults.Brands);
         Spinner sConc = findViewById(R.id.concDrugSpinner);
         sConc.setAdapter(aConcentrations);
+*/
 
-        TextView networkLabel = findViewById(R.id.neuralnet_name_view);
+        NumberPicker sConc = findViewById(R.id.concDrugSpinner);
+        sConc.setMinValue(0);
+        sConc.setMaxValue(Defaults.Brands.size() - 1);
+        sConc.setDisplayedValues(Defaults.Brands.toArray(new String[Defaults.Brands.size()]));
+
+        networkLabel = findViewById(R.id.neuralnet_name_view);
         networkLabel.setText(project);
 
-        TextView projectLabel = findViewById(R.id.project_name_view);
+        projectLabel = findViewById(R.id.project_name_view);
         String projectName = prefs.getString("project", "");
         projectLabel.setText(projectName);
 
@@ -175,12 +173,28 @@ public class MainActivity extends AppCompatActivity {
                     intent.putExtra(EXTRA_TIMESTAMP, result.Timestamp.get());
                 if (result.Labels.length > 0) intent.putExtra(EXTRA_LABEL_DRUGS, result.Labels);
 
+                /*
                 Spinner spinnerDrugs = findViewById(R.id.statedDrugSpinner);
                 String ret = String.valueOf(spinnerDrugs.getSelectedItem());
                 intent.putExtra(EXTRA_STATED_DRUG, ret);
 
                 Spinner spinnerConc = findViewById(R.id.concDrugSpinner);
                 String conc = String.valueOf(spinnerConc.getSelectedItem());
+                intent.putExtra(EXTRA_STATED_CONC, conc);
+
+                */
+
+                // get the selected drug and concentration to pass on to the result activity
+                NumberPicker spinnerDrugs = findViewById(R.id.statedDrugSpinner);
+                String[] drugList = spinnerDrugs.getDisplayedValues();
+                int drugIndex = spinnerDrugs.getValue();
+                String ret = drugList[drugIndex];
+                intent.putExtra(EXTRA_STATED_DRUG, ret);
+
+                NumberPicker spinnerConc = findViewById(R.id.concDrugSpinner);
+                String[] conList = spinnerConc.getDisplayedValues();
+                int concIndex = spinnerConc.getValue();
+                String conc = conList[concIndex];
                 intent.putExtra(EXTRA_STATED_CONC, conc);
 
                 startActivity(intent);
@@ -190,6 +204,34 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
+    }
+
+    private void setDrugSpinnerItems(){
+
+        ArrayList<String> drugEntries = new ArrayList<>();
+        String[] projection = {
+                BaseColumns._ID,
+                DrugsContract.DrugsEntry.COLUMN_NAME_DRUGNAME,
+        };
+
+        String selection = DrugsContract.DrugsEntry.COLUMN_NAME_NETWORK + " = ?";
+        String[] selectionArgs = {ProjectName};
+        String sortOrder = DrugsContract.DrugsEntry.COLUMN_NAME_DRUGNAME + " ASC";
+
+        String drugName;
+        try( Cursor cursor = db.query(DrugsContract.DrugsEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder)) {
+            while(cursor.moveToNext()){
+
+                drugName = cursor.getString(cursor.getColumnIndexOrThrow(DrugsContract.DrugsEntry.COLUMN_NAME_DRUGNAME));
+                drugEntries.add(drugName);
+            }
+        }
+
+        String[] drugsArray = drugEntries.toArray(new String[drugEntries.size()]);
+        NumberPicker sDrugs = findViewById(R.id.statedDrugSpinner);
+        sDrugs.setMinValue(0);
+        sDrugs.setMaxValue(drugEntries.size() - 1);
+        sDrugs.setDisplayedValues(drugsArray);
     }
 
     //New updates function to match iOS version functionality
@@ -307,6 +349,10 @@ public class MainActivity extends AppCompatActivity {
                 Intent iq = new Intent(this, UploadQueueActivity.class);
                 startActivity(iq);
                 return true;
+            case R.id.menu_about:
+                Intent a = new Intent(this, AboutActivity.class);
+                startActivity(a);
+                return true;
             default:
                 // If we got here, the user's action was not recognized.
                 // Invoke the superclass to handle it.
@@ -317,6 +363,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void startImageCapture(View view) {
         Log.i("GBR", "Image capture starting");
+
         if ((ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
                 | (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 90);
@@ -356,6 +403,18 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        ProjectName = prefs.getString("neuralnet", "");
+
+        networkLabel = findViewById(R.id.neuralnet_name_view);
+        networkLabel.setText(ProjectName);
+
+        projectLabel = findViewById(R.id.project_name_view);
+        String project = prefs.getString("project", "");
+        projectLabel.setText(project);
+
+        setDrugSpinnerItems();
 
         WorkManager manager = WorkManager.getInstance(getApplicationContext());
         LiveData<List<WorkInfo>> workInfos = manager.getWorkInfosByTagLiveData("neuralnet_download");

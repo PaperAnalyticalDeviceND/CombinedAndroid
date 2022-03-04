@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Paper Analytical Devices</string>
     <string name="app_description">Paper analytical devices (PADs) are test cards that can quickly determine whether a drug tablet contains the correct medicines. They are cheap and easy to use. They don\'t require power, chemicals, solvents, or any expensive instruments, so they can be deployed rapidly at large scale whereever a problem with pharmaceutical quality is suspected.</string>
-    <string name="stored_drug_string">Stated Drug (Unknown if not known)</string>
+    <string name="stored_drug_string">Stated Drug</string>
     <string name="brand_string">Drug %</string>
     <string name="batch_string">Predicted Drug</string>
     <string name="upload">Upload</string>
@@ -12,6 +12,9 @@
     <string name="title_activity_settings">Settings</string>
     <string name="activity_result">Result</string>
     <string name="start">Start</string>
+    <string name="about">About</string>
+    <string name="privacy_policy_label">Privacy Policy</string>
+    <string name="homepage_label">PAD Project Home</string>
 
     <!-- Preference Titles -->
     <string name="messages_header">Messages</string>
@@ -142,4 +145,13 @@
         "when a user tries to pick up one of cards.\n\n"
     </string>
     <string name="action_settings">Settings</string>
+    <string name="title_activity_about">AboutActivity</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
 </resources>

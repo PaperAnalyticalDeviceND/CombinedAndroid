@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="edu.nd.crc.paperanalyticaldevices">
+    package="edu.nd.crc.paperanalyticaldevices" >
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
-
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -23,26 +22,29 @@
         android:label="@string/app_name"
         android:requestLegacyExternalStorage="true"
         android:supportsRtl="true"
-        android:theme="@style/Theme.PaperAnalyticalDevices">
+        android:theme="@style/Theme.PaperAnalyticalDevices" >
+        <activity
+            android:name=".AboutActivity"
+            android:label="@string/about"
+            android:exported="false"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
+            />
         <activity
             android:name=".UploadQueueActivity"
             android:exported="false"
             android:label="@string/title_activity_queue"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
-            />
-
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
         <activity
             android:name=".SettingsActivity"
             android:exported="false"
             android:label="@string/title_activity_settings"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
-             />
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="edu.nd.crc.paperanalyticaldevices.fileprovider"
             android:exported="false"
-            android:grantUriPermissions="true">
+            android:grantUriPermissions="true" >
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/provider_paths" />
@@ -52,7 +54,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar">
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -68,12 +70,14 @@
             android:name=".ResultActivity"
             android:exported="true"
             android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" >
-            <intent-filter android:label="@string/activity_result">
-                <action android:name="android.intent.action.VIEW"/>
+            <intent-filter android:label="@string/activity_result" >
+                <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
 
-                <data android:scheme="pad"
-                    android:host="result" />
+                <data
+                    android:host="result"
+                    android:scheme="pad" />
             </intent-filter>
         </activity>
     </application>
