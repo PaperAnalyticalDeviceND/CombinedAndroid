@@ -47,6 +47,14 @@ public class SettingsActivity extends AppCompatActivity {
 
     }
 
+
+    public void showHelp(View view){
+
+        HelpPopup helpPopup = new HelpPopup();
+        helpPopup.showPopupWindow(view);
+
+    }
+
     /*
     Set as onClick for the Done button so that this activity can be reached from Main and Result activities and always return to the calling activity on close
      */

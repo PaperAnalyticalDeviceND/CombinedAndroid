@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Paper Analytical Devices</string>
+    <string name="app_name">PADReader</string>
     <string name="app_description">Paper analytical devices (PADs) are test cards that can quickly determine whether a drug tablet contains the correct medicines. They are cheap and easy to use. They don\'t require power, chemicals, solvents, or any expensive instruments, so they can be deployed rapidly at large scale whereever a problem with pharmaceutical quality is suspected.</string>
     <string name="stored_drug_string">Stated Drug</string>
     <string name="brand_string">Drug %</string>
@@ -15,6 +15,17 @@
     <string name="about">About</string>
     <string name="privacy_policy_label">Privacy Policy</string>
     <string name="homepage_label">PAD Project Home</string>
+<string name="okstring">OK</string>
+    <string name="settings_help">Settings Help</string>
+    <!--Help Strings    -->
+<string name="username_help">What name to report when uploading images.</string>
+<string name="project_help">Select the project to report for.</string>
+<string name="primarynet_help">The primary inference model for classifying drugs.</string>
+    <string name="concentrationnet_help">For use only with concentration based inference models.</string>
+<string name="pls_help">Use Partial Least Squares concentration calculation.  Only for drugs in the FHI 360 project.</string>
+<string name="flashlight_help">Use the flash as a light when the camera is on.</string>
+    <string name="updates_help">Keep the projects and neural net lists up to date.</string>
+
 
     <!-- Preference Titles -->
     <string name="messages_header">Messages</string>
@@ -22,7 +33,7 @@
     <string name="projectsettings">Project Settings</string>
     <string name="user_name">User Name</string>
     <string name="drugclassifier">Drug Classifier</string>
-    <string name="secondary_network">Conc. Classifier</string>
+    <string name="secondary_network">Concentration Classifier</string>
     <string name="use_pls">Use PLS</string>
 
     <!-- Messages Preferences -->

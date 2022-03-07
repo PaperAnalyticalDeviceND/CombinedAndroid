@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-
+    tools:context=".SettingsActivity"
     >
 
     <androidx.appcompat.widget.Toolbar
@@ -15,12 +15,12 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:navigationIcon="@drawable/ic_baseline_settings_applications_24"
+        android:logo="@drawable/ic_baseline_settings_applications_24"
         >
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:gravity="right"
+            android:gravity="left"
             >
 
             <ImageButton
@@ -31,6 +31,28 @@
                 android:onClick="finish"
                 android:paddingRight="10dp"
                 android:src="@drawable/ic_baseline_arrow_back_44" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                >
+
+                <ImageButton
+                    android:id="@+id/settings_help_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_baseline_help_center_44"
+                    android:paddingRight="24dp"
+                    android:background="@null"
+                    android:onClick="showHelp"
+                    />
+                <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                    android:paddingRight="10dp"
+                android:src="@drawable/ic_baseline_settings_applications_24"
+                />
+            </LinearLayout>
         </LinearLayout>
     </androidx.appcompat.widget.Toolbar>
 

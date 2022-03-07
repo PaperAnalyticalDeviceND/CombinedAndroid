@@ -92,6 +92,9 @@ public class MainActivity extends AppCompatActivity {
     TextView networkLabel;
     TextView projectLabel;
 
+    NumberPicker sDrugs;
+    //NumberPicker sConc;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -228,8 +231,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         String[] drugsArray = drugEntries.toArray(new String[drugEntries.size()]);
-        NumberPicker sDrugs = findViewById(R.id.statedDrugSpinner);
+        sDrugs = findViewById(R.id.statedDrugSpinner);
+        sDrugs.setDisplayedValues(null);
         sDrugs.setMinValue(0);
+        sDrugs.setValue(0);
         sDrugs.setMaxValue(drugEntries.size() - 1);
         sDrugs.setDisplayedValues(drugsArray);
     }
