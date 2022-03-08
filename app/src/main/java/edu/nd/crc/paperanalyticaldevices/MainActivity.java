@@ -235,8 +235,15 @@ public class MainActivity extends AppCompatActivity {
         sDrugs.setDisplayedValues(null);
         sDrugs.setMinValue(0);
         sDrugs.setValue(0);
-        sDrugs.setMaxValue(drugEntries.size() - 1);
-        sDrugs.setDisplayedValues(drugsArray);
+
+        if(drugsArray.length > 0){
+            sDrugs.setMaxValue(drugEntries.size() - 1);
+            sDrugs.setDisplayedValues(drugsArray);
+        }else{
+            // use defaults to ensure something is in the picker
+            sDrugs.setMaxValue(Defaults.Drugs.size() - 1);
+            sDrugs.setDisplayedValues(Defaults.Drugs.toArray(new String[Defaults.Drugs.size()]));
+        }
     }
 
     //New updates function to match iOS version functionality
