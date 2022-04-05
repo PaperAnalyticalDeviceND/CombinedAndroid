@@ -4,42 +4,107 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/sharpcornerslight"
+    tools:context=".SettingsActivity"
     >
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/settingstoolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:logo="@drawable/ic_baseline_settings_applications_24"
+        >
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="left"
+            >
+
+            <ImageButton
+                android:id="@+id/settingscheckbutton"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:background="@null"
+                android:onClick="finish"
+                android:paddingRight="10dp"
+                android:src="@drawable/ic_baseline_arrow_back_44" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                >
+
+                <ImageButton
+                    android:id="@+id/settings_help_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_baseline_help_center_44"
+                    android:paddingRight="24dp"
+                    android:background="@null"
+                    android:onClick="showHelp"
+                    />
+                <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                    android:paddingRight="10dp"
+                android:src="@drawable/ic_baseline_settings_applications_24"
+                />
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.appcompat.widget.Toolbar>
+
+    <!--ScrollView
+        android:id="@+id/settings_scrollview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+
+        app:layout_constraintTop_toBottomOf="@+id/settingstoolbar"
+        -->
 
 
     <FrameLayout
         android:id="@+id/settings"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintVertical_weight="5"
-        app:layout_constraintBottom_toTopOf="@+id/button6"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintVertical_weight="4"
 
-        <ProgressBar
+        app:layout_constraintTop_toBottomOf="@+id/settingstoolbar">
+
+        <!--ProgressBar
             android:id="@+id/simpleProgressBar"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:progressTint="@color/teal_200"
             android:progressBackgroundTint="@color/purple_700"
-            style="@style/Widget.AppCompat.ProgressBar.Horizontal"/>
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"/-->
 
     </FrameLayout>
 
-    <Button
-        android:id="@+id/button6"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:background="@drawable/donebutton"
-        android:onClick="finish"
-        android:padding="10dp"
-        android:text="@string/donetext"
-        app:layout_constraintVertical_weight="1"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/settings" />
+            <!--Button
+                android:id="@+id/button6"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="#000FFF"
+                android:textSize="24dp"
+                app:icon="@drawable/ic_baseline_check_circle_outline_24"
+                app:iconTint="#000FFF"
+                style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+                android:background="@color/white"
+                android:onClick="finish"
+                android:padding="10dp"
+                android:text="@string/donetext"
+                app:layout_constraintVertical_weight="1"
+                app:layout_constraintBottom_toBottomOf="parent"
+
+                app:layout_constraintTop_toBottomOf="@+id/settings" /-->
+
+
+
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -4,9 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+
     tools:context=".MainActivity">
 
-    <ImageView
+    <!--ImageView
         android:id="@+id/imageView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -14,20 +15,22 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/padcompletedtest720x400a" />
+        app:srcCompat="@drawable/padcompletedtest720x400a" /-->
 
-    <TextView
+    <!--TextView
         android:id="@+id/appName"
         android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_height="30dp"
         android:layout_marginTop="32dp"
         android:shadowColor="@color/cardview_light_background"
         android:shadowDx="@integer/material_motion_duration_long_2"
         android:text="@string/app_name"
-        android:textColor="@color/purple_700"
+        android:textAlignment="center"
+        android:textColor="@color/black"
+        android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar" />
+        app:layout_constraintTop_toBottomOf="@id/toolbar" /-->
 
     <!--ProgressBar
         android:id="@+id/mainProgressBar"
@@ -40,7 +43,7 @@
         app:layout_constraintTop_toBottomOf="@id/toolbar"
         style="@style/Widget.AppCompat.ProgressBar.Horizontal"/-->
 
-    <TextView
+    <!--TextView
         android:id="@+id/appDescription"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -49,39 +52,168 @@
         android:layout_marginEnd="64dp"
         android:background="@drawable/veryroundcornerslight"
         android:gravity="center_horizontal"
-        android:text="@string/app_description"
+        android:text="@string/app_name"
         android:textColor="@color/black"
         android:padding="20dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/appName" />
+        app:layout_constraintTop_toBottomOf="@+id/appName" /-->
+
+    <TextView
+        android:id="@+id/project_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="24dp"
+        android:text="@string/project"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar" />
+
+    <TextView
+        android:id="@+id/network_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="24dp"
+        android:text="@string/neural_net_label"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/project_label"
+        />
+
+    <TextView
+        android:id="@+id/project_name_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        />
+
+    <TextView
+        android:id="@+id/neuralnet_name_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/project_name_view"
+        />
+
+    <TextView
+        android:id="@+id/statedDrugView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="5dp"
+        android:layout_weight="0"
+
+        android:paddingLeft="10dp"
+        android:paddingTop="10dp"
+        android:text="@string/stored_drug_string"
+        app:layout_constraintBottom_toTopOf="@+id/statedDrugSpinner"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/network_label" />
+
+    <!--Spinner
+        android:id="@+id/statedDrugSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="37dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+
+        android:background="@color/offwhite"
+        android:dropDownHeight="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/statedDrugView" /-->
+
+    <NumberPicker
+        android:id="@+id/statedDrugSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/statedDrugView"
+        />
+
+    <TextView
+        android:id="@+id/concDrugView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="16dp"
+        android:layout_weight="0"
+
+        android:paddingLeft="10dp"
+        android:paddingTop="10dp"
+        android:text="@string/brand_string"
+        app:layout_constraintBottom_toTopOf="@id/concDrugSpinner"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/statedDrugSpinner" />
+
+    <!--Spinner
+        android:id="@+id/concDrugSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="37dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@color/offwhite"
+        android:dropDownHeight="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/concDrugView" /-->
 
 
+    <NumberPicker
+        android:id="@+id/concDrugSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/concDrugView"
+        />
 
     <Button
         android:id="@+id/button3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:onClick="startImageCapture"
-        android:text="@string/cont"
-        android:background="@drawable/pillbutton"
+        android:text="@string/start"
         android:padding="10dp"
+        android:textColor="#000FFF"
+        android:textSize="24dp"
+        app:icon="@drawable/outline_photo_camera_24"
+        style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+        app:iconTint="#000FFF"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/appDescription" />
+        app:layout_constraintTop_toBottomOf="@+id/concDrugSpinner" />
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/veryroundcornerslight"
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme"
-        app:layout_constraintBottom_toTopOf="@id/appName"
+        app:layout_constraintBottom_toTopOf="@id/project_label"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:navigationIcon="@drawable/ic_analyze_pads"
+
+        app:popupTheme="@style/MyToolbarStyle" />
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -41,4 +41,9 @@
 
     <style name="Theme.PaperAnalyticalDevices.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
+    <style name="MyToolbarStyle" parent="ThemeOverlay.AppCompat.Light">
+        <item name="android:colorBackground">@color/white</item>
+        <item name="android:textColor">@color/black</item>
+    </style>
+
 </resources>

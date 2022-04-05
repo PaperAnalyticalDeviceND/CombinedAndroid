@@ -4,13 +4,20 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.provider.BaseColumns;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.NumberPicker;
+import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.Spinner;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -34,6 +41,7 @@ import com.google.firebase.analytics.FirebaseAnalytics;
 
 import org.opencv.android.OpenCVLoader;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -44,6 +52,8 @@ public class MainActivity extends AppCompatActivity {
     public static final String EXTRA_TIMESTAMP = "e.nd.paddatacapture.EXTRA_TIMESTAMP";
     public static final String EXTRA_PREDICTED = "e.nd.paddatacapture.EXTRA_PREDICTED";
     public static final String EXTRA_LABEL_DRUGS = "e.nd.paddatacapture.EXTRA_LABEL_DRUGS";
+    public static final String EXTRA_STATED_DRUG = "e.nd.paddatacapture.EXTRA_STATED_DRUG";
+    public static final String EXTRA_STATED_CONC = "e.nd.paddatacapture.EXTRA_STATED_CONC";
 
     static final String PROJECT = "";
 
@@ -63,6 +73,11 @@ public class MainActivity extends AppCompatActivity {
 
     String ProjectName;
 
+    String neuralNetName;
+    String secondaryNeuralNetName;
+
+    static final String[] concentrations = new String[]{"100", "80", "50", "20"};
+
     private PredictionModel tensorflowView;
 
     public static boolean workerSemaphore;
@@ -70,6 +85,15 @@ public class MainActivity extends AppCompatActivity {
     public static void setSemaphore(boolean val){
         workerSemaphore = val;
     }
+
+    ProjectsDbHelper dbHelper;
+    SQLiteDatabase db;
+
+    TextView networkLabel;
+    TextView projectLabel;
+
+    NumberPicker sDrugs;
+    //NumberPicker sConc;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,7 +119,8 @@ public class MainActivity extends AppCompatActivity {
         String project = prefs.getString("neuralnet", "");
         ProjectName = project;
 
-        boolean sync = prefs.getBoolean("sync", false);
+        boolean sync = prefs.getBoolean("sync", true);
+        //default to true to make sure this runs on first start
         if (sync) {
             checkForUpdates(project);
         }
@@ -106,6 +131,36 @@ public class MainActivity extends AppCompatActivity {
         //put in a top toolbar with a menu dropdown
         Toolbar myToolbar = findViewById(R.id.toolbar);
         setSupportActionBar(myToolbar);
+
+        //get drug labels stored for primary neural net
+
+        dbHelper = new ProjectsDbHelper(this);
+        db = dbHelper.getReadableDatabase();
+        setDrugSpinnerItems();
+
+/*
+        Spinner sDrugs = findViewById(R.id.statedDrugSpinner);
+        String[] drugsArray = drugEntries.toArray(new String[drugEntries.size()]);
+        ArrayAdapter<String> aDrugs = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, drugsArray);
+        sDrugs.setAdapter(aDrugs);
+
+        // prepare picker for drug %
+        ArrayAdapter<String> aConcentrations = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, Defaults.Brands);
+        Spinner sConc = findViewById(R.id.concDrugSpinner);
+        sConc.setAdapter(aConcentrations);
+*/
+
+        NumberPicker sConc = findViewById(R.id.concDrugSpinner);
+        sConc.setMinValue(0);
+        sConc.setMaxValue(Defaults.Brands.size() - 1);
+        sConc.setDisplayedValues(Defaults.Brands.toArray(new String[Defaults.Brands.size()]));
+
+        networkLabel = findViewById(R.id.neuralnet_name_view);
+        networkLabel.setText(project);
+
+        projectLabel = findViewById(R.id.project_name_view);
+        String projectName = prefs.getString("project", "");
+        projectLabel.setText(projectName);
 
         workerSemaphore = true;
 
@@ -120,6 +175,31 @@ public class MainActivity extends AppCompatActivity {
                 if (result.Timestamp.isPresent())
                     intent.putExtra(EXTRA_TIMESTAMP, result.Timestamp.get());
                 if (result.Labels.length > 0) intent.putExtra(EXTRA_LABEL_DRUGS, result.Labels);
+
+                /*
+                Spinner spinnerDrugs = findViewById(R.id.statedDrugSpinner);
+                String ret = String.valueOf(spinnerDrugs.getSelectedItem());
+                intent.putExtra(EXTRA_STATED_DRUG, ret);
+
+                Spinner spinnerConc = findViewById(R.id.concDrugSpinner);
+                String conc = String.valueOf(spinnerConc.getSelectedItem());
+                intent.putExtra(EXTRA_STATED_CONC, conc);
+
+                */
+
+                // get the selected drug and concentration to pass on to the result activity
+                NumberPicker spinnerDrugs = findViewById(R.id.statedDrugSpinner);
+                String[] drugList = spinnerDrugs.getDisplayedValues();
+                int drugIndex = spinnerDrugs.getValue();
+                String ret = drugList[drugIndex];
+                intent.putExtra(EXTRA_STATED_DRUG, ret);
+
+                NumberPicker spinnerConc = findViewById(R.id.concDrugSpinner);
+                String[] conList = spinnerConc.getDisplayedValues();
+                int concIndex = spinnerConc.getValue();
+                String conc = conList[concIndex];
+                intent.putExtra(EXTRA_STATED_CONC, conc);
+
                 startActivity(intent);
 
                 HoldCamera = true;
@@ -129,11 +209,92 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void setDrugSpinnerItems(){
+
+        ArrayList<String> drugEntries = new ArrayList<>();
+        String[] projection = {
+                BaseColumns._ID,
+                DrugsContract.DrugsEntry.COLUMN_NAME_DRUGNAME,
+        };
+
+        String selection = DrugsContract.DrugsEntry.COLUMN_NAME_NETWORK + " = ?";
+        String[] selectionArgs = {ProjectName};
+        String sortOrder = DrugsContract.DrugsEntry.COLUMN_NAME_DRUGNAME + " ASC";
+
+        String drugName;
+        try( Cursor cursor = db.query(DrugsContract.DrugsEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder)) {
+            while(cursor.moveToNext()){
+
+                drugName = cursor.getString(cursor.getColumnIndexOrThrow(DrugsContract.DrugsEntry.COLUMN_NAME_DRUGNAME));
+                drugEntries.add(drugName);
+            }
+        }
+
+        String[] drugsArray = drugEntries.toArray(new String[drugEntries.size()]);
+        sDrugs = findViewById(R.id.statedDrugSpinner);
+        sDrugs.setDisplayedValues(null);
+        sDrugs.setMinValue(0);
+        sDrugs.setValue(0);
+
+        if(drugsArray.length > 0){
+            sDrugs.setMaxValue(drugEntries.size() - 1);
+            sDrugs.setDisplayedValues(drugsArray);
+        }else{
+            // use defaults to ensure something is in the picker
+            sDrugs.setMaxValue(Defaults.Drugs.size() - 1);
+            sDrugs.setDisplayedValues(Defaults.Drugs.toArray(new String[Defaults.Drugs.size()]));
+        }
+    }
+
+    //New updates function to match iOS version functionality
+    public void newCheckForUpdates(){
+
+        String[] nets;
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+        // these will be the exact names coming from the "networks" API
+        neuralNetName = prefs.getString("neuralNet", "");
+        secondaryNeuralNetName = prefs.getString("secondarynet", "");
+
+        nets = new String[]{neuralNetName, secondaryNeuralNetName};
+
+        Constraints constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.UNMETERED)
+                .build();
+
+        WorkRequest myUpdateWork = new OneTimeWorkRequest.Builder(UpdatesWorker.class).setConstraints(constraints)
+                .addTag("neuralnet_updates").setInputData(new Data.Builder()
+                        .putStringArray("projectkeys", nets)
+                        .build()
+                )
+                .build();
+
+        WorkManager.getInstance(this).enqueue(myUpdateWork);
+    }
+
+    private String[] getNetworkNames(){
+
+        String[] nets;
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+        // these will be the exact names coming from the "networks" API
+        neuralNetName = prefs.getString("neuralNet", "");
+        secondaryNeuralNetName = prefs.getString("secondarynet", "");
+
+        nets = new String[]{neuralNetName, secondaryNeuralNetName};
+
+        return nets;
+    }
+
     public void checkForUpdates(String project) {
         String[] projectFolders;
 
         // check the currently selected project for updated NN files on app start
-        if (project.length() > 0) {
+        //if (project.length() > 0) {
+            //Keep this for backwards compatibility, but change to presenting the network names in the settings to
+            // match the iOS version and simplify
             switch (project) {
                 case "FHI360-App":
 
@@ -149,7 +310,10 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 default:
                     //12-06-21 allow running without neural net so all projects can be captured
-                    return;
+                    //03-02-22 add secondary net setting and change stored value to actual network name
+                    projectFolders = getNetworkNames();
+                    break;
+                    //return;
             }
 
             Constraints constraints = new Constraints.Builder()
@@ -164,14 +328,15 @@ public class MainActivity extends AppCompatActivity {
                     .build();
 
             WorkManager.getInstance(this).enqueue(myUploadWork);
-        }
+        //}
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         //attach the menu for settings and queue to the app bar
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.maintoolbarmenu, menu);
+        //inflater.inflate(R.menu.maintoolbarmenu, menu);
+        inflater.inflate(R.menu.iconmenutoolbar, menu);
         return true;
     }
 
@@ -184,9 +349,21 @@ public class MainActivity extends AppCompatActivity {
                 Intent i = new Intent(this, SettingsActivity.class);
                 startActivity(i);
                 return true;
+            case R.id.menu_settings:
+                Intent is = new Intent(this, SettingsActivity.class);
+                startActivity(is);
+                return true;
+            case R.id.menu_queue:
+                Intent iq2 = new Intent(this, UploadQueueActivity.class);
+                startActivity(iq2);
+                return true;
             case R.id.upload_queue:
                 Intent iq = new Intent(this, UploadQueueActivity.class);
                 startActivity(iq);
+                return true;
+            case R.id.menu_about:
+                Intent a = new Intent(this, AboutActivity.class);
+                startActivity(a);
                 return true;
             default:
                 // If we got here, the user's action was not recognized.
@@ -198,6 +375,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void startImageCapture(View view) {
         Log.i("GBR", "Image capture starting");
+
         if ((ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
                 | (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 90);
@@ -237,6 +415,18 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        ProjectName = prefs.getString("neuralnet", "");
+
+        networkLabel = findViewById(R.id.neuralnet_name_view);
+        networkLabel.setText(ProjectName);
+
+        projectLabel = findViewById(R.id.project_name_view);
+        String project = prefs.getString("project", "");
+        projectLabel.setText(project);
+
+        setDrugSpinnerItems();
 
         WorkManager manager = WorkManager.getInstance(getApplicationContext());
         LiveData<List<WorkInfo>> workInfos = manager.getWorkInfosByTagLiveData("neuralnet_download");
