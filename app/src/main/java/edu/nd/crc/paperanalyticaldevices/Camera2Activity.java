@@ -114,10 +114,14 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
             Log.i("ContoursOut", "QR error" + e.toString());
             e.printStackTrace();
         }
-        Log.i("ContoursOut", String.format("QR: %s", result.getText()));
+        if(null != result) {
+            Log.i("ContoursOut", String.format("QR: %s", result.getText()));
 
-        //return
-        return result.getText();
+            //return
+            return result.getText();
+        }else{
+            return "";
+        }
     }
 
     @Override

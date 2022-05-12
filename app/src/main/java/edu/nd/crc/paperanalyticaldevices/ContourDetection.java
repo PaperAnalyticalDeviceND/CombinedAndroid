@@ -149,6 +149,7 @@ public class ContourDetection {
 
                         //draw COM circles if not used
                         //scale back to image size
+
                         Point comDisplay;
                         if (portrait) {
                             comDisplay = new Point(mc.x * ratio, mc.y * ratio);
@@ -156,6 +157,7 @@ public class ContourDetection {
                             comDisplay = new Point((mc.y) * ratio, (720 - mc.x) * ratio);
                         }
                         Imgproc.circle(mRgbaModified, comDisplay, 10, color, 2, 8, 0);
+
                     }
                 }
             }
@@ -294,7 +296,7 @@ public class ContourDetection {
             //LHS QR fiducial
             //src_points.push(qr[indxx]);
             src_points.add(new Point(qr.get(indxx).y * ratio, (720 - qr.get(indxx).x) * ratio));
-        } else { //only 2 ponts
+        } else if (qr.size() == 2){ //only 2 ponts
             //get angle
             Log.d("PADS", qr.toString());
             double delta_x = qr.get(1).x - qr.get(0).x;
