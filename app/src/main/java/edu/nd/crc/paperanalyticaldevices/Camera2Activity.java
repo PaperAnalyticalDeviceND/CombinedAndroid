@@ -7,6 +7,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -19,10 +20,14 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.SeekBar;
+import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.FileProvider;
 
+import com.google.android.material.slider.Slider;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.ChecksumException;
@@ -88,6 +93,13 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
     //saved contour results
     private Mat cropped;
     private AlertDialog ad = null;
+    private SeekBar thresholdSeekBar = null;
+    private TextView thresholdText = null;
+    int min = 50, max = 90, current = 125;
+    private Slider slider = null;
+
+    SharedPreferences mPreferences = null;
+
     //UI
     private final Intent mResultIntent = new Intent();
 
@@ -137,6 +149,47 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
                         Manifest.permission.WRITE_EXTERNAL_STORAGE}, 91);
 
         mOpenCvCameraView = findViewById(R.id.activity_surface_view);
+
+        thresholdText = findViewById(R.id.threshold_text);
+
+        mPreferences = getSharedPreferences(MainActivity.PROJECT, MODE_PRIVATE);
+
+        current = mPreferences.getInt("Threshold", 75);
+
+        /*
+        thresholdSeekBar = findViewById(R.id.threshold_seek_bar);
+        thresholdSeekBar.setMin(min);
+        thresholdSeekBar.setMax(max);
+        thresholdSeekBar.setProgress(max - min);
+        thresholdSeekBar.setProgress(current - min);
+
+        thresholdSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                current = progress + min;
+                //textView.setText("" + current);
+                thresholdText.setText("" + progress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) { }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) { }
+        });
+        */
+
+        slider = findViewById(R.id.slider);
+        slider.setValue(current);
+
+        slider.addOnChangeListener(new Slider.OnChangeListener() {
+            @Override
+            public void onValueChange(@NonNull Slider slider, float value, boolean fromUser) {
+                //thresholdText.setText("" + value);
+                current = (int) value;
+            }
+        });
+
     }
 
     @Override
@@ -173,6 +226,9 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
     @Override
     public void onPause() {
         super.onPause();
+
+        mPreferences.edit().putInt("Threshold", current).apply();
+
         if (mOpenCvCameraView != null) {
             mOpenCvCameraView.disableView();
         }
@@ -228,6 +284,9 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
 
     public void onDestroy() {
         super.onDestroy();
+
+        mPreferences.edit().putInt("Threshold", current).apply();
+
         if (mOpenCvCameraView != null) {
             mOpenCvCameraView.disableView();
         }
@@ -237,6 +296,7 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
     public void finish() {
         mOpenCvCameraView.StopPreview();
         setResult(RESULT_OK, mResultIntent);
+        mPreferences.edit().putInt("Threshold", current).apply();
         super.finish();
     }
 
@@ -279,7 +339,7 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
 
         //Look for fiducials
         try {
-            boolean fiducialsAcquired = ContourDetection.GetFudicialLocations(mRgbaModified, work, src_points, portrait);
+            boolean fiducialsAcquired = ContourDetection.GetFudicialLocations(mRgbaModified, work, src_points, portrait, (current));
 
             //auto analyze?
             if (fiducialsAcquired) {

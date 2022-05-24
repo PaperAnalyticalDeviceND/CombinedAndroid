@@ -32,7 +32,7 @@ public class ContourDetection {
     private static final double IMAGE_WIDTH = 720.0;
 
     //get fudicial points, mark onto current image (mRgbaModified)
-    public static boolean GetFudicialLocations(Mat mRgbaModified, Mat work, List<Point> src_points, boolean portrait) {
+    public static boolean GetFudicialLocations(Mat mRgbaModified, Mat work, List<Point> src_points, boolean portrait, int threshold) {
 
         //get analasis/real ratio
         float ratio;
@@ -70,7 +70,11 @@ public class ContourDetection {
         Mat edges = work.clone();
         Imgproc.blur(edges, edges, new Size(4, 4));
 
-        Imgproc.Canny(edges, edges, 25, 75, 3, true);
+        int low = 100 - threshold;
+        int high = low * 3;
+        Log.d("THRESHOLD", String.valueOf(low));
+        //Imgproc.Canny(edges, edges, 25, 75, 3, true);
+        Imgproc.Canny(edges, edges, low, high, 3, true);
 
         List<MatOfPoint> contours = new ArrayList<>();
         Mat hierarchy = new Mat();
