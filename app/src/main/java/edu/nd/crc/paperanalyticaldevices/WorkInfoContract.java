@@ -29,5 +29,9 @@ public final class WorkInfoContract {
         public static final String COLUMN_NAME_NOTES = "samplenotes";
         public static final String COLUMN_NAME_QUANTITY = "samplequantity";
 
+        public static final String COLUMN_NAME_IMAGE_CAPTURED = "capturedimage";
+        public static final String COLUMN_NAME_IMAGE_RECTIFIED = "rectifiedimage";
+        public static final String COLUMN_NAME_PREDICTED_DRUG = "predicteddrug";
+
     }
 }

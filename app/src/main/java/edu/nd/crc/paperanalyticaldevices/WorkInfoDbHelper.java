@@ -8,14 +8,17 @@ import org.jetbrains.annotations.NotNull;
 
 public class WorkInfoDbHelper extends SQLiteOpenHelper {
 
-    public static final int DATABASE_VERSION = 1;
+    public static final int DATABASE_VERSION = 2;
     public static final String DATABASE_NAME = "WorkInfo.db";
 
     private static final String SQL_CREATE_ENTRIES = "CREATE TABLE " + WorkInfoContract.WorkInfoEntry.TABLE_NAME +
             " (" + WorkInfoContract.WorkInfoEntry._ID + " INTEGER PRIMARY KEY, " + WorkInfoContract.WorkInfoEntry.COLUMN_NAME_WORKID + " TEXT, " +
             WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLEID + " TEXT, " + WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLENAME + " TEXT, " +
             WorkInfoContract.WorkInfoEntry.COLUMN_NAME_QUANTITY + " TEXT, " + WorkInfoContract.WorkInfoEntry.COLUMN_NAME_NOTES + " TEXT, " +
-            WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP + " INTEGER)";
+            WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP + " INTEGER, "
+            + WorkInfoContract.WorkInfoEntry.COLUMN_NAME_PREDICTED_DRUG + " TEXT, "
+            + WorkInfoContract.WorkInfoEntry.COLUMN_NAME_IMAGE_CAPTURED + " TEXT, " +
+            WorkInfoContract.WorkInfoEntry.COLUMN_NAME_IMAGE_RECTIFIED + " TEXT)";
 
     private static final String SQL_DELETE_ENTRIES =
             "DROP TABLE IF EXISTS " + WorkInfoContract.WorkInfoEntry.TABLE_NAME;
@@ -32,8 +35,15 @@ public class WorkInfoDbHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(@NotNull SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL(SQL_DELETE_ENTRIES);
-        onCreate(db);
+        //db.execSQL(SQL_DELETE_ENTRIES);
+        //onCreate(db);
 
+        // do migration to new version while keeping old data
+        if(oldVersion == 1 && newVersion == 2){
+            db.execSQL("ALTER TABLE " + WorkInfoContract.WorkInfoEntry.TABLE_NAME + " ADD COLUMN " + WorkInfoContract.WorkInfoEntry.COLUMN_NAME_PREDICTED_DRUG + " TEXT;");
+            db.execSQL("ALTER TABLE " + WorkInfoContract.WorkInfoEntry.TABLE_NAME +
+                    " ADD COLUMN " + WorkInfoContract.WorkInfoEntry.COLUMN_NAME_IMAGE_CAPTURED + " TEXT;");
+            db.execSQL("ALTER TABLE " + WorkInfoContract.WorkInfoEntry.TABLE_NAME + " ADD COLUMN " + WorkInfoContract.WorkInfoEntry.COLUMN_NAME_IMAGE_RECTIFIED + " TEXT;");
+        }
     }
 }

@@ -19,7 +19,7 @@
 
     </FrameLayout>
 
-    <Button
+    <!--Button
         android:id="@+id/button5"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -32,5 +32,5 @@
         android:padding="10dp"
         android:layout_weight="1"
         android:layout_gravity="center"
-        android:text="@string/donetext" />
+        android:text="@string/donetext" / -->
 </LinearLayout>

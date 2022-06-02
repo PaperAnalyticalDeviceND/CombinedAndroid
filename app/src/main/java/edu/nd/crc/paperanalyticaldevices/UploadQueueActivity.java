@@ -1,6 +1,7 @@
 package edu.nd.crc.paperanalyticaldevices;
 
 import android.content.ContentValues;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -12,9 +13,11 @@ import android.widget.ListView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.LiveData;
+import androidx.preference.PreferenceManager;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
+import java.io.File;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -26,7 +29,7 @@ import java.util.UUID;
 public final class UploadQueueActivity extends AppCompatActivity {
     //Activity to display pending uploads in a ListView
     //details are stored in an SQLite DB, keyed by the WorkID, so we get the WorkIDs of non-finished work and query the DB to get drug name, sample id, timestamp
-
+    SharedPreferences defaultPrefs = null;
 
     ListView queueListView;
     ListView doneListView;
@@ -38,6 +41,7 @@ public final class UploadQueueActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_upload_queue);
 
+        defaultPrefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
 
         //put in a top toolbar with a button
         Toolbar myToolbar = findViewById(R.id.queuetoolbar);
@@ -71,6 +75,9 @@ public final class UploadQueueActivity extends AppCompatActivity {
                     WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLEID,
                     WorkInfoContract.WorkInfoEntry.COLUMN_NAME_QUANTITY,
                     WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP,
+                    WorkInfoContract.WorkInfoEntry.COLUMN_NAME_PREDICTED_DRUG,
+                    WorkInfoContract.WorkInfoEntry.COLUMN_NAME_IMAGE_RECTIFIED,
+                    WorkInfoContract.WorkInfoEntry.COLUMN_NAME_IMAGE_CAPTURED,
 
             };
 
@@ -102,6 +109,8 @@ public final class UploadQueueActivity extends AppCompatActivity {
                             long timestamp = cursor.getLong(cursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP));
 
                             String padId = "PAD ID: " + cursor.getString(cursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLEID));
+                            String predicted = "Expected: " + cursor.getString(cursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_PREDICTED_DRUG));
+                            String imagePath = cursor.getString(cursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_IMAGE_RECTIFIED));
                             padInfo.setPadId(padId);
 
                             Timestamp javaTimestamp = new Timestamp(timestamp);
@@ -110,18 +119,47 @@ public final class UploadQueueActivity extends AppCompatActivity {
                             SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
                             String newDate = sdf.format(date);
                             padInfo.setDatetime(newDate);
+
+                            padInfo.setPredicted(predicted);
+                            padInfo.setImageFile(imagePath);
+                            Log.d("ImagePath", imagePath);
                         }
                         workList.add(padInfo);
                     }
                 } else {
                     //Delete finished records from the SQLite db
-                    //where they are older than one week
-                    long oneWeekAgo = Calendar.getInstance().getTimeInMillis() - 604800;
+                    //where they are older than date retention # days
 
+                    String numDays = defaultPrefs.getString("dataretentiontime", "30");
+                    Log.d("RetentionTime", numDays);
+                    long numberDays = Integer.parseInt(numDays);
+                    long milliSeconds = numberDays * 24 * 60 * 60 * 1000;
+                    Log.d("Milliseconds", String.valueOf(milliSeconds));
+                    //long oneWeekAgo = Calendar.getInstance().getTimeInMillis() - milliSeconds;
+                    long today = Calendar.getInstance().getTimeInMillis();
+                    Log.d("Today", String.valueOf(today));
+                    long oneWeekAgo = today - milliSeconds;
+                    Log.d("PastTimestamp", String.valueOf(oneWeekAgo));
                     //String deleteSelection = WorkInfoContract.WorkInfoEntry.COLUMN_NAME_WORKID + " = ?";
                     String deleteSelection = WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP + " < ?";
                     //String[] deleteSelectionArgs = {workId.toString()};
                     String[] deleteSelectionArgs = {String.valueOf(oneWeekAgo)};
+
+                    String sortOrder = WorkInfoContract.WorkInfoEntry.COLUMN_NAME_WORKID + " ASC";
+
+                    try(Cursor cursor = db.query(WorkInfoContract.WorkInfoEntry.TABLE_NAME, projection, deleteSelection, deleteSelectionArgs, null, null, sortOrder)){
+                        while (cursor.moveToNext()) {
+                            String OriginalImage = cursor.getString(cursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_IMAGE_CAPTURED));
+                            String RectifiedImage = cursor.getString(cursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_IMAGE_RECTIFIED));
+
+                            File file = new File(new File(OriginalImage).getParent());
+                            file.delete();
+
+                            File file2 = new File(new File(RectifiedImage).getParent());
+                            file2.delete();
+                        }
+                    }
+
                     int deletedRows = db.delete(WorkInfoContract.WorkInfoEntry.TABLE_NAME, deleteSelection, deleteSelectionArgs);
                     Log.d("Queue TAG", "Rows deleted from WorkInfo Table: " + deletedRows);
 
@@ -146,6 +184,8 @@ public final class UploadQueueActivity extends AppCompatActivity {
                     String doneDrugName = finCursor.getString(finCursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLENAME));
                     long doneTimestamp = finCursor.getLong(finCursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP));
                     String donePadId = "PAD ID: " + finCursor.getString(finCursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLEID));
+                    String predicted = "Expected: " + finCursor.getString(finCursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_PREDICTED_DRUG));
+                    String imagePath = finCursor.getString(finCursor.getColumnIndexOrThrow(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_IMAGE_RECTIFIED));
                     Timestamp javaTimestamp = new Timestamp(doneTimestamp);
                     Date date = new Date(javaTimestamp.getTime());
 
@@ -154,6 +194,8 @@ public final class UploadQueueActivity extends AppCompatActivity {
                     doneInfo.setDatetime(newDate);
                     doneInfo.setDrugName(doneDrugName);
                     doneInfo.setPadId(donePadId);
+                    doneInfo.setImageFile(imagePath);
+                    doneInfo.setPredicted(predicted);
 
                     doneList.add(doneInfo);
                 }

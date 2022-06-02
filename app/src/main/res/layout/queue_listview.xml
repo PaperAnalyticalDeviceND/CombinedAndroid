@@ -2,12 +2,26 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="horizontal"
+    >
+
+    <ImageView
+        android:id="@+id/pad_queue_image"
+        android:layout_width="60dp"
+        android:layout_height="100dp"
+        />
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@drawable/stroke_rectangle">
 
+
+
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="fill_horizontal"
         >
@@ -31,12 +45,26 @@
             />
 
     </LinearLayout>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        >
 <TextView
-    android:layout_width="match_parent"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:id="@+id/pad_info"
     android:paddingLeft="@dimen/text_margin"
     android:paddingBottom="@dimen/text_margin"
     />
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/predicted_text"
+            android:paddingLeft="@dimen/text_margin"
+            android:paddingBottom="@dimen/text_margin"
+            />
+    </LinearLayout>
+</LinearLayout>
 </LinearLayout>

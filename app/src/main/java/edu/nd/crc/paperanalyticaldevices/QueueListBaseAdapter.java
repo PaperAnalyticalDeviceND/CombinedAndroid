@@ -1,13 +1,16 @@
 package edu.nd.crc.paperanalyticaldevices;
 
 import android.content.Context;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.io.File;
 
 public class QueueListBaseAdapter extends BaseAdapter {
 
@@ -44,6 +47,8 @@ public class QueueListBaseAdapter extends BaseAdapter {
             holder.drugName = convertView.findViewById(R.id.queue_drug);
             holder.datetime = convertView.findViewById(R.id.queue_time);
             holder.padId = convertView.findViewById(R.id.pad_info);
+            holder.image = convertView.findViewById(R.id.pad_queue_image);
+            holder.predicted = convertView.findViewById(R.id.predicted_text);
 
             convertView.setTag(holder);
         } else {
@@ -53,6 +58,9 @@ public class QueueListBaseAdapter extends BaseAdapter {
         holder.drugName.setText(resultItems.get(position).getDrugName());
         holder.datetime.setText(resultItems.get(position).getDatetime());
         holder.padId.setText(resultItems.get(position).getPadId());
+        holder.predicted.setText(resultItems.get(position).getPredicted());
+        //holder.image.setImageURI(Uri.fromFile(new File(resultItems.get(position).getImageFile())));
+        holder.image.setImageURI(Uri.parse(resultItems.get(position).getImageFile()));
 
         return convertView;
     }
@@ -61,6 +69,8 @@ public class QueueListBaseAdapter extends BaseAdapter {
         TextView datetime;
         TextView drugName;
         TextView padId;
+        TextView predicted;
+        ImageView image;
 
     }
 

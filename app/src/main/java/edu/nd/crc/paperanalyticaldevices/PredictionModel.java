@@ -45,7 +45,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -64,9 +67,13 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
     public class Result {
         public Uri RectifiedImage;
         public String Predicted = "";
+        public String PredictedDrug = "";
         public Optional<String> QRCode = Optional.empty();
         public Optional<String> Timestamp = Optional.empty();
         public String[] Labels = new String[0];
+        public Integer PLS = null;
+        public Double Probability = null;
+        public Integer Concentration = null;
     }
 
     private final MutableLiveData<Result> resultData = new MutableLiveData<>();
@@ -75,7 +82,9 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
     private List<TensorflowNetwork> networks = new ArrayList<>();
     private PartialLeastSquares pls = null;
 
-    private Boolean usePls;
+    public Boolean usePls;
+
+    //private Map<String, String> keyValueMap;
 
     public PredictionModel(@NonNull Application application) {
         super(application);
@@ -85,6 +94,8 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
         preferences.registerOnSharedPreferenceChangeListener(this);
 
         usePls = preferences.getBoolean("pls", false);
+
+        //keyValueMap = new HashMap<String, String>();
     }
 
     public LiveData<Result> getResult() {
@@ -127,8 +138,18 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                 StringBuilder output_string = new StringBuilder();
                 for( int i = 0; i < results.size(); i++ ){
                     output_string.append(results.get(i).Label);
+
                     if (i == 0) {
                         output_string.append(String.format(" (%.3f)", results.get(i).Probability));
+                        // separate this out from the drug for readability, searchability
+                        retVal.PredictedDrug = results.get(i).Label;
+                        retVal.Probability = Double.valueOf(String.format("%.3f", results.get(i).Probability));
+                    }
+                    if(i == 1){
+                        List<String> concList = new ArrayList<>(Arrays.asList(MainActivity.concentrations));
+                        if(concList.contains(results.get(i).Label)) {
+                            retVal.Concentration = Integer.valueOf(results.get(i).Label);
+                        }
                     }
 
                     if (results.size() > 1) {
@@ -152,6 +173,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
 
                     // add conc. result to string
                     output_string.append("%, (PLS ").append((int) concentration).append("%)");
+                    retVal.PLS =  (int) concentration ;
                 }
 
                 retVal.RectifiedImage = Uri.fromFile(rectifiedFile);

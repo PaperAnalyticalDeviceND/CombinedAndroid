@@ -6,6 +6,8 @@ public class PADDataObject {
     private String drugName;
     private String datetime;
     private String project;
+    private String predicted;
+    private String imageFile;
 
     public String getPadId() {
         return padId;
@@ -38,4 +40,12 @@ public class PADDataObject {
     public void setProject(String project) {
         this.project = project;
     }
+
+    public String getPredicted() { return predicted; }
+
+    public void setPredicted(String predicted){ this.predicted = predicted; }
+
+    public String getImageFile(){ return imageFile; }
+
+    public void setImageFile(String imageFile){ this.imageFile = imageFile; }
 }

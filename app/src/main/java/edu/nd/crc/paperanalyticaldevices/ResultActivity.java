@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -24,6 +25,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.FileProvider;
+import androidx.preference.PreferenceManager;
 import androidx.work.Constraints;
 import androidx.work.Data;
 import androidx.work.NetworkType;
@@ -31,6 +33,7 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
 
+import org.json.JSONObject;
 import org.w3c.dom.Text;
 
 import java.io.File;
@@ -38,13 +41,25 @@ import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.UUID;
 
 public class ResultActivity extends AppCompatActivity {
+
+    // for data versioning in the database
+    public static final Integer notesVersion = 1;
+    public static final Integer buildNumber = 14; // update this to follow the gradle version code
+
     SharedPreferences mPreferences = null;
+    SharedPreferences defaultPrefs = null;
 
     String qr = "";
     String timestamp = "";
+    String predictedDrug = "";
+    double probability = 0.000;
+    Integer nnConcentration = 0;
+    Integer plsConc = 0;
+    boolean plsUsed = false;
 
     boolean unsafeForConsumption = false;
 
@@ -55,6 +70,7 @@ public class ResultActivity extends AppCompatActivity {
 
         // Setup Preferences
         mPreferences = getSharedPreferences(MainActivity.PROJECT, MODE_PRIVATE);
+        defaultPrefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
 
         // Setup compatability toolbar
         // make sure the manifest specifies a NoAppBar theme or this will create an exception
@@ -165,6 +181,29 @@ public class ResultActivity extends AppCompatActivity {
 
             sBrands.setSelection(aBrands.getPosition(mPreferences.getString("Brand", Defaults.Brands.get(0))));
         }
+
+        if(intent.hasExtra(MainActivity.EXTRA_NN_CONC) ){
+            //nnConcentration = intent.getStringExtra(MainActivity.EXTRA_NN_CONC);
+            nnConcentration = intent.getIntExtra(MainActivity.EXTRA_NN_CONC, 0);
+        }
+
+        if(intent.hasExtra(MainActivity.EXTRA_PLS_CONC) ){
+            //plsConc = intent.getStringExtra(MainActivity.EXTRA_PLS_CONC);
+            plsConc = intent.getIntExtra(MainActivity.EXTRA_PLS_CONC, 0);
+        }
+
+        if(intent.hasExtra(MainActivity.EXTRA_PREDICTED_DRUG) && intent.getStringExtra(MainActivity.EXTRA_PREDICTED_DRUG) != null){
+            predictedDrug = intent.getStringExtra(MainActivity.EXTRA_PREDICTED_DRUG);
+        }
+
+        if(intent.hasExtra(MainActivity.EXTRA_PROBABILITY) ){
+            //probability = intent.getStringExtra(MainActivity.EXTRA_PROBABILITY);
+            probability = intent.getDoubleExtra(MainActivity.EXTRA_PROBABILITY, 0.000);
+        }
+
+        if(intent.hasExtra(MainActivity.EXTRA_PLS_USED) ){
+            plsUsed = intent.getBooleanExtra(MainActivity.EXTRA_PLS_USED, false);
+        }
     }
 
     @Override
@@ -220,6 +259,18 @@ public class ResultActivity extends AppCompatActivity {
     public void saveData(View view) {
         Log.i("GB", "Button pushed");
 
+        HashMap<String, Object> hashMap = new HashMap<>();
+
+        hashMap.put("Notes version", notesVersion);
+        hashMap.put("Predicted drug", predictedDrug);
+        hashMap.put("Prediction score", probability);
+        hashMap.put("Quantity NN", nnConcentration);
+        hashMap.put("Quantity PLS", plsConc);
+        hashMap.put("PLS used", plsUsed);
+        hashMap.put("Notes", getNotes());
+        hashMap.put("App type", "Android");
+        hashMap.put("Build", buildNumber);
+
         String compressedNotes = "Predicted drug = ";
         compressedNotes += getBatch();
         compressedNotes += ", ";
@@ -228,17 +279,30 @@ public class ResultActivity extends AppCompatActivity {
         if (unsafeForConsumption) {
             // from the Suspected unsafe? toggle button
             compressedNotes += ", Suspected unsafe.  ";
+            hashMap.put("Safe", "Suspected unsafe");
         } else {
             compressedNotes += ", Suspected safe.  ";
+            hashMap.put("Safe", "Suspected safe");
         }
 
-        String userName = mPreferences.getString("username", "Unknown");
+        String userName = defaultPrefs.getString("username", "Unknown");
         // attach stored user's name
         compressedNotes += " User: " + userName + ".  ";
+        hashMap.put("User", userName);
 
-        String neuralnet = mPreferences.getString("neuralnet", "None");
+        String neuralnet = defaultPrefs.getString("neuralnet", "None");
         //attach stored neural net used
         compressedNotes += "Neural net: " + neuralnet + ".  ";
+        hashMap.put("Neural net", neuralnet);
+
+        String androidId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+
+        compressedNotes += "Phone ID: " + androidId + ". ";
+        hashMap.put("Phone ID", androidId);
+
+        JSONObject jsonNotes = new JSONObject(hashMap);
+        String jsonNotesString = jsonNotes.toString();
+        Log.d("JSON Output", jsonNotesString);
 
         Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.UNMETERED)
@@ -251,7 +315,8 @@ public class ResultActivity extends AppCompatActivity {
                         new Data.Builder()
                                 .putString("SAMPLE_NAME", getDrug())
                                 .putString("SAMPLE_ID", parseQR(qr))
-                                .putString("NOTES", compressedNotes)
+                                //.putString("NOTES", compressedNotes)
+                                .putString("NOTES", jsonNotesString)
                                 .putString("QUANTITY", getPercentage(getBrand()))
                                 .putString("TIMESTAMP", timestamp)
                                 .putString("ORIGINAL_IMAGE", FileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".fileprovider", new File(new File(getFilesDir(), timestamp), "original.png")).toString())
@@ -274,8 +339,12 @@ public class ResultActivity extends AppCompatActivity {
         dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLENAME, getBatch());
         dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_SAMPLEID, parseQR(qr));
         dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_QUANTITY, getPercentage(getBrand()));
-        dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_NOTES, compressedNotes);
+        //dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_NOTES, compressedNotes);
+        dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_NOTES, jsonNotesString);
         dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP, timestamp);
+        dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_IMAGE_CAPTURED, FileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".fileprovider", new File(new File(getFilesDir(), timestamp), "original.png")).toString());
+        dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_IMAGE_RECTIFIED, FileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".fileprovider", new File(new File(getFilesDir(), timestamp), "rectified.png")).toString());
+        dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_PREDICTED_DRUG, getDrug());  // actually expected drug, but I don't want to do another DB migration
 
         WorkInfoDbHelper dbHelper = new WorkInfoDbHelper(getBaseContext());
         SQLiteDatabase db = dbHelper.getWritableDatabase();

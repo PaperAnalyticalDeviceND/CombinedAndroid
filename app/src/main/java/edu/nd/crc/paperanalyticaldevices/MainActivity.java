@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.provider.BaseColumns;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -54,6 +55,11 @@ public class MainActivity extends AppCompatActivity {
     public static final String EXTRA_LABEL_DRUGS = "e.nd.paddatacapture.EXTRA_LABEL_DRUGS";
     public static final String EXTRA_STATED_DRUG = "e.nd.paddatacapture.EXTRA_STATED_DRUG";
     public static final String EXTRA_STATED_CONC = "e.nd.paddatacapture.EXTRA_STATED_CONC";
+    public static final String EXTRA_PREDICTED_DRUG = "e.nd.paddatacapture.EXTRA_PREDICTED_DRUG";
+    public static final String EXTRA_PLS_CONC = "e.nd.paddatacapture.EXTRA_PLS_CONC";
+    public static final String EXTRA_NN_CONC = "e.nd.paddatacapture.EXTRA_NN_CONC";
+    public static final String EXTRA_PROBABILITY = "e.nd.paddatacapture.EXTRA_PROBABILITY";
+    public static final String EXTRA_PLS_USED = "e.nd.paddatacapture.EXTRA_PLS_USED";
 
     static final String PROJECT = "";
 
@@ -107,6 +113,9 @@ public class MainActivity extends AppCompatActivity {
             // Handle initialization error
             Log.i("GBT", "Opencv not loaded");
         }
+
+        String androidId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+        Log.d("DROID ID", androidId);
 
         //check that a project has been selected, otherwise we can't do anything
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -176,6 +185,19 @@ public class MainActivity extends AppCompatActivity {
                     intent.putExtra(EXTRA_TIMESTAMP, result.Timestamp.get());
                 if (result.Labels.length > 0) intent.putExtra(EXTRA_LABEL_DRUGS, result.Labels);
 
+                intent.putExtra(EXTRA_NN_CONC, result.Concentration);
+                Log.d("Concentration", String.valueOf(result.Concentration) );
+                intent.putExtra(EXTRA_PREDICTED_DRUG, result.PredictedDrug);
+                Log.d("PredictedDrug", result.PredictedDrug);
+                intent.putExtra(EXTRA_PLS_CONC, result.PLS);
+                Log.d("PLS", String.valueOf(result.PLS) );
+                intent.putExtra(EXTRA_PROBABILITY, result.Probability);
+                Log.d("Probability", String.valueOf(result.Probability) );
+                if(tensorflowView.usePls){
+                    intent.putExtra(EXTRA_PLS_USED, true);
+                }else{
+                    intent.putExtra(EXTRA_PLS_USED, false);
+                }
                 /*
                 Spinner spinnerDrugs = findViewById(R.id.statedDrugSpinner);
                 String ret = String.valueOf(spinnerDrugs.getSelectedItem());

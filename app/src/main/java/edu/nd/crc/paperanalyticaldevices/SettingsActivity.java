@@ -27,6 +27,7 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //setContentView(R.layout.settings_activity_constraint_layout);
         setContentView(R.layout.settings_activity_constraint_layout);
         if (savedInstanceState == null) {
             getSupportFragmentManager()
@@ -41,6 +42,7 @@ public class SettingsActivity extends AppCompatActivity {
         //doneButton = findViewById(R.id.button6);
 
         //put in a top toolbar with a button
+
         Toolbar myToolbar = findViewById(R.id.settingstoolbar);
         setSupportActionBar(myToolbar);
 

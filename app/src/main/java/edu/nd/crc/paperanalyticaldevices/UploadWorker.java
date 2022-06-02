@@ -99,7 +99,7 @@ public class UploadWorker extends Worker implements ProgressCallback {
                 return Result.failure();
             }
 
-            data.CleanupImages();
+            //data.CleanupImages();
         } catch (Exception e) {
             FirebaseCrashlytics.getInstance().recordException(e);
             return Result.failure();

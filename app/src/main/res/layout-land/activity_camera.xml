@@ -116,13 +116,37 @@
                 app:layout_constraintTop_toBottomOf="@id/threshold_text"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
-                android:valueFrom="50"
-                android:valueTo="90"
+                android:valueFrom="66"
+                android:valueTo="92"
 
-                android:stepSize="5"
+                android:stepSize="2"
                 app:thumbColor="#000FFF"
                 app:tickColor="#00FF00"
                 app:trackColor="@color/teal_700"
+                />
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/minus_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/slider"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintStart_toStartOf="@id/slider"
+                android:clickable="true"
+                android:onClick="decreaseThreshold"
+                app:fabSize="mini"
+                app:srcCompat="@drawable/ic_baseline_remove_circle_outline_green_24"
+                />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/plus_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/slider"
+                app:layout_constraintRight_toRightOf="parent"
+                app:srcCompat="@drawable/ic_outline_add_circle_outline_blue_24"
+                android:clickable="true"
+                android:onClick="increaseThreshold"
+                app:fabSize="mini"
                 />
             <!--SeekBar
                 android:id="@+id/threshold_seek_bar"

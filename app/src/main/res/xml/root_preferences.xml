@@ -45,6 +45,12 @@
             app:title="@string/category"
             app:useSimpleSummaryProvider="true" / -->
 
+        <EditTextPreference
+            app:key="dataretentiontime"
+            app:defaultValue="30"
+            app:title="Days to keep images"
+            app:useSimpleSummaryProvider="true" />
+
         <SwitchPreferenceCompat
             app:key="sync"
             app:title="@string/sync_title" />
