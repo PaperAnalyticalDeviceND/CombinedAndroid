@@ -29,3 +29,23 @@ def work_version = "2.5.0"
     implementation "androidx.work:work-runtime:$work_version", {
         exclude group: 'com.google.guava' , module: 'listenablefuture'
     }
+
+# Data uploads format
+
+New data elements that go beyond the available database fields are stored in JSON format in the "notes" field.   
+The format is as below:   
+
+{"Phone ID":"50766914127f64ba",  
+"Quantity NN":100,  
+"User":"Matt",  
+"Neural net":"fhi360_small_lite",  
+"App type":"Android",  
+"Safe":"Suspected safe",  
+"Prediction score":0.99,  
+"PLS used":true,  
+"Predicted drug":"Albendazole",  
+"Build":14,  
+"Quantity PLS":8,  
+"Notes version":0,  
+"Notes":""}
+
