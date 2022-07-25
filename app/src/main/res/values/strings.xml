@@ -15,15 +15,15 @@
     <string name="about">About</string>
     <string name="privacy_policy_label">Privacy Policy</string>
     <string name="homepage_label">PAD Project Home</string>
-<string name="okstring">OK</string>
+    <string name="okstring">OK</string>
     <string name="settings_help">Settings Help</string>
     <!--Help Strings    -->
-<string name="username_help">What name to report when uploading images.</string>
-<string name="project_help">Select the project to report for.</string>
-<string name="primarynet_help">The primary inference model for classifying drugs.</string>
+    <string name="username_help">What name to report when uploading images.</string>
+    <string name="project_help">Select the project to report for.</string>
+    <string name="primarynet_help">The primary inference model for classifying drugs.</string>
     <string name="concentrationnet_help">For use only with concentration based inference models.</string>
-<string name="pls_help">Use Partial Least Squares concentration calculation.  Only for drugs in the FHI 360 project.</string>
-<string name="flashlight_help">Use the flash as a light when the camera is on.</string>
+    <string name="pls_help">Use Partial Least Squares concentration calculation.  Only for drugs in the FHI 360 project.</string>
+    <string name="flashlight_help">Use the flash as a light when the camera is on.</string>
     <string name="updates_help">Keep the projects and neural net lists up to date.</string>
 
 
@@ -165,4 +165,5 @@
 
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="title_activity_artifacts">ArtifactsActivity</string>
 </resources>
