@@ -38,6 +38,10 @@
                     android:host="authorize"
                     android:scheme="pad" />
             </intent-filter>
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/artifacts_search_config"
+                />
         </activity>
         <activity
             android:name=".AboutActivity"

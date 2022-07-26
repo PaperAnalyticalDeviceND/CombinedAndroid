@@ -6,29 +6,33 @@
     android:layout_height="match_parent"
     tools:context=".ArtifactsActivity">
 
+
+
     <TextView
         android:id="@+id/artifacts_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="PADReader ARTiFACTS"
-        app:layout_constraintBottom_toTopOf="@+id/tasks_listview"
+        app:layout_constraintBottom_toTopOf="@+id/tasks_mainlistview"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/artifacts_toolbar" />
+
 
 
     <ListView
-        android:id="@+id/tasks_listview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:id="@+id/tasks_mainlistview"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         app:layout_constraintTop_toBottomOf="@id/artifacts_title"
         app:layout_constraintBottom_toTopOf="@id/refresh_button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintVertical_weight="5"
-    />
+         />
+
+
 
 
     <Button
@@ -46,7 +50,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tasks_listview" />
+        app:layout_constraintTop_toBottomOf="@+id/tasks_mainlistview" />
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/artifacts_toolbar"
