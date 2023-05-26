@@ -252,7 +252,12 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String statedDrug = prefs.getString("Drug", "unknown");
+
+
         String[] drugsArray = drugEntries.toArray(new String[drugEntries.size()]);
+        //int pos = drugsArray.getPosition(statedDrug);
         sDrugs = findViewById(R.id.statedDrugSpinner);
         sDrugs.setDisplayedValues(null);
         sDrugs.setMinValue(0);
@@ -265,6 +270,12 @@ public class MainActivity extends AppCompatActivity {
             // use defaults to ensure something is in the picker
             sDrugs.setMaxValue(Defaults.Drugs.size() - 1);
             sDrugs.setDisplayedValues(Defaults.Drugs.toArray(new String[Defaults.Drugs.size()]));
+        }
+        //restore previous selection
+        for(int i=0; i < drugsArray.length; i++){
+            if(drugsArray[i].contains(statedDrug)){
+                sDrugs.setValue(i);
+            }
         }
     }
 

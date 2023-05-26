@@ -156,10 +156,11 @@ public class ResultActivity extends AppCompatActivity {
         String statedDrug;
         if(intent.hasExtra(MainActivity.EXTRA_STATED_DRUG) && intent.getStringExtra(MainActivity.EXTRA_STATED_DRUG) != null){
             statedDrug = intent.getStringExtra(MainActivity.EXTRA_STATED_DRUG);
-
+            defaultPrefs.edit().putString("Drug", statedDrug).commit();
         }else{
             //sDrugs.setSelection(aDrugs.getPosition(mPreferences.getString("Drug", tDrugs)));
-            statedDrug = mPreferences.getString("Drug", tDrugs);
+            //statedDrug = mPreferences.getString("Drug", tDrugs);
+            statedDrug = defaultPrefs.getString("Drug", tDrugs);
         }
         sDrugs.setSelection(aDrugs.getPosition(statedDrug));
 

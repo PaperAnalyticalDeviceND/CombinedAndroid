@@ -5,7 +5,11 @@
     android:orientation="horizontal"
     android:background="@drawable/stroke_rectangle"
     >
-
+<LinearLayout
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    >
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -14,24 +18,43 @@
         />
 
     <TextView
-        android:id="@+id/sample_id"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="API"
         android:padding="8dp"
         />
 
-    <TextView
-        android:id="@+id/sample_drug_name"
+</LinearLayout>
+    <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="8dp"
-        />
-    <!--Button
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        >
+        <TextView
+            android:id="@+id/sample_id"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            />
+        <TextView
+            android:id="@+id/sample_drug_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            />
+
+
+    </LinearLayout>
+
+
+    <Button
         android:text="Test"
         android:layout_gravity="end"
         android:id="@+id/task_test_button"
         android:layout_height="wrap_content"
-        android:layout_width="wrap_content"/-->
+        android:layout_width="wrap_content"
+        android:padding="8dp"
+        />
 
 
 </LinearLayout>

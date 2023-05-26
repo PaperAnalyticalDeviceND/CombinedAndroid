@@ -57,7 +57,7 @@ public class TaskListBaseAdapter extends BaseAdapter implements Filterable {
     public View getView(int position, View convertView, ViewGroup parent) {
 
         TaskListBaseAdapter.ViewHolder holder;
-        //ArtifactsTaskObject obj = tasks.get(position);
+        ArtifactsTaskObject obj = tasks.get(position);
 
         if (convertView == null) {
             convertView = mInflater.inflate(R.layout.tasks_listview, null);
@@ -65,7 +65,7 @@ public class TaskListBaseAdapter extends BaseAdapter implements Filterable {
 
             holder.drug = convertView.findViewById(R.id.sample_drug_name);
             holder.sampleId = convertView.findViewById(R.id.sample_id);
-            //holder.testButton = (Button) convertView.findViewById(R.id.task_test_button);
+            holder.testButton = (Button) convertView.findViewById(R.id.task_test_button);
 
 
             convertView.setTag(holder);
@@ -74,9 +74,9 @@ public class TaskListBaseAdapter extends BaseAdapter implements Filterable {
         }
 
         holder.sampleId.setText(tasks.get(position).getSampleId());
-        holder.drug.setText(tasks.get(position).getDrug());
+        //holder.drug.setText(tasks.get(position).getDrug());
 
-/*
+
         holder.testButton.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view){
@@ -84,7 +84,7 @@ public class TaskListBaseAdapter extends BaseAdapter implements Filterable {
                 Log.d("ARTIFACTS", obj.getSampleId());
             }
         });
-*/
+
         return convertView;
     }
 
@@ -102,7 +102,7 @@ public class TaskListBaseAdapter extends BaseAdapter implements Filterable {
         TextView manufacturer;
         TextView dosage;
         TextView drug;
-        //Button testButton;
+        Button testButton;
     }
 
     private class TaskFilter extends Filter {
