@@ -32,6 +32,7 @@ android {
     buildFeatures {
         viewBinding true
     }
+    namespace 'edu.nd.crc.paperanalyticaldevices'
 }
 
 dependencies {
