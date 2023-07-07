@@ -37,11 +37,18 @@ import retrofit2.Response;
 
 public class ArtifactsActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
 
+    /*
+    QR code will have:
+    code
+    code_verifier
+    client_id
+    host
+     */
     private String redirectUri = "https://pad.artifactsofresearch.io/";
 
-    private String baseUrl = "https://api-pad.artifactsofresearch.io";
+    private String baseUrl;// = "https://api-pad.artifactsofresearch.io";
 
-    private String clientId = "9xGhS62GK6JmxC7aB0PsiV0zJeWYhMxOOo3zEWtl";
+    //private String clientId = "9xGhS62GK6JmxC7aB0PsiV0zJeWYhMxOOo3zEWtl";
 
     private String grantType = "authorization_code";
 
@@ -84,7 +91,7 @@ public class ArtifactsActivity extends AppCompatActivity implements SearchView.O
         ArtifactsTaskObject tempObject = new ArtifactsTaskObject();
         tempObject.setSampleId("ID");
         tempObject.setDrug("Drug");
-        taskObjects.add(tempObject);
+        //taskObjects.add(tempObject);
         //authTokenView = findViewById(R.id.test_auth_token);
 
         taskListView = findViewById(R.id.tasks_mainlistview);
@@ -92,16 +99,24 @@ public class ArtifactsActivity extends AppCompatActivity implements SearchView.O
         //do authorization if we got here via QR code
         if(null != host ) {
 
-            if(isAuthValid()){
+            /*if(isAuthValid()){
                 authToken = defaultPrefs.getString("auth_token", "");
                 authorized = true;
-            }else {
+                Log.d("ARTIFACTS", "auth still good " + authToken);*/
+            //}else {
                 String code = deeplinkIntent.getData().getQueryParameter("code");
                 String codeVerifier = deeplinkIntent.getData().getQueryParameter("code_verifier");
+                String clientId = deeplinkIntent.getData().getQueryParameter("client_id");
+                baseUrl = deeplinkIntent.getData().getQueryParameter("host");
 
-                performAsyncAuthorization(code, codeVerifier);
+
+                performAsyncAuthorization(code, codeVerifier, baseUrl, clientId);
                 //authTokenView.setText(authToken);
-            }
+           // }
+        }else if(isAuthValid()){
+            authToken = defaultPrefs.getString("auth_token", "");
+            authorized = true;
+            Log.d("ARTIFACTS", "auth still good " + authToken);
         }
 
         //setActionBar();
@@ -140,7 +155,7 @@ public class ArtifactsActivity extends AppCompatActivity implements SearchView.O
         getActionBar().setTitle("Tasks");
     }
 
-    private String performAuthorization(String code, String codeVerifier){
+    /*private String performAuthorization(String code, String codeVerifier){
 
         Log.d("ARTIFACTS", "In performAuthorization");
         final OkHttpClient client = new OkHttpClient.Builder()
@@ -163,11 +178,12 @@ public class ArtifactsActivity extends AppCompatActivity implements SearchView.O
         }
 
         return "";
-    }
+    }*/
 
     public Boolean isAuthValid(){
 
         Long expiryTime = defaultPrefs.getLong("expiry_timestamp", 0);
+        Log.d("ARTIFACTS", "Expiry time: " + expiryTime.toString());
         Long now = System.currentTimeMillis() / 1000;
 
         if(now >= expiryTime){
@@ -178,7 +194,7 @@ public class ArtifactsActivity extends AppCompatActivity implements SearchView.O
 
     }
 
-    public void performAsyncAuthorization(String code, String codeVerifier){
+    public void performAsyncAuthorization(String code, String codeVerifier, String host, String clientId){
 
         Thread thread = new Thread(new Runnable() {
            @Override
@@ -189,7 +205,7 @@ public class ArtifactsActivity extends AppCompatActivity implements SearchView.O
                            .addNetworkInterceptor(new ProgressInterceptor())
                            .build();
 
-                   final ArtifactsWebService service = ArtifactsWebService.instantiate(client);
+                   final ArtifactsWebService service = ArtifactsWebService.instantiate(client, baseUrl);
 
                    Response<AuthResponse> response = service.getAuth(clientId, code, codeVerifier, redirectUri, grantType).execute();
                    Log.d("ARTIFACTS", response.toString());
@@ -198,6 +214,7 @@ public class ArtifactsActivity extends AppCompatActivity implements SearchView.O
                    String auth = authResponse.AccessToken;
                    Integer expirySeconds = authResponse.ExpiresIn;
                    Log.d("ARTIFACTS", auth);
+                   Log.d("ARTIFACTS", expirySeconds.toString());
 
                    authToken = auth;
                    //authTokenView.setText(authToken);
@@ -229,7 +246,7 @@ public class ArtifactsActivity extends AppCompatActivity implements SearchView.O
                             .addNetworkInterceptor(new ProgressInterceptor())
                             .build();
 
-                    final ArtifactsWebService service = ArtifactsWebService.instantiate(client);
+                    final ArtifactsWebService service = ArtifactsWebService.instantiate(client, baseUrl);
                     Log.d("ARTIFACTS", authToken);
 
                     service.getTasks("Bearer " + authToken).enqueue( new Callback<TasksList>() {
@@ -271,7 +288,7 @@ public class ArtifactsActivity extends AppCompatActivity implements SearchView.O
                     .addNetworkInterceptor(new ProgressInterceptor())
                     .build();
 
-            final ArtifactsWebService service = ArtifactsWebService.instantiate(client);
+            final ArtifactsWebService service = ArtifactsWebService.instantiate(client, baseUrl);
 
             service.getTasks("Bearer " + authToken).enqueue( new Callback<TasksList>() {
                 @Override
@@ -350,7 +367,7 @@ public class ArtifactsActivity extends AppCompatActivity implements SearchView.O
             @Override
             public void onFailure(Throwable t) {
                 t.printStackTrace();
-                Log.d("ARTIFACTS", "onFailure");
+                Log.e("ARTIFACTS", "refreshTasks onFailure");
             }
         });
     }

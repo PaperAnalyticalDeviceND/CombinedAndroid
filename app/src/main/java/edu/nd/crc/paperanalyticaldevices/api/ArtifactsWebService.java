@@ -39,7 +39,7 @@ public interface ArtifactsWebService {
     @GET("tasks/?status=awaiting")
     Call<TasksList> getTasks(@Header("Authorization") String authToken);
 
-    static ArtifactsWebService instantiate(OkHttpClient client) {
+    static ArtifactsWebService instantiate(OkHttpClient client, String baseUrl) {
 
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Semver.class, new AuthResponse.SemverDeserializer())
@@ -49,7 +49,8 @@ public interface ArtifactsWebService {
                 .create();
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://api-pad.artifactsofresearch.io/")
+                //.baseUrl("https://api-pad.artifactsofresearch.io/")
+                .baseUrl("https://" + baseUrl)
                 .client(client)
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();

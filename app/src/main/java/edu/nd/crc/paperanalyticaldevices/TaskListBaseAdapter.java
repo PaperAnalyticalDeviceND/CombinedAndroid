@@ -74,7 +74,7 @@ public class TaskListBaseAdapter extends BaseAdapter implements Filterable {
         }
 
         holder.sampleId.setText(tasks.get(position).getSampleId());
-        //holder.drug.setText(tasks.get(position).getDrug());
+        holder.drug.setText(tasks.get(position).getDrug());
 
 
         holder.testButton.setOnClickListener(new View.OnClickListener(){
@@ -82,6 +82,7 @@ public class TaskListBaseAdapter extends BaseAdapter implements Filterable {
             public void onClick(View view){
                 //testTask(obj.getSampleId());
                 Log.d("ARTIFACTS", obj.getSampleId());
+                Log.d("ARTIFACTS", obj.getDrug());
             }
         });
 
