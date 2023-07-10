@@ -24,6 +24,39 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.IOException
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material3.Button
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.saveable.rememberSaveable
+import edu.nd.crc.paperanalyticaldevices.ui.theme.CombinedAndroidTheme
+import kotlin.math.exp
 
 
 class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
@@ -319,8 +352,121 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
     }
 }
 
-/*
-@Composable
-fun ArtifactsTaskListItem(modifier: Modifier = Modifier, id: String, drug: String){
 
-}*/
+@Composable
+fun ArtifactsTaskListItem(modifier: Modifier = Modifier, task: ArtifactsTaskObject){
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    Surface(color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(4.dp)
+    ) {
+        Column(){
+            Row(modifier = Modifier
+                .padding(4.dp)
+                .fillMaxWidth())   {
+                IconButton(
+                    onClick = {
+                        expanded = !expanded
+                    }
+                ) {
+                    Icon(imageVector = if(expanded) Icons.Default.KeyboardArrowRight else Icons.Default.KeyboardArrowDown, contentDescription = "Expand")
+                }
+                Column(modifier = Modifier.padding(horizontal = 4.dp)) {
+                    Text(text = "ID:")
+                    Text(text = "API:")
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = task.sampleId)
+                    Text(text = task.drug)
+                }
+                ElevatedButton(onClick = { /*TODO*/ }) {
+                    Text(text = "Test")
+                }
+            }
+            if(expanded) {
+                ArtifactsTaskListItemDetails(task = task)
+            }
+        }
+    }
+}
+
+@Composable
+fun ArtifactsTaskListItemDetails(modifier: Modifier = Modifier, task: ArtifactsTaskObject){
+    Row(modifier = Modifier
+        .padding(4.dp)
+        .fillMaxWidth()) {
+        Column(modifier = Modifier.padding(horizontal = 4.dp)) {
+            Text(text = "Task ID:")
+            Text(text = "Manufacturer:")
+            Text(text = "Dosage:")
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = task.id.toString())
+            Text(text = task.manufacturer)
+            Text(text = task.dosage)
+        }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 320, heightDp = 120)
+@Composable
+fun ArtifactsTaskListItemDetailsPreview(){
+    CombinedAndroidTheme() {
+        var taskOne = ArtifactsTaskObject()
+        taskOne.id = 89
+        taskOne.sampleId = "22ETCL-17"
+        taskOne.drug = "Acetaminophen"
+        taskOne.manufacturer = "Pfizer"
+        taskOne.dosage = "12.0"
+        ArtifactsTaskListItemDetails(task = taskOne)
+    }
+}
+
+@Preview(showBackground = true, widthDp = 320, heightDp = 120)
+@Composable
+fun AtrifactsTaskListItemPreview(){
+    CombinedAndroidTheme() {
+        var taskOne = ArtifactsTaskObject()
+        taskOne.id = 89
+        taskOne.sampleId = "22ETCL-17"
+        taskOne.drug = "Acetaminophen"
+        taskOne.manufacturer = "Pfizer"
+        taskOne.dosage = "12.0"
+        ArtifactsTaskListItem(task = taskOne)
+    }
+
+}
+
+@Composable
+fun ArtifactsTaskList(modifier: Modifier = Modifier, drugs: List<ArtifactsTaskObject> = List<ArtifactsTaskObject>(100){ ArtifactsTaskObject() }){
+    LazyColumn(modifier = modifier.padding(vertical = 4.dp)){
+        items(items = drugs){drug ->
+            ArtifactsTaskListItem(task = drug)
+        }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 320, heightDp = 420)
+@Composable
+fun ArtifactsTaskListPreview(){
+
+    //var tasks = List<ArtifactsTaskObject>(3)
+    CombinedAndroidTheme() {
+        var taskObjects = ArrayList<ArtifactsTaskObject>()
+        var taskOne = ArtifactsTaskObject()
+        taskOne.id = 1
+        taskOne.sampleId = "22ETCL-17"
+        taskOne.drug = "Diphenhydramine"
+        taskOne.manufacturer = "Pfizer"
+        taskOne.dosage = "12.00000"
+        taskObjects.add(taskOne)
+        var taskTwo = ArtifactsTaskObject()
+        taskTwo.id = 2
+        taskTwo.sampleId = "22ETCL-18"
+        taskTwo.drug = "Acetaminophen"
+        taskTwo.manufacturer = "Teva"
+        taskTwo.dosage = "100.000"
+        taskObjects.add(taskTwo)
+        ArtifactsTaskList(drugs = taskObjects)
+    }
+
+}
