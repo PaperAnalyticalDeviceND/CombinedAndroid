@@ -25,12 +25,16 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.io.IOException
 import androidx.activity.compose.setContent
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material3.Button
 import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.Icons
@@ -54,8 +58,24 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import edu.nd.crc.paperanalyticaldevices.api.ArtifactsAPIService
+import edu.nd.crc.paperanalyticaldevices.api.AuthResponse
 import edu.nd.crc.paperanalyticaldevices.ui.theme.CombinedAndroidTheme
+import kotlinx.coroutines.launch
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.Field
+import retrofit2.http.FormUrlEncoded
+import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.Headers
+import retrofit2.http.POST
+import retrofit2.http.Query
 import kotlin.math.exp
 
 
@@ -68,12 +88,13 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
     host
      */
     private val redirectUri = "https://pad.artifactsofresearch.io/"
-    private var baseUrl // = "https://api-pad.artifactsofresearch.io";
-            : String? = null
+    //"https://api-pad.artifactsofresearch.io"
+    private var baseUrl: String = "api-pad.artifactsofresearch.io"
+            //: String? = null
 
     //private String clientId = "9xGhS62GK6JmxC7aB0PsiV0zJeWYhMxOOo3zEWtl";
     private val grantType = "authorization_code"
-    var authToken: String? = ""
+    var authToken: String = ""
     var authorized = false
 
     //TextView authTokenView;
@@ -90,7 +111,61 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
     var responseCallback: Callback<TasksList>? = null
     private var searchView: SearchView? = null
     private var searchMenuItem: MenuItem? = null
-    override fun onCreate(savedInstanceState: Bundle?) {
+
+    var taskPage: Int = 1
+
+    override fun onCreate(savedInstanceState: Bundle?){
+        super.onCreate(savedInstanceState)
+        defaultPrefs = PreferenceManager.getDefaultSharedPreferences(baseContext)
+        val deeplinkIntent = intent
+        val host = deeplinkIntent.data!!.host
+        taskObjects = ArrayList()
+
+        /*if (null != host) {
+
+            val code = deeplinkIntent.data!!.getQueryParameter("code")
+            val codeVerifier = deeplinkIntent.data!!.getQueryParameter("code_verifier")
+            val clientId = deeplinkIntent.data!!.getQueryParameter("client_id")
+            baseUrl = deeplinkIntent.data!!.getQueryParameter("host").toString()
+            Log.d("ARTIFACTS", "Base URL $baseUrl")
+            performAsyncAuthorization(code, codeVerifier, baseUrl, clientId)
+
+        }*/
+        val code = deeplinkIntent.data!!.getQueryParameter("code").toString()
+        val codeVerifier = deeplinkIntent.data!!.getQueryParameter("code_verifier").toString()
+        val clientId = deeplinkIntent.data!!.getQueryParameter("client_id").toString()
+        baseUrl = deeplinkIntent.data!!.getQueryParameter("host").toString()
+
+        Log.d("ARTIFACTS", "Base URL $baseUrl")
+        //loadTasks()
+        val vm = ArtifactsTasksViewModel()
+        //vm.getTasksList(authToken, "https://$baseUrl", 1)
+        val authVm = ArtifactsAuthViewModel()
+
+        /*setContent{
+            CombinedAndroidTheme {
+                ArtifactsTaskPage(refreshCallback = {vm.getTasksList(authToken,
+                    "https://$baseUrl", 1)} , drugs = vm.getResultsAsObjects())
+            }
+        }*/
+        setContent {
+            CombinedAndroidTheme {
+                //ArtifactsTaskView(vm = vm, token = authToken, baseUrl = "https://$baseUrl")
+                ArtifactsLoginView(
+                    baseUrl = "https://$baseUrl",
+                    clientId = clientId,
+                    redirectUri = redirectUri,
+                    code = code,
+                    codeVerifier = codeVerifier,
+                    grantType = grantType,
+                    authVm = authVm,
+                    taskVm = vm
+                )
+            }
+        }
+    }
+
+    fun onCreateOld(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_artifacts)
         defaultPrefs = PreferenceManager.getDefaultSharedPreferences(baseContext)
@@ -116,7 +191,7 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
             val code = deeplinkIntent.data!!.getQueryParameter("code")
             val codeVerifier = deeplinkIntent.data!!.getQueryParameter("code_verifier")
             val clientId = deeplinkIntent.data!!.getQueryParameter("client_id")
-            baseUrl = deeplinkIntent.data!!.getQueryParameter("host")
+            baseUrl = deeplinkIntent.data!!.getQueryParameter("host").toString()
             performAsyncAuthorization(code, codeVerifier, baseUrl, clientId)
             //authTokenView.setText(authToken);
             // }
@@ -233,7 +308,7 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
                     .build()
                 val service = ArtifactsWebService.instantiate(client, baseUrl)
                 Log.d("ARTIFACTS", authToken!!)
-                service.getTasks("Bearer $authToken").enqueue(object : Callback<TasksList?> {
+                service.getTasks("Bearer $authToken", "awaiting", 1).enqueue(object : Callback<TasksList?> {
                     override fun onResponse(
                         call: Call<TasksList?>,
                         response: Response<TasksList?>
@@ -270,7 +345,7 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
                 .addNetworkInterceptor(ProgressInterceptor())
                 .build()
             val service = ArtifactsWebService.instantiate(client, baseUrl)
-            service.getTasks("Bearer $authToken").enqueue(object : Callback<TasksList?> {
+            service.getTasks("Bearer $authToken", "awaiting", 1).enqueue(object : Callback<TasksList?> {
                 override fun onResponse(call: Call<TasksList?>, response: Response<TasksList?>) {
                     if (response.isSuccessful) {
                         tasks = response.body()
@@ -304,6 +379,42 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
         }
     }
 
+    fun loadTasks(){
+        Log.d("ARTIFACTS", "In loadTasks")
+        getTaskList(object : ResponseCallBack {
+            override fun onResponse(response: Response<TasksList>) {
+                Log.d("ARTIFACTS", "in callback")
+
+                //tasks = response.body();
+                taskObjects = ArrayList()
+                //taskStrings = new ArrayList<String>();
+                //expandableDetailList = new HashMap<String, List<String>>();
+                for (result in tasks!!.Results) {
+                    val obj = ArtifactsTaskObject()
+                    obj.id = result.Id
+                    obj.drug = result.MainAPIs[0].Name
+                    obj.sampleId = result.Sample
+                    obj.dosage = result.Dosage + " " + result.dosageType
+                    if (null != result.Manufacturer) {
+                        obj.manufacturer = result.Manufacturer.Name
+                    }
+                    taskObjects!!.add(obj)
+                    // taskStrings.add(obj.getSampleId());
+                    Log.d("ARTIFACTS", obj.sampleId)
+                    val tempList: List<String> = ArrayList()
+                    //tempList.add(obj.getDrug());
+                    //expandableDetailList.put(obj.getSampleId(), tempList);
+                }
+                adapter!!.notifyDataSetChanged()
+                //expandableAdapter.notifyDataSetChanged();
+            }
+
+            override fun onFailure(t: Throwable) {
+                t.printStackTrace()
+                Log.e("ARTIFACTS", "loadTasks onFailure")
+            }
+        })
+    }
     fun refreshTasks(view: View?) {
         Log.d("ARTIFACTS", "In refreshTasks")
         //getTasksAsync();
@@ -317,6 +428,7 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
                 //expandableDetailList = new HashMap<String, List<String>>();
                 for (result in tasks!!.Results) {
                     val obj = ArtifactsTaskObject()
+                    obj.id = result.Id
                     obj.drug = result.MainAPIs[0].Name
                     obj.sampleId = result.Sample
                     obj.dosage = result.Dosage + " " + result.dosageType
@@ -352,6 +464,145 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
     }
 }
 
+/*class ArtifactsTasksViewModel : ViewModel() {
+    private val _taskList = mutableStateListOf<ArtifactsTaskObject>()
+    var errorMessage: String by mutableStateOf("")
+    val taskList: List<ArtifactsTaskObject>
+        get() = _taskList
+
+    fun getTaskList(authToken: String, baseUrl: String){
+        val client = OkHttpClient.Builder()
+            .addNetworkInterceptor(ProgressInterceptor())
+            .build()
+        viewModelScope.launch {
+            val apiService = ArtifactsWebService.instantiate(client, baseUrl)
+            try{
+                _taskList.clear()
+                val tasks = apiService.getTasks(authToken, "awaiting", 1)
+                for (task in tasks!!.Results){
+
+                }
+            }catch(e: Exception){
+                errorMessage = e.message.toString()
+            }
+        }
+    }
+}*/
+
+class ArtifactsAuthViewModel : ViewModel() {
+    private val _authToken = mutableStateOf("")
+    var errorMessage: String by mutableStateOf("")
+    val authToken: String
+        get() = _authToken.value
+
+    fun getAuth(baseUrl: String,
+                code: String,
+                codeVerifier: String,
+                redirectUri: String,
+                clientId: String,
+                grantType: String){
+        Log.d("ARTIFACTS", "authVm getAuth")
+        viewModelScope.launch {
+            val apiService = ArtifactsAPIService.getInstance(baseUrl = baseUrl)
+            try{
+                val authResponse = apiService.getAuth(clientId = clientId, code = code, codeVerifier = codeVerifier, redirectUri = redirectUri, grantType = grantType)
+                _authToken.value = authResponse.AccessToken
+                Log.d("ARTIFACTS", "Auth token: ${_authToken.value}")
+            }catch(e: Exception){
+                errorMessage = e.message.toString()
+            }
+        }
+    }
+}
+class ArtifactsTasksViewModel : ViewModel() {
+    private val _taskList = mutableStateListOf<TasksList>()
+    private val _taskObjects = mutableStateListOf<ArtifactsTaskObject>()
+    var errorMessage: String by mutableStateOf("")
+    val taskList: List<TasksList>
+        get() = _taskList
+
+    val taskObjects: List<ArtifactsTaskObject>
+        get() = _taskObjects
+
+    fun getTasksList(token: String, baseUrl: String, page: Int){
+        Log.d("ARTIFACTS", "getTasksList")
+        Log.d("ARTIFACTS", "Token: $token, baseUrl: $baseUrl")
+        viewModelScope.launch {
+            val apiService = ArtifactsAPIService.getInstance(baseUrl = baseUrl)
+            try{
+                _taskList.clear()
+                _taskList.add(apiService.getTasks(token = "Bearer $token", status = "awaiting", page = page))
+                //_taskList.add(apiService.getDefaultTasks(token = "Bearer $token"))
+            }catch(e: Exception){
+                errorMessage = e.message.toString()
+            }
+        }
+    }
+
+    fun getResultsAsObjects(): List<ArtifactsTaskObject> {
+        _taskObjects.clear()
+        for(t in _taskList){
+            for(r in t.Results){
+                var obj = ArtifactsTaskObject()
+                obj.id = r.Id
+                obj.drug = r.MainAPIs[0].Name
+                obj.dosage = r.Dosage + " " + r.dosageType.Name
+                if(null != r.Manufacturer){
+                    obj.manufacturer = r.Manufacturer.Name
+                }else{
+                    obj.manufacturer = ""
+                }
+
+                obj.sampleId = r.Sample
+                _taskObjects.add(obj)
+            }
+        }
+        return _taskObjects
+    }
+}
+
+
+
+@Composable
+fun ArtifactsLoginView(modifier: Modifier = Modifier,
+                       baseUrl: String,
+                       clientId: String,
+                       redirectUri: String,
+                       code: String,
+                       codeVerifier: String,
+                       grantType: String, authVm: ArtifactsAuthViewModel,
+                       taskVm: ArtifactsTasksViewModel){
+
+    LaunchedEffect(Unit, block = {
+        authVm.getAuth(baseUrl, code, codeVerifier, redirectUri, clientId, grantType)
+    })
+
+    //var authorized by rememberSaveable { mutableStateOf(false) }
+    Surface() {
+        if(authVm.authToken.isNotEmpty()){
+            Log.d("ARTIFACTS", "baseUrl $baseUrl")
+            Log.d("ARTIFACTS", "auth token ${authVm.authToken}")
+            ArtifactsTaskView(vm = taskVm, token = authVm.authToken, baseUrl = baseUrl)
+        }else{
+            Column() {
+                Row() {
+                    ElevatedButton(onClick = {
+                        Log.d("ARTIFACTS", "Clicked Log In")
+                        authVm.getAuth(baseUrl, code, codeVerifier, redirectUri, clientId, grantType)
+                        //authorized = true
+                        /*if(authVm.authToken != ""){
+                            Log.d("ARTIFACTS", "Marking authorized")
+                            authorized = true
+                        }*/
+                    }) {
+                        Text(text = "Log In")
+                    }
+                }
+            }
+        }
+    }
+
+}
 
 @Composable
 fun ArtifactsTaskListItem(modifier: Modifier = Modifier, task: ArtifactsTaskObject){
@@ -362,7 +613,13 @@ fun ArtifactsTaskListItem(modifier: Modifier = Modifier, task: ArtifactsTaskObje
         Column(){
             Row(modifier = Modifier
                 .padding(4.dp)
-                .fillMaxWidth())   {
+                .fillMaxWidth()
+                .animateContentSize(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessLow
+                    )
+                ))   {
                 IconButton(
                     onClick = {
                         expanded = !expanded
@@ -372,34 +629,42 @@ fun ArtifactsTaskListItem(modifier: Modifier = Modifier, task: ArtifactsTaskObje
                 }
                 Column(modifier = Modifier.padding(horizontal = 4.dp)) {
                     Text(text = "ID:")
-                    Text(text = "API:")
+                    Text(text = "API:", style = MaterialTheme.typography.bodySmall)
+
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     Text(text = task.sampleId)
-                    Text(text = task.drug)
+                    Text(text = task.drug, style = MaterialTheme.typography.bodySmall)
+
                 }
+                //Text(text = "ID:", modifier = Modifier.padding(8.dp))
+                //Text(text = task.sampleId, modifier = Modifier.padding(8.dp).weight(1f))
                 ElevatedButton(onClick = { /*TODO*/ }) {
                     Text(text = "Test")
                 }
             }
             if(expanded) {
-                ArtifactsTaskListItemDetails(task = task)
+                ArtifactsTaskListItemDetail(task = task)
             }
         }
     }
 }
 
 @Composable
-fun ArtifactsTaskListItemDetails(modifier: Modifier = Modifier, task: ArtifactsTaskObject){
+fun ArtifactsTaskListItemDetail(modifier: Modifier = Modifier, task: ArtifactsTaskObject){
     Row(modifier = Modifier
         .padding(4.dp)
         .fillMaxWidth()) {
-        Column(modifier = Modifier.padding(horizontal = 4.dp)) {
+        Column(modifier = Modifier.padding(horizontal = 8.dp)) {
+            //Text(text = "ID:")
+            //Text(text = "API:")
             Text(text = "Task ID:")
             Text(text = "Manufacturer:")
             Text(text = "Dosage:")
         }
         Column(modifier = Modifier.weight(1f)) {
+            //Text(text = task.sampleId)
+            //Text(text = task.drug)
             Text(text = task.id.toString())
             Text(text = task.manufacturer)
             Text(text = task.dosage)
@@ -417,7 +682,7 @@ fun ArtifactsTaskListItemDetailsPreview(){
         taskOne.drug = "Acetaminophen"
         taskOne.manufacturer = "Pfizer"
         taskOne.dosage = "12.0"
-        ArtifactsTaskListItemDetails(task = taskOne)
+        ArtifactsTaskListItemDetail(task = taskOne)
     }
 }
 
@@ -469,4 +734,71 @@ fun ArtifactsTaskListPreview(){
         ArtifactsTaskList(drugs = taskObjects)
     }
 
+}
+
+@Composable
+fun ArtifactsTaskView(modifier: Modifier = Modifier, vm: ArtifactsTasksViewModel, token: String, baseUrl: String){
+    Surface() {
+        Column {
+            Text(text = "Tasks")
+            if(vm.errorMessage.isEmpty()){
+                vm.getResultsAsObjects()
+                ArtifactsTaskList(modifier = Modifier.weight(1f), drugs = vm.taskObjects)
+            }else{
+                Text(text = vm.errorMessage)
+            }
+            Row(modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth(1f)) {
+                ElevatedButton(
+                    onClick = {
+                        vm.getTasksList(token = token, baseUrl = baseUrl, page = 1)
+
+                    }) {
+                    Text(text = "REFRESH")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ArtifactsTaskPage(refreshCallback: () -> Unit, modifier: Modifier = Modifier, drugs: List<ArtifactsTaskObject> = List<ArtifactsTaskObject>(100){ ArtifactsTaskObject() }){
+    Surface() {
+        Column {
+            Text(text = "Tasks")
+            ArtifactsTaskList(modifier = Modifier.weight(1f), drugs = drugs)
+            Spacer(modifier = Modifier)
+            Row(modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth(1f)) {
+                ElevatedButton(onClick = refreshCallback ) {
+                    Text(text = "Refresh")
+                }
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 320, heightDp = 720)
+@Composable
+fun ArtifactsTaskPagePreview(){
+    CombinedAndroidTheme() {
+        var taskObjects = ArrayList<ArtifactsTaskObject>()
+        var taskOne = ArtifactsTaskObject()
+        taskOne.id = 1
+        taskOne.sampleId = "22ETCL-17"
+        taskOne.drug = "Diphenhydramine"
+        taskOne.manufacturer = "Pfizer"
+        taskOne.dosage = "12.00000"
+        taskObjects.add(taskOne)
+        var taskTwo = ArtifactsTaskObject()
+        taskTwo.id = 2
+        taskTwo.sampleId = "22ETCL-18"
+        taskTwo.drug = "Acetaminophen"
+        taskTwo.manufacturer = "Teva"
+        taskTwo.dosage = "100.000"
+        taskObjects.add(taskTwo)
+        ArtifactsTaskPage(refreshCallback = { /*TODO*/ }, drugs = taskObjects)
+    }
 }

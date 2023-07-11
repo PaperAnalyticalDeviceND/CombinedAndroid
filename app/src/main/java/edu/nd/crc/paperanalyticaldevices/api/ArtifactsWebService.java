@@ -36,8 +36,8 @@ public interface ArtifactsWebService {
     Call<AuthResponse> getAuth(@Field("client_id") String clientId, @Field("code") String code,
                                @Field("code_verifier") String codeVerifier, @Field("redirect_uri") String redirectUri, @Field("grant_type") String grantType);
 
-    @GET("tasks/?status=awaiting")
-    Call<TasksList> getTasks(@Header("Authorization") String authToken);
+    @GET("tasks/")
+    Call<TasksList> getTasks(@Header("Authorization") String authToken, @Query("status") String status, @Query("page") int page);
 
     static ArtifactsWebService instantiate(OkHttpClient client, String baseUrl) {
 
