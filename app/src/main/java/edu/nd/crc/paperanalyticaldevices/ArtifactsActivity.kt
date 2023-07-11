@@ -1,6 +1,8 @@
 package edu.nd.crc.paperanalyticaldevices
 
+import android.app.Activity
 import android.app.SearchManager
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
@@ -25,9 +27,12 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.io.IOException
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.ActivityResult
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -53,14 +58,20 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import edu.nd.crc.paperanalyticaldevices.api.ArtifactsAPIService
@@ -114,6 +125,14 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
 
     var taskPage: Int = 1
 
+    val cameraResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){ result: ActivityResult ->
+        if(result.resultCode == Activity.RESULT_OK){
+            val intent = result.data
+
+        }
+        Log.d("ARTIFACTS", "Result from activity")
+    }
+
     override fun onCreate(savedInstanceState: Bundle?){
         super.onCreate(savedInstanceState)
         defaultPrefs = PreferenceManager.getDefaultSharedPreferences(baseContext)
@@ -159,10 +178,16 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
                     codeVerifier = codeVerifier,
                     grantType = grantType,
                     authVm = authVm,
-                    taskVm = vm
+                    taskVm = vm,
+                    startCamera = { startCamera() }
                 )
             }
         }
+    }
+
+    fun startCamera(){
+        Log.d("ARTIFACTS", "In startCamera")
+        cameraResult.launch(Intent(this, Camera2Activity::class.java))
     }
 
     fun onCreateOld(savedInstanceState: Bundle?) {
@@ -570,8 +595,10 @@ fun ArtifactsLoginView(modifier: Modifier = Modifier,
                        redirectUri: String,
                        code: String,
                        codeVerifier: String,
-                       grantType: String, authVm: ArtifactsAuthViewModel,
-                       taskVm: ArtifactsTasksViewModel){
+                       grantType: String,
+                       authVm: ArtifactsAuthViewModel,
+                       taskVm: ArtifactsTasksViewModel,
+                       startCamera: () -> Unit ){
 
     LaunchedEffect(Unit, block = {
         authVm.getAuth(baseUrl, code, codeVerifier, redirectUri, clientId, grantType)
@@ -582,7 +609,7 @@ fun ArtifactsLoginView(modifier: Modifier = Modifier,
         if(authVm.authToken.isNotEmpty()){
             Log.d("ARTIFACTS", "baseUrl $baseUrl")
             Log.d("ARTIFACTS", "auth token ${authVm.authToken}")
-            ArtifactsTaskView(vm = taskVm, token = authVm.authToken, baseUrl = baseUrl)
+            ArtifactsTaskView(vm = taskVm, token = authVm.authToken, baseUrl = baseUrl, startCamera = startCamera)
         }else{
             Column() {
                 Row() {
@@ -605,8 +632,11 @@ fun ArtifactsLoginView(modifier: Modifier = Modifier,
 }
 
 @Composable
-fun ArtifactsTaskListItem(modifier: Modifier = Modifier, task: ArtifactsTaskObject){
+fun ArtifactsTaskListItem(modifier: Modifier = Modifier, task: ArtifactsTaskObject, startCamera: () -> Unit){
     var expanded by rememberSaveable { mutableStateOf(false) }
+
+    val context = LocalContext.current
+
     Surface(color = MaterialTheme.colorScheme.primary,
         modifier = Modifier.padding(4.dp)
     ) {
@@ -639,7 +669,11 @@ fun ArtifactsTaskListItem(modifier: Modifier = Modifier, task: ArtifactsTaskObje
                 }
                 //Text(text = "ID:", modifier = Modifier.padding(8.dp))
                 //Text(text = task.sampleId, modifier = Modifier.padding(8.dp).weight(1f))
-                ElevatedButton(onClick = { /*TODO*/ }) {
+                ElevatedButton(onClick =
+                    //{cameraResult.launch(Intent(this, Camera2Activity::class.java))}
+                    //{context.startActivity( Intent(context, Camera2Activity::class.java))}
+                    startCamera
+                ) {
                     Text(text = "Test")
                 }
             }
@@ -696,16 +730,19 @@ fun AtrifactsTaskListItemPreview(){
         taskOne.drug = "Acetaminophen"
         taskOne.manufacturer = "Pfizer"
         taskOne.dosage = "12.0"
-        ArtifactsTaskListItem(task = taskOne)
+        ArtifactsTaskListItem(task = taskOne, startCamera = {})
+
     }
 
 }
 
 @Composable
-fun ArtifactsTaskList(modifier: Modifier = Modifier, drugs: List<ArtifactsTaskObject> = List<ArtifactsTaskObject>(100){ ArtifactsTaskObject() }){
+fun ArtifactsTaskList(modifier: Modifier = Modifier,
+                      drugs: List<ArtifactsTaskObject> = List<ArtifactsTaskObject>(100){ ArtifactsTaskObject() },
+                      startCamera: () -> Unit){
     LazyColumn(modifier = modifier.padding(vertical = 4.dp)){
         items(items = drugs){drug ->
-            ArtifactsTaskListItem(task = drug)
+            ArtifactsTaskListItem(task = drug, startCamera = startCamera)
         }
     }
 }
@@ -731,25 +768,35 @@ fun ArtifactsTaskListPreview(){
         taskTwo.manufacturer = "Teva"
         taskTwo.dosage = "100.000"
         taskObjects.add(taskTwo)
-        ArtifactsTaskList(drugs = taskObjects)
+        ArtifactsTaskList(drugs = taskObjects, startCamera = {})
     }
 
 }
 
 @Composable
-fun ArtifactsTaskView(modifier: Modifier = Modifier, vm: ArtifactsTasksViewModel, token: String, baseUrl: String){
+fun ArtifactsTaskView(modifier: Modifier = Modifier, vm: ArtifactsTasksViewModel, token: String, baseUrl: String, startCamera: () -> Unit){
     Surface() {
         Column {
-            Text(text = "Tasks")
+            Row(modifier = Modifier.padding(8.dp).fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                Text(text = "ARTIFACTS")
+            }
+            Divider()
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                Text(text = "Tasks")
+            }
+            BasicTextField( value = "Search", onValueChange = {})
             if(vm.errorMessage.isEmpty()){
                 vm.getResultsAsObjects()
-                ArtifactsTaskList(modifier = Modifier.weight(1f), drugs = vm.taskObjects)
+                ArtifactsTaskList(modifier = Modifier.weight(1f), drugs = vm.taskObjects, startCamera = startCamera)
             }else{
                 Text(text = vm.errorMessage)
             }
             Row(modifier = Modifier
                 .padding(8.dp)
-                .fillMaxWidth(1f)) {
+                .fillMaxWidth(1f), horizontalArrangement = Arrangement.Center) {
+                IconButton(onClick = { /*TODO*/ }) {
+                    Icon(imageVector = Icons.Default.KeyboardArrowLeft, contentDescription = "Previous page")
+                }
                 ElevatedButton(
                     onClick = {
                         vm.getTasksList(token = token, baseUrl = baseUrl, page = 1)
@@ -757,17 +804,29 @@ fun ArtifactsTaskView(modifier: Modifier = Modifier, vm: ArtifactsTasksViewModel
                     }) {
                     Text(text = "REFRESH")
                 }
+                IconButton(onClick = { /*TODO*/ }) {
+                    Icon(imageVector = Icons.Default.KeyboardArrowRight, contentDescription = "Next page")
+                }
             }
         }
     }
 }
 
+@Preview(showBackground = true, widthDp = 320, heightDp = 720)
 @Composable
+fun ArtifactswTaskViewPreview(){
+    val vm = ArtifactsTasksViewModel()
+    CombinedAndroidTheme() {
+        ArtifactsTaskView(vm = vm, token = "", baseUrl = "", startCamera = {})
+    }
+}
+
+/*@Composable
 fun ArtifactsTaskPage(refreshCallback: () -> Unit, modifier: Modifier = Modifier, drugs: List<ArtifactsTaskObject> = List<ArtifactsTaskObject>(100){ ArtifactsTaskObject() }){
     Surface() {
         Column {
             Text(text = "Tasks")
-            ArtifactsTaskList(modifier = Modifier.weight(1f), drugs = drugs)
+            ArtifactsTaskList(modifier = Modifier.weight(1f), drugs = drugs, startCamera = startCamera)
             Spacer(modifier = Modifier)
             Row(modifier = Modifier
                 .padding(8.dp)
@@ -778,8 +837,9 @@ fun ArtifactsTaskPage(refreshCallback: () -> Unit, modifier: Modifier = Modifier
             }
         }
     }
-}
+}*/
 
+/*
 @Preview(showBackground = true, widthDp = 320, heightDp = 720)
 @Composable
 fun ArtifactsTaskPagePreview(){
@@ -799,6 +859,8 @@ fun ArtifactsTaskPagePreview(){
         taskTwo.manufacturer = "Teva"
         taskTwo.dosage = "100.000"
         taskObjects.add(taskTwo)
-        ArtifactsTaskPage(refreshCallback = { /*TODO*/ }, drugs = taskObjects)
+        ArtifactsTaskPage(refreshCallback = { */
+/*TODO*//*
+ }, drugs = taskObjects)
     }
-}
+}*/
