@@ -13,8 +13,6 @@ import android.widget.ListView
 import android.widget.SearchView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-/*import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier*/
 import androidx.preference.PreferenceManager
 
 import edu.nd.crc.paperanalyticaldevices.api.ArtifactsWebService
@@ -32,15 +30,14 @@ import androidx.activity.result.ActivityResult
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.border
+
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.material3.Button
+
 import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.ElevatedButton
@@ -51,43 +48,30 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.Alignment
+
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.icons.filled.ArrowForward
+
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.PlayArrow
+
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
+
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.RectangleShape
+
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import edu.nd.crc.paperanalyticaldevices.api.ArtifactsAPIService
-import edu.nd.crc.paperanalyticaldevices.api.AuthResponse
+
 import edu.nd.crc.paperanalyticaldevices.ui.theme.CombinedAndroidTheme
-import kotlinx.coroutines.launch
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.Field
-import retrofit2.http.FormUrlEncoded
-import retrofit2.http.GET
-import retrofit2.http.Header
-import retrofit2.http.Headers
-import retrofit2.http.POST
-import retrofit2.http.Query
-import kotlin.math.exp
+
 
 
 class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
@@ -101,24 +85,22 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
     private val redirectUri = "https://pad.artifactsofresearch.io/"
     //"https://api-pad.artifactsofresearch.io"
     private var baseUrl: String = "api-pad.artifactsofresearch.io"
-            //: String? = null
 
     //private String clientId = "9xGhS62GK6JmxC7aB0PsiV0zJeWYhMxOOo3zEWtl";
     private val grantType = "authorization_code"
     var authToken: String = ""
     var authorized = false
 
-    //TextView authTokenView;
+
     var defaultPrefs: SharedPreferences? = null
     var tasks: TasksList? = null
     var taskObjects: ArrayList<ArtifactsTaskObject>? = null
 
-    //private List<String> taskStrings;
-    //private HashMap<String, List<String>> expandableDetailList;
+
     var taskListView: ListView? = null
     var adapter: TaskListBaseAdapter? = null
 
-    //private ExpandableTaskListAdapter expandableAdapter;
+
     var responseCallback: Callback<TasksList>? = null
     private var searchView: SearchView? = null
     private var searchMenuItem: MenuItem? = null
@@ -179,7 +161,7 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
                     grantType = grantType,
                     authVm = authVm,
                     taskVm = vm,
-                    startCamera = { startCamera() }
+                    onItemClicked = vm::selectTask
                 )
             }
         }
@@ -514,77 +496,7 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
     }
 }*/
 
-class ArtifactsAuthViewModel : ViewModel() {
-    private val _authToken = mutableStateOf("")
-    var errorMessage: String by mutableStateOf("")
-    val authToken: String
-        get() = _authToken.value
 
-    fun getAuth(baseUrl: String,
-                code: String,
-                codeVerifier: String,
-                redirectUri: String,
-                clientId: String,
-                grantType: String){
-        Log.d("ARTIFACTS", "authVm getAuth")
-        viewModelScope.launch {
-            val apiService = ArtifactsAPIService.getInstance(baseUrl = baseUrl)
-            try{
-                val authResponse = apiService.getAuth(clientId = clientId, code = code, codeVerifier = codeVerifier, redirectUri = redirectUri, grantType = grantType)
-                _authToken.value = authResponse.AccessToken
-                Log.d("ARTIFACTS", "Auth token: ${_authToken.value}")
-            }catch(e: Exception){
-                errorMessage = e.message.toString()
-            }
-        }
-    }
-}
-class ArtifactsTasksViewModel : ViewModel() {
-    private val _taskList = mutableStateListOf<TasksList>()
-    private val _taskObjects = mutableStateListOf<ArtifactsTaskObject>()
-    var errorMessage: String by mutableStateOf("")
-    val taskList: List<TasksList>
-        get() = _taskList
-
-    val taskObjects: List<ArtifactsTaskObject>
-        get() = _taskObjects
-
-    fun getTasksList(token: String, baseUrl: String, page: Int){
-        Log.d("ARTIFACTS", "getTasksList")
-        Log.d("ARTIFACTS", "Token: $token, baseUrl: $baseUrl")
-        viewModelScope.launch {
-            val apiService = ArtifactsAPIService.getInstance(baseUrl = baseUrl)
-            try{
-                _taskList.clear()
-                _taskList.add(apiService.getTasks(token = "Bearer $token", status = "awaiting", page = page))
-                //_taskList.add(apiService.getDefaultTasks(token = "Bearer $token"))
-            }catch(e: Exception){
-                errorMessage = e.message.toString()
-            }
-        }
-    }
-
-    fun getResultsAsObjects(): List<ArtifactsTaskObject> {
-        _taskObjects.clear()
-        for(t in _taskList){
-            for(r in t.Results){
-                var obj = ArtifactsTaskObject()
-                obj.id = r.Id
-                obj.drug = r.MainAPIs[0].Name
-                obj.dosage = r.Dosage + " " + r.dosageType.Name
-                if(null != r.Manufacturer){
-                    obj.manufacturer = r.Manufacturer.Name
-                }else{
-                    obj.manufacturer = ""
-                }
-
-                obj.sampleId = r.Sample
-                _taskObjects.add(obj)
-            }
-        }
-        return _taskObjects
-    }
-}
 
 
 
@@ -598,18 +510,21 @@ fun ArtifactsLoginView(modifier: Modifier = Modifier,
                        grantType: String,
                        authVm: ArtifactsAuthViewModel,
                        taskVm: ArtifactsTasksViewModel,
-                       startCamera: () -> Unit ){
+                       onItemClicked: (ArtifactsTaskDisplayModel) -> Unit ){
 
     LaunchedEffect(Unit, block = {
         authVm.getAuth(baseUrl, code, codeVerifier, redirectUri, clientId, grantType)
     })
 
     //var authorized by rememberSaveable { mutableStateOf(false) }
+    var selectedTaskId by remember { mutableStateOf(0) }
+
     Surface() {
         if(authVm.authToken.isNotEmpty()){
             Log.d("ARTIFACTS", "baseUrl $baseUrl")
             Log.d("ARTIFACTS", "auth token ${authVm.authToken}")
-            ArtifactsTaskView(vm = taskVm, token = authVm.authToken, baseUrl = baseUrl, startCamera = startCamera)
+            ArtifactsTaskView(vm = taskVm, token = authVm.authToken, baseUrl = baseUrl,
+                onItemClicked = onItemClicked)
         }else{
             Column() {
                 Row() {
@@ -632,7 +547,8 @@ fun ArtifactsLoginView(modifier: Modifier = Modifier,
 }
 
 @Composable
-fun ArtifactsTaskListItem(modifier: Modifier = Modifier, task: ArtifactsTaskObject, startCamera: () -> Unit){
+fun ArtifactsTaskListItem(modifier: Modifier = Modifier, task: ArtifactsTaskDisplayModel,
+                          onItemClicked: (ArtifactsTaskDisplayModel) -> Unit){
     var expanded by rememberSaveable { mutableStateOf(false) }
 
     val context = LocalContext.current
@@ -655,7 +571,8 @@ fun ArtifactsTaskListItem(modifier: Modifier = Modifier, task: ArtifactsTaskObje
                         expanded = !expanded
                     }
                 ) {
-                    Icon(imageVector = if(expanded) Icons.Default.KeyboardArrowRight else Icons.Default.KeyboardArrowDown, contentDescription = "Expand")
+                    Icon(imageVector = if(expanded) Icons.Default.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
+                        contentDescription = "Expand")
                 }
                 Column(modifier = Modifier.padding(horizontal = 4.dp)) {
                     Text(text = "ID:")
@@ -672,7 +589,7 @@ fun ArtifactsTaskListItem(modifier: Modifier = Modifier, task: ArtifactsTaskObje
                 ElevatedButton(onClick =
                     //{cameraResult.launch(Intent(this, Camera2Activity::class.java))}
                     //{context.startActivity( Intent(context, Camera2Activity::class.java))}
-                    startCamera
+                { onItemClicked(task) }
                 ) {
                     Text(text = "Test")
                 }
@@ -685,7 +602,7 @@ fun ArtifactsTaskListItem(modifier: Modifier = Modifier, task: ArtifactsTaskObje
 }
 
 @Composable
-fun ArtifactsTaskListItemDetail(modifier: Modifier = Modifier, task: ArtifactsTaskObject){
+fun ArtifactsTaskListItemDetail(modifier: Modifier = Modifier, task: ArtifactsTaskDisplayModel){
     Row(modifier = Modifier
         .padding(4.dp)
         .fillMaxWidth()) {
@@ -701,7 +618,7 @@ fun ArtifactsTaskListItemDetail(modifier: Modifier = Modifier, task: ArtifactsTa
             //Text(text = task.drug)
             Text(text = task.id.toString())
             Text(text = task.manufacturer)
-            Text(text = task.dosage)
+            Text(text = task.dose)
         }
     }
 }
@@ -710,12 +627,15 @@ fun ArtifactsTaskListItemDetail(modifier: Modifier = Modifier, task: ArtifactsTa
 @Composable
 fun ArtifactsTaskListItemDetailsPreview(){
     CombinedAndroidTheme() {
-        var taskOne = ArtifactsTaskObject()
+        /*var taskOne = ArtifactsTaskObject()
         taskOne.id = 89
         taskOne.sampleId = "22ETCL-17"
         taskOne.drug = "Acetaminophen"
         taskOne.manufacturer = "Pfizer"
-        taskOne.dosage = "12.0"
+        taskOne.dosage = "12.0"*/
+        var taskOne = ArtifactsTaskDisplayModel(id = 89, sampleId = "22ETCL-17",
+            drug = "Acetaminophen", manufacturer = "Pfizer", dose = "12.00 mg",
+            initialSelectedValue = false)
         ArtifactsTaskListItemDetail(task = taskOne)
     }
 }
@@ -724,13 +644,10 @@ fun ArtifactsTaskListItemDetailsPreview(){
 @Composable
 fun AtrifactsTaskListItemPreview(){
     CombinedAndroidTheme() {
-        var taskOne = ArtifactsTaskObject()
-        taskOne.id = 89
-        taskOne.sampleId = "22ETCL-17"
-        taskOne.drug = "Acetaminophen"
-        taskOne.manufacturer = "Pfizer"
-        taskOne.dosage = "12.0"
-        ArtifactsTaskListItem(task = taskOne, startCamera = {})
+        var taskOne = ArtifactsTaskDisplayModel(id = 89, sampleId = "22ETCL-17",
+            drug = "Acetaminophen", manufacturer = "Pfizer", dose = "12.00 mg",
+            initialSelectedValue = false)
+        ArtifactsTaskListItem(task = taskOne, onItemClicked = {})
 
     }
 
@@ -738,11 +655,11 @@ fun AtrifactsTaskListItemPreview(){
 
 @Composable
 fun ArtifactsTaskList(modifier: Modifier = Modifier,
-                      drugs: List<ArtifactsTaskObject> = List<ArtifactsTaskObject>(100){ ArtifactsTaskObject() },
-                      startCamera: () -> Unit){
+                      drugs: List<ArtifactsTaskDisplayModel> ,
+                      onItemClicked: (ArtifactsTaskDisplayModel) -> Unit){
     LazyColumn(modifier = modifier.padding(vertical = 4.dp)){
-        items(items = drugs){drug ->
-            ArtifactsTaskListItem(task = drug, startCamera = startCamera)
+        items(items = drugs, key = { it.id }){drug ->
+            ArtifactsTaskListItem(task = drug, onItemClicked = onItemClicked)
         }
     }
 }
@@ -753,41 +670,41 @@ fun ArtifactsTaskListPreview(){
 
     //var tasks = List<ArtifactsTaskObject>(3)
     CombinedAndroidTheme() {
-        var taskObjects = ArrayList<ArtifactsTaskObject>()
-        var taskOne = ArtifactsTaskObject()
-        taskOne.id = 1
-        taskOne.sampleId = "22ETCL-17"
-        taskOne.drug = "Diphenhydramine"
-        taskOne.manufacturer = "Pfizer"
-        taskOne.dosage = "12.00000"
+        var taskObjects = ArrayList<ArtifactsTaskDisplayModel>()
+        var taskOne = ArtifactsTaskDisplayModel(id = 89, sampleId = "22ETCL-17",
+            drug = "Acetaminophen", manufacturer = "Pfizer", dose = "12.00 mg",
+            initialSelectedValue = false)
         taskObjects.add(taskOne)
-        var taskTwo = ArtifactsTaskObject()
-        taskTwo.id = 2
-        taskTwo.sampleId = "22ETCL-18"
-        taskTwo.drug = "Acetaminophen"
-        taskTwo.manufacturer = "Teva"
-        taskTwo.dosage = "100.000"
+        var taskTwo = ArtifactsTaskDisplayModel(id = 89, sampleId = "22ETCL-27",
+            drug = "Albuterol", manufacturer = "Pfizer", dose = "1.00 mg",
+            initialSelectedValue = false)
         taskObjects.add(taskTwo)
-        ArtifactsTaskList(drugs = taskObjects, startCamera = {})
+        ArtifactsTaskList(drugs = taskObjects, onItemClicked = {})
     }
 
 }
 
 @Composable
-fun ArtifactsTaskView(modifier: Modifier = Modifier, vm: ArtifactsTasksViewModel, token: String, baseUrl: String, startCamera: () -> Unit){
+fun ArtifactsTaskView(modifier: Modifier = Modifier, vm: ArtifactsTasksViewModel,
+                      token: String, baseUrl: String,
+                      onItemClicked: (ArtifactsTaskDisplayModel) -> Unit){
     Surface() {
         Column {
-            Row(modifier = Modifier.padding(8.dp).fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+            Row(modifier = Modifier.padding(8.dp).fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center) {
                 Text(text = "ARTIFACTS")
             }
             Divider()
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+            Row(modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center) {
                 Text(text = "Tasks")
             }
-            BasicTextField( value = "Search", onValueChange = {})
+            BasicTextField(modifier = Modifier.fillMaxWidth(),
+                value = "Search", onValueChange = {})
             if(vm.errorMessage.isEmpty()){
-                vm.getResultsAsObjects()
-                ArtifactsTaskList(modifier = Modifier.weight(1f), drugs = vm.taskObjects, startCamera = startCamera)
+                //vm.getResultsAsObjects()
+                ArtifactsTaskList(modifier = Modifier.weight(1f),
+                    drugs = vm.taskList, onItemClicked = onItemClicked)
             }else{
                 Text(text = vm.errorMessage)
             }
@@ -795,7 +712,8 @@ fun ArtifactsTaskView(modifier: Modifier = Modifier, vm: ArtifactsTasksViewModel
                 .padding(8.dp)
                 .fillMaxWidth(1f), horizontalArrangement = Arrangement.Center) {
                 IconButton(onClick = { /*TODO*/ }) {
-                    Icon(imageVector = Icons.Default.KeyboardArrowLeft, contentDescription = "Previous page")
+                    Icon(imageVector = Icons.Default.KeyboardArrowLeft,
+                        contentDescription = "Previous page")
                 }
                 ElevatedButton(
                     onClick = {
@@ -805,7 +723,8 @@ fun ArtifactsTaskView(modifier: Modifier = Modifier, vm: ArtifactsTasksViewModel
                     Text(text = "REFRESH")
                 }
                 IconButton(onClick = { /*TODO*/ }) {
-                    Icon(imageVector = Icons.Default.KeyboardArrowRight, contentDescription = "Next page")
+                    Icon(imageVector = Icons.Default.KeyboardArrowRight,
+                        contentDescription = "Next page")
                 }
             }
         }
@@ -817,16 +736,18 @@ fun ArtifactsTaskView(modifier: Modifier = Modifier, vm: ArtifactsTasksViewModel
 fun ArtifactswTaskViewPreview(){
     val vm = ArtifactsTasksViewModel()
     CombinedAndroidTheme() {
-        ArtifactsTaskView(vm = vm, token = "", baseUrl = "", startCamera = {})
+        ArtifactsTaskView(vm = vm, token = "", baseUrl = "", onItemClicked = {})
     }
 }
 
 /*@Composable
-fun ArtifactsTaskPage(refreshCallback: () -> Unit, modifier: Modifier = Modifier, drugs: List<ArtifactsTaskObject> = List<ArtifactsTaskObject>(100){ ArtifactsTaskObject() }){
+fun ArtifactsTaskPage(refreshCallback: () -> Unit, modifier: Modifier = Modifier,
+drugs: List<ArtifactsTaskObject> = List<ArtifactsTaskObject>(100){ ArtifactsTaskObject() }){
     Surface() {
         Column {
             Text(text = "Tasks")
-            ArtifactsTaskList(modifier = Modifier.weight(1f), drugs = drugs, startCamera = startCamera)
+            ArtifactsTaskList(modifier = Modifier.weight(1f),
+            drugs = drugs, startCamera = startCamera)
             Spacer(modifier = Modifier)
             Row(modifier = Modifier
                 .padding(8.dp)
