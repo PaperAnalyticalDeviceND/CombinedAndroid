@@ -43,13 +43,10 @@ class ArtifactsTaskDisplayModel(val id: Int, val sampleId: String, val drug: Str
 
 class ArtifactsTasksViewModel : ViewModel() {
     private val _taskList = mutableStateListOf<ArtifactsTaskDisplayModel>()
-    //private val _taskObjects = mutableStateListOf<ArtifactsTaskObject>()
+
     var errorMessage: String by mutableStateOf("")
     val taskList: List<ArtifactsTaskDisplayModel>
         get() = _taskList
-
-    //val taskObjects: List<ArtifactsTaskObject>
-    //    get() = _taskObjects
 
     fun getTasksList(token: String, baseUrl: String, page: Int){
         Log.d("ARTIFACTS", "getTasksList")
@@ -77,12 +74,15 @@ class ArtifactsTasksViewModel : ViewModel() {
 
             taskCollection.add(obj)
         }
-
         return taskCollection
     }
 
     fun selectTask(selectedTask: ArtifactsTaskDisplayModel){
         _taskList.forEach { it.selected = false }
         _taskList.find { it.id == selectedTask.id }?.selected = true
+    }
+
+    fun getSelected(): ArtifactsTaskDisplayModel? {
+        return _taskList.find{ it.selected }
     }
 }

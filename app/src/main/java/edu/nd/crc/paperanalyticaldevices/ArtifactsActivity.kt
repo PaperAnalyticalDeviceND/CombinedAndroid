@@ -30,6 +30,7 @@ import androidx.activity.result.ActivityResult
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.clickable
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -112,7 +113,7 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
             val intent = result.data
 
         }
-        Log.d("ARTIFACTS", "Result from activity")
+        Log.d("ARTIFACTS", "Result from activity ${result.resultCode}")
     }
 
     override fun onCreate(savedInstanceState: Bundle?){
@@ -161,14 +162,16 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
                     grantType = grantType,
                     authVm = authVm,
                     taskVm = vm,
-                    onItemClicked = vm::selectTask
+                    onItemClicked = vm::selectTask,
+                    startCamera =  this::startCamera
                 )
             }
         }
     }
 
-    fun startCamera(){
+    fun startCamera(task: ArtifactsTaskDisplayModel){
         Log.d("ARTIFACTS", "In startCamera")
+        Log.d("ARTIFACTS", "Task: ${task.sampleId}")
         cameraResult.launch(Intent(this, Camera2Activity::class.java))
     }
 
@@ -510,7 +513,8 @@ fun ArtifactsLoginView(modifier: Modifier = Modifier,
                        grantType: String,
                        authVm: ArtifactsAuthViewModel,
                        taskVm: ArtifactsTasksViewModel,
-                       onItemClicked: (ArtifactsTaskDisplayModel) -> Unit ){
+                       onItemClicked: (ArtifactsTaskDisplayModel) -> Unit,
+                       startCamera: (ArtifactsTaskDisplayModel) -> Unit){
 
     LaunchedEffect(Unit, block = {
         authVm.getAuth(baseUrl, code, codeVerifier, redirectUri, clientId, grantType)
@@ -524,7 +528,7 @@ fun ArtifactsLoginView(modifier: Modifier = Modifier,
             Log.d("ARTIFACTS", "baseUrl $baseUrl")
             Log.d("ARTIFACTS", "auth token ${authVm.authToken}")
             ArtifactsTaskView(vm = taskVm, token = authVm.authToken, baseUrl = baseUrl,
-                onItemClicked = onItemClicked)
+                onItemClicked = onItemClicked, startCamera = startCamera)
         }else{
             Column() {
                 Row() {
@@ -548,13 +552,14 @@ fun ArtifactsLoginView(modifier: Modifier = Modifier,
 
 @Composable
 fun ArtifactsTaskListItem(modifier: Modifier = Modifier, task: ArtifactsTaskDisplayModel,
-                          onItemClicked: (ArtifactsTaskDisplayModel) -> Unit){
+                          onItemClicked: (ArtifactsTaskDisplayModel) -> Unit,
+                          startCamera: (ArtifactsTaskDisplayModel) -> Unit){
     var expanded by rememberSaveable { mutableStateOf(false) }
 
     val context = LocalContext.current
 
-    Surface(color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(4.dp)
+    Surface(color = if(task.selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
+        modifier = Modifier.padding(4.dp).clickable(true, onClick = {onItemClicked(task)})
     ) {
         Column(){
             Row(modifier = Modifier
@@ -586,12 +591,14 @@ fun ArtifactsTaskListItem(modifier: Modifier = Modifier, task: ArtifactsTaskDisp
                 }
                 //Text(text = "ID:", modifier = Modifier.padding(8.dp))
                 //Text(text = task.sampleId, modifier = Modifier.padding(8.dp).weight(1f))
-                ElevatedButton(onClick =
+                if(task.selected){
+                    ElevatedButton(onClick =
                     //{cameraResult.launch(Intent(this, Camera2Activity::class.java))}
                     //{context.startActivity( Intent(context, Camera2Activity::class.java))}
-                { onItemClicked(task) }
-                ) {
-                    Text(text = "Test")
+                        { startCamera(task) }
+                    ) {
+                        Text(text = "Test")
+                    }
                 }
             }
             if(expanded) {
@@ -647,7 +654,7 @@ fun AtrifactsTaskListItemPreview(){
         var taskOne = ArtifactsTaskDisplayModel(id = 89, sampleId = "22ETCL-17",
             drug = "Acetaminophen", manufacturer = "Pfizer", dose = "12.00 mg",
             initialSelectedValue = false)
-        ArtifactsTaskListItem(task = taskOne, onItemClicked = {})
+        ArtifactsTaskListItem(task = taskOne, onItemClicked = {}, startCamera = {})
 
     }
 
@@ -656,10 +663,11 @@ fun AtrifactsTaskListItemPreview(){
 @Composable
 fun ArtifactsTaskList(modifier: Modifier = Modifier,
                       drugs: List<ArtifactsTaskDisplayModel> ,
-                      onItemClicked: (ArtifactsTaskDisplayModel) -> Unit){
+                      onItemClicked: (ArtifactsTaskDisplayModel) -> Unit,
+                      startCamera: (ArtifactsTaskDisplayModel) -> Unit){
     LazyColumn(modifier = modifier.padding(vertical = 4.dp)){
         items(items = drugs, key = { it.id }){drug ->
-            ArtifactsTaskListItem(task = drug, onItemClicked = onItemClicked)
+            ArtifactsTaskListItem(task = drug, onItemClicked = onItemClicked, startCamera = startCamera)
         }
     }
 }
@@ -679,7 +687,7 @@ fun ArtifactsTaskListPreview(){
             drug = "Albuterol", manufacturer = "Pfizer", dose = "1.00 mg",
             initialSelectedValue = false)
         taskObjects.add(taskTwo)
-        ArtifactsTaskList(drugs = taskObjects, onItemClicked = {})
+        ArtifactsTaskList(drugs = taskObjects, onItemClicked = {}, startCamera = {})
     }
 
 }
@@ -687,7 +695,8 @@ fun ArtifactsTaskListPreview(){
 @Composable
 fun ArtifactsTaskView(modifier: Modifier = Modifier, vm: ArtifactsTasksViewModel,
                       token: String, baseUrl: String,
-                      onItemClicked: (ArtifactsTaskDisplayModel) -> Unit){
+                      onItemClicked: (ArtifactsTaskDisplayModel) -> Unit,
+                      startCamera: (ArtifactsTaskDisplayModel) -> Unit){
     Surface() {
         Column {
             Row(modifier = Modifier.padding(8.dp).fillMaxWidth(),
@@ -704,7 +713,7 @@ fun ArtifactsTaskView(modifier: Modifier = Modifier, vm: ArtifactsTasksViewModel
             if(vm.errorMessage.isEmpty()){
                 //vm.getResultsAsObjects()
                 ArtifactsTaskList(modifier = Modifier.weight(1f),
-                    drugs = vm.taskList, onItemClicked = onItemClicked)
+                    drugs = vm.taskList, onItemClicked = onItemClicked, startCamera = startCamera)
             }else{
                 Text(text = vm.errorMessage)
             }
@@ -736,7 +745,7 @@ fun ArtifactsTaskView(modifier: Modifier = Modifier, vm: ArtifactsTasksViewModel
 fun ArtifactswTaskViewPreview(){
     val vm = ArtifactsTasksViewModel()
     CombinedAndroidTheme() {
-        ArtifactsTaskView(vm = vm, token = "", baseUrl = "", onItemClicked = {})
+        ArtifactsTaskView(vm = vm, token = "", baseUrl = "", onItemClicked = {}, startCamera = {})
     }
 }
 
