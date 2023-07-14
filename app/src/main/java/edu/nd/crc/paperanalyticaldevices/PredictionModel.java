@@ -279,38 +279,49 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
         try {
             String projectFolder;
 
-            String[] selectedNetworks = new String[]{sharedPreferences.getString("neuralnet", ""), sharedPreferences.getString("secondary", "")};
+            String[] selectedNetworks = new String[]{sharedPreferences.getString("neuralnet", ""),
+                    sharedPreferences.getString("secondary", "")};
           for(String selected : selectedNetworks){
               //switch (sharedPreferences.getString("neuralnet", "")) {
               // leave the old values for backwards compatibility, but use new values in default case
             switch (selected) {
                 case "Veripad idPAD":
                     //projectFolder = subId;
-                    File idpadFile = new File(getApplication().getApplicationContext().getDir("tflitemodels", Context.MODE_PRIVATE).getPath(), sharedPreferences.getString(subId + "filename", idPadName));
+                    File idpadFile = new File(getApplication().getApplicationContext()
+                            .getDir("tflitemodels", Context.MODE_PRIVATE).getPath(),
+                            sharedPreferences.getString(subId + "filename", idPadName));
                     if(idpadFile.exists()) {
                         MainActivity.setSemaphore(true);
-                        networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(), sharedPreferences.getString(subId + "filename", idPadName)));
+                        networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(),
+                                sharedPreferences.getString(subId + "filename", idPadName)));
                     }else{
                         DownloadModels(sharedPreferences);
                     }
                     break;
                 case "MSH Tanzania":
                     //projectFolder = subMsh;
-                    File mshFile = new File(getApplication().getApplicationContext().getDir("tflitemodels", Context.MODE_PRIVATE).getPath(), sharedPreferences.getString(subMsh + "filename", mshName));
+                    File mshFile = new File(getApplication().getApplicationContext()
+                            .getDir("tflitemodels", Context.MODE_PRIVATE).getPath(),
+                            sharedPreferences.getString(subMsh + "filename", mshName));
                     if(mshFile.exists()) {
                         MainActivity.setSemaphore(true);
-                        networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(), sharedPreferences.getString(subMsh + "filename", mshName)));
+                        networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(),
+                                sharedPreferences.getString(subMsh + "filename", mshName)));
                     }else{
                         DownloadModels(sharedPreferences);
                     }
                     break;
                 //default:
                 case "FHI360-App":
-                    File fhiFile = new File(getApplication().getApplicationContext().getDir("tflitemodels", Context.MODE_PRIVATE).getPath(), sharedPreferences.getString(subFhi + "filename", fhiName));
+                    File fhiFile = new File(getApplication().getApplicationContext()
+                            .getDir("tflitemodels", Context.MODE_PRIVATE).getPath(),
+                            sharedPreferences.getString(subFhi + "filename", fhiName));
                     if(fhiFile.exists()) {
                         MainActivity.setSemaphore(true);
-                        networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(), sharedPreferences.getString(subFhi + "filename", fhiName)));
-                        networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(), sharedPreferences.getString(subFhiConc + "filename", fhiConcName)));
+                        networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(),
+                                sharedPreferences.getString(subFhi + "filename", fhiName)));
+                        networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(),
+                                sharedPreferences.getString(subFhiConc + "filename", fhiConcName)));
                         if (pls == null) {
                             pls = PartialLeastSquares.from(getApplication().getApplicationContext());
                         }
@@ -324,10 +335,13 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                     break;
 
                 default:
-                    File networkFile = new File(getApplication().getApplicationContext().getDir("tflitemodels", Context.MODE_PRIVATE).getPath(), sharedPreferences.getString(selected + "filename", "notafile"));
+                    File networkFile = new File(getApplication().getApplicationContext()
+                            .getDir("tflitemodels", Context.MODE_PRIVATE).getPath(),
+                            sharedPreferences.getString(selected + "filename", "notafile"));
                     if(networkFile.exists()){
                         MainActivity.setSemaphore(true);
-                        networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(), sharedPreferences.getString(selected + "filename", "")));
+                        networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(),
+                                sharedPreferences.getString(selected + "filename", "")));
 
                         Boolean usePls = sharedPreferences.getBoolean("pls", false);
                         if(usePls && pls == null){

@@ -4,6 +4,8 @@ import android.app.Activity
 import android.app.SearchManager
 import android.content.Intent
 import android.content.SharedPreferences
+import android.database.Cursor
+import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -11,68 +13,60 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.ListView
 import android.widget.SearchView
+import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.preference.PreferenceManager
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import androidx.preference.PreferenceManager
 import edu.nd.crc.paperanalyticaldevices.api.ArtifactsWebService
 import edu.nd.crc.paperanalyticaldevices.api.TasksList
 import edu.nd.crc.paperanalyticaldevices.api.utils.ProgressInterceptor
 import edu.nd.crc.paperanalyticaldevices.api.utils.ResponseCallBack
+import edu.nd.crc.paperanalyticaldevices.ui.theme.CombinedAndroidTheme
 import okhttp3.OkHttpClient
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.IOException
-import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.ActivityResult
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.foundation.clickable
-
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Arrangement
-
-import androidx.compose.material3.IconButton
-import androidx.compose.material.icons.Icons
-import androidx.compose.material3.ElevatedButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
-
-import androidx.compose.ui.Modifier
-
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.BasicTextField
-
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
-
-import androidx.compose.material3.Divider
-import androidx.compose.material3.Icon
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
-
-import androidx.compose.runtime.saveable.rememberSaveable
-
-import androidx.compose.ui.platform.LocalContext
-
-import edu.nd.crc.paperanalyticaldevices.ui.theme.CombinedAndroidTheme
-
 
 
 class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
@@ -108,17 +102,36 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
 
     var taskPage: Int = 1
 
+    private var selectedTask: ArtifactsTaskDisplayModel? = null
+
+    private var tensorflowView: PredictionModel? = null
+
+    //ProjectsDbHelper dbHelper
+    var dbHelper: ProjectsDbHelper? = null
+    //SQLiteDatabase db
+    var db: SQLiteDatabase? = null
+
+    var networksForDrug: ArrayList<String>? = null
+
+    var testPressed: Boolean = false
+
     val cameraResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){ result: ActivityResult ->
         if(result.resultCode == Activity.RESULT_OK){
             val intent = result.data
 
+            //tensorflowView.LoadModel(defaultPrefs, )
         }
         Log.d("ARTIFACTS", "Result from activity ${result.resultCode}")
+        Log.d("ARTIFACTS", "Selected Task: ${selectedTask?.sampleId}")
     }
 
     override fun onCreate(savedInstanceState: Bundle?){
         super.onCreate(savedInstanceState)
         defaultPrefs = PreferenceManager.getDefaultSharedPreferences(baseContext)
+
+        dbHelper = ProjectsDbHelper(this)
+        db = dbHelper?.readableDatabase
+
         val deeplinkIntent = intent
         val host = deeplinkIntent.data!!.host
         taskObjects = ArrayList()
@@ -143,17 +156,71 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
         val vm = ArtifactsTasksViewModel()
         //vm.getTasksList(authToken, "https://$baseUrl", 1)
         val authVm = ArtifactsAuthViewModel()
+        val netVm = NetworksViewModel()
 
-        /*setContent{
-            CombinedAndroidTheme {
-                ArtifactsTaskPage(refreshCallback = {vm.getTasksList(authToken,
-                    "https://$baseUrl", 1)} , drugs = vm.getResultsAsObjects())
+
+        tensorflowView = ViewModelProvider(owner = this)[PredictionModel::class.java]
+
+        tensorflowView!!.result.observe(this, Observer<PredictionModel.Result>(){
+            fun onChanged(result: PredictionModel.Result?) {
+                Log.d("ARTIFACTS", "PredictionModel Observer onChanged")
+                var intent = Intent(this, ResultActivity::class.java)
+                intent.data = result!!.RectifiedImage
+                intent.putExtra(MainActivity.EXTRA_PREDICTED, result.Predicted)
+                if (result.QRCode.isPresent) intent.putExtra(
+                    MainActivity.EXTRA_SAMPLEID,
+                    result.QRCode.get()
+                )
+                if (result.Timestamp.isPresent) intent.putExtra(
+                    MainActivity.EXTRA_TIMESTAMP,
+                    result.Timestamp.get()
+                )
+                if (result.Labels.size > 0) intent.putExtra(
+                    MainActivity.EXTRA_LABEL_DRUGS,
+                    result.Labels
+                )
+
+                intent.putExtra(MainActivity.EXTRA_NN_CONC, result.Concentration)
+                intent.putExtra(MainActivity.EXTRA_PREDICTED_DRUG, result.PredictedDrug)
+                intent.putExtra(MainActivity.EXTRA_PLS_CONC, result.PLS)
+                intent.putExtra(MainActivity.EXTRA_PROBABILITY, result.Probability)
+                if (tensorflowView!!.usePls) {
+                    intent.putExtra(MainActivity.EXTRA_PLS_USED, true)
+                } else {
+                    intent.putExtra(MainActivity.EXTRA_PLS_USED, false)
+                }
+                intent.putExtra(MainActivity.EXTRA_STATED_DRUG, vm.getSelected()?.drug)
+                intent.putExtra(MainActivity.EXTRA_STATED_CONC, 100)
+
+                startActivity(intent)
             }
-        }*/
+        })
+
         setContent {
             CombinedAndroidTheme {
                 //ArtifactsTaskView(vm = vm, token = authToken, baseUrl = "https://$baseUrl")
-                ArtifactsLoginView(
+                /*if(testPressed){
+                    NetworkListView(
+                        networkViewModel = netVm,
+                        taskViewModel = vm,
+                        dbHelper = dbHelper!!,
+                        onItemClicked = netVm::selectNetwork
+                    )
+                }else{
+                    ArtifactsLoginView(
+                        baseUrl = "https://$baseUrl",
+                        clientId = clientId,
+                        redirectUri = redirectUri,
+                        code = code,
+                        codeVerifier = codeVerifier,
+                        grantType = grantType,
+                        authVm = authVm,
+                        taskVm = vm,
+                        onItemClicked = vm::selectTask,
+                        testPressed =  this::pressedTestButton
+                    )
+                }*/
+                ArtifactsMainView(
                     baseUrl = "https://$baseUrl",
                     clientId = clientId,
                     redirectUri = redirectUri,
@@ -162,17 +229,43 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
                     grantType = grantType,
                     authVm = authVm,
                     taskVm = vm,
+                    networksVm = netVm,
+                    dbHelper = dbHelper!!,
                     onItemClicked = vm::selectTask,
-                    startCamera =  this::startCamera
+                    testPressed = vm::confirmTask,
+                    onNetworkPressed = netVm::selectNetwork
                 )
             }
         }
     }
 
     fun startCamera(task: ArtifactsTaskDisplayModel){
+        testPressed = false
         Log.d("ARTIFACTS", "In startCamera")
         Log.d("ARTIFACTS", "Task: ${task.sampleId}")
+        // Store the selected task so we can refernce it when we handle the camera activity result
+        selectedTask = task
         cameraResult.launch(Intent(this, Camera2Activity::class.java))
+    }
+
+    fun pressedTestButton(task: ArtifactsTaskDisplayModel){
+        //networksForDrug = getNetworksForDrug(task = task)
+
+        testPressed = true
+    }
+
+    fun getNetworksForDrug(task: ArtifactsTaskDisplayModel): ArrayList<String>{
+        selectedTask = task
+        var networks = ArrayList<String>()
+
+        var cursor: Cursor? = db?.rawQuery("SELECT DISTINCT(${DrugsContract.DrugsEntry.COLUMN_NAME_NETWORK}) from ${DrugsContract.DrugsEntry.TABLE_NAME} WHERE ${DrugsContract.DrugsEntry.COLUMN_NAME_DRUGNAME} = ${task.drug}", null)
+
+        if (cursor != null) {
+            while(cursor.moveToNext()){
+                networks.add(cursor.getString(cursor.getColumnIndexOrThrow(DrugsContract.DrugsEntry.COLUMN_NAME_NETWORK)))
+            }
+        }
+        return networks
     }
 
     fun onCreateOld(savedInstanceState: Bundle?) {
@@ -514,7 +607,7 @@ fun ArtifactsLoginView(modifier: Modifier = Modifier,
                        authVm: ArtifactsAuthViewModel,
                        taskVm: ArtifactsTasksViewModel,
                        onItemClicked: (ArtifactsTaskDisplayModel) -> Unit,
-                       startCamera: (ArtifactsTaskDisplayModel) -> Unit){
+                       testPressed: (ArtifactsTaskDisplayModel) -> Unit){
 
     LaunchedEffect(Unit, block = {
         authVm.getAuth(baseUrl, code, codeVerifier, redirectUri, clientId, grantType)
@@ -528,7 +621,7 @@ fun ArtifactsLoginView(modifier: Modifier = Modifier,
             Log.d("ARTIFACTS", "baseUrl $baseUrl")
             Log.d("ARTIFACTS", "auth token ${authVm.authToken}")
             ArtifactsTaskView(vm = taskVm, token = authVm.authToken, baseUrl = baseUrl,
-                onItemClicked = onItemClicked, startCamera = startCamera)
+                onItemClicked = onItemClicked, testPressed = testPressed)
         }else{
             Column() {
                 Row() {
@@ -553,13 +646,15 @@ fun ArtifactsLoginView(modifier: Modifier = Modifier,
 @Composable
 fun ArtifactsTaskListItem(modifier: Modifier = Modifier, task: ArtifactsTaskDisplayModel,
                           onItemClicked: (ArtifactsTaskDisplayModel) -> Unit,
-                          startCamera: (ArtifactsTaskDisplayModel) -> Unit){
+                          testPressed: (ArtifactsTaskDisplayModel) -> Unit){
     var expanded by rememberSaveable { mutableStateOf(false) }
 
     val context = LocalContext.current
 
     Surface(color = if(task.selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
-        modifier = Modifier.padding(4.dp).clickable(true, onClick = {onItemClicked(task)})
+        modifier = Modifier
+            .padding(4.dp)
+            .clickable(true, onClick = { onItemClicked(task) })
     ) {
         Column(){
             Row(modifier = Modifier
@@ -595,7 +690,7 @@ fun ArtifactsTaskListItem(modifier: Modifier = Modifier, task: ArtifactsTaskDisp
                     ElevatedButton(onClick =
                     //{cameraResult.launch(Intent(this, Camera2Activity::class.java))}
                     //{context.startActivity( Intent(context, Camera2Activity::class.java))}
-                        { startCamera(task) }
+                        { testPressed(task) }
                     ) {
                         Text(text = "Test")
                     }
@@ -654,7 +749,7 @@ fun AtrifactsTaskListItemPreview(){
         var taskOne = ArtifactsTaskDisplayModel(id = 89, sampleId = "22ETCL-17",
             drug = "Acetaminophen", manufacturer = "Pfizer", dose = "12.00 mg",
             initialSelectedValue = false)
-        ArtifactsTaskListItem(task = taskOne, onItemClicked = {}, startCamera = {})
+        ArtifactsTaskListItem(task = taskOne, onItemClicked = {}, testPressed = {})
 
     }
 
@@ -664,10 +759,10 @@ fun AtrifactsTaskListItemPreview(){
 fun ArtifactsTaskList(modifier: Modifier = Modifier,
                       drugs: List<ArtifactsTaskDisplayModel> ,
                       onItemClicked: (ArtifactsTaskDisplayModel) -> Unit,
-                      startCamera: (ArtifactsTaskDisplayModel) -> Unit){
+                      testPressed: (ArtifactsTaskDisplayModel) -> Unit){
     LazyColumn(modifier = modifier.padding(vertical = 4.dp)){
         items(items = drugs, key = { it.id }){drug ->
-            ArtifactsTaskListItem(task = drug, onItemClicked = onItemClicked, startCamera = startCamera)
+            ArtifactsTaskListItem(task = drug, onItemClicked = onItemClicked, testPressed = testPressed)
         }
     }
 }
@@ -687,7 +782,7 @@ fun ArtifactsTaskListPreview(){
             drug = "Albuterol", manufacturer = "Pfizer", dose = "1.00 mg",
             initialSelectedValue = false)
         taskObjects.add(taskTwo)
-        ArtifactsTaskList(drugs = taskObjects, onItemClicked = {}, startCamera = {})
+        ArtifactsTaskList(drugs = taskObjects, onItemClicked = {}, testPressed = {})
     }
 
 }
@@ -696,10 +791,12 @@ fun ArtifactsTaskListPreview(){
 fun ArtifactsTaskView(modifier: Modifier = Modifier, vm: ArtifactsTasksViewModel,
                       token: String, baseUrl: String,
                       onItemClicked: (ArtifactsTaskDisplayModel) -> Unit,
-                      startCamera: (ArtifactsTaskDisplayModel) -> Unit){
+                      testPressed: (ArtifactsTaskDisplayModel) -> Unit){
     Surface() {
         Column {
-            Row(modifier = Modifier.padding(8.dp).fillMaxWidth(),
+            Row(modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center) {
                 Text(text = "ARTIFACTS")
             }
@@ -713,7 +810,7 @@ fun ArtifactsTaskView(modifier: Modifier = Modifier, vm: ArtifactsTasksViewModel
             if(vm.errorMessage.isEmpty()){
                 //vm.getResultsAsObjects()
                 ArtifactsTaskList(modifier = Modifier.weight(1f),
-                    drugs = vm.taskList, onItemClicked = onItemClicked, startCamera = startCamera)
+                    drugs = vm.taskList, onItemClicked = onItemClicked, testPressed = testPressed)
             }else{
                 Text(text = vm.errorMessage)
             }
@@ -745,7 +842,110 @@ fun ArtifactsTaskView(modifier: Modifier = Modifier, vm: ArtifactsTasksViewModel
 fun ArtifactswTaskViewPreview(){
     val vm = ArtifactsTasksViewModel()
     CombinedAndroidTheme() {
-        ArtifactsTaskView(vm = vm, token = "", baseUrl = "", onItemClicked = {}, startCamera = {})
+        ArtifactsTaskView(vm = vm, token = "", baseUrl = "", onItemClicked = {}, testPressed = {})
+    }
+}
+
+
+@Composable
+fun ArtifactsResultView(modifier: Modifier = Modifier, vm: ArtifactsTasksViewModel){
+    val task = vm.getSelected()
+    Surface(modifier = Modifier.fillMaxSize()) {
+        Column() {
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Text(text = task!!.sampleId)
+            }
+        }
+    }
+}
+
+@Composable
+fun NetworksList(modifier: Modifier = Modifier, networks: List<NetworksDisplayModel>, onItemClicked: (NetworksDisplayModel) -> Unit){
+    Surface() {
+        LazyColumn(modifier = modifier.padding(vertical = 4.dp)){
+            items(items = networks){ item ->
+                NetworksListItem(network = item, onItemClicked = onItemClicked)
+            }
+        }
+    }
+}
+
+@Composable
+fun NetworkListView(modifier: Modifier = Modifier, networkViewModel: NetworksViewModel, taskViewModel: ArtifactsTasksViewModel, dbHelper: ProjectsDbHelper, onItemClicked: (NetworksDisplayModel) -> Unit){
+    LaunchedEffect(Unit, block = {
+        networkViewModel.getNetworks(taskViewModel.getSelected()!!, dbHelper = dbHelper)
+    })
+
+    Surface(modifier = Modifier.padding(8.dp)){
+        Column() {
+            Text(text = "Select Neural Network")
+            NetworksList(networks = networkViewModel.networkList, onItemClicked = onItemClicked)
+        }
+    }
+}
+
+@Composable
+fun NetworksListItem(modifier: Modifier = Modifier, network: NetworksDisplayModel, onItemClicked: (NetworksDisplayModel) -> Unit){
+    Surface(modifier = Modifier.clickable(true,
+        onClick = {onItemClicked(network)}),
+        color = MaterialTheme.colorScheme.primary) {
+
+        Column(modifier = Modifier.padding(4.dp)) {
+            Row(modifier = Modifier
+                .padding(4.dp)
+                .fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                Text(text = network.network)
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 320, heightDp = 720)
+@Composable
+fun NetworksListPreview(){
+    CombinedAndroidTheme() {
+        val networks: Array<NetworksDisplayModel> = arrayOf(NetworksDisplayModel(network = "fh360", initialSelectedValue = false),
+            NetworksDisplayModel(network = "mzTanzania", initialSelectedValue = false),
+            NetworksDisplayModel(network = "idPads", initialSelectedValue = false))
+        NetworksList(networks = networks.toList(), onItemClicked = {})
+    }
+}
+
+@Composable
+fun ArtifactsMainView(modifier: Modifier = Modifier,
+                      baseUrl: String,
+                      clientId: String,
+                      redirectUri: String,
+                      code: String,
+                      codeVerifier: String,
+                      grantType: String,
+                      authVm: ArtifactsAuthViewModel,
+                      taskVm: ArtifactsTasksViewModel,
+                      networksVm: NetworksViewModel,
+                      dbHelper: ProjectsDbHelper,
+                      onItemClicked: (ArtifactsTaskDisplayModel) -> Unit,
+                      testPressed: (ArtifactsTaskDisplayModel) -> Unit,
+                      onNetworkPressed: (NetworksDisplayModel) -> Unit){
+    if(taskVm.taskConfirmed){
+        NetworkListView(
+            networkViewModel = networksVm,
+            taskViewModel = taskVm,
+            dbHelper = dbHelper,
+            onItemClicked = onNetworkPressed
+        )
+    }else{
+        ArtifactsLoginView(
+            baseUrl = baseUrl,
+            clientId = clientId,
+            redirectUri = redirectUri,
+            code = code,
+            codeVerifier = codeVerifier,
+            grantType = grantType,
+            authVm = authVm,
+            taskVm = taskVm,
+            onItemClicked = onItemClicked,
+            testPressed = testPressed
+        )
     }
 }
 
