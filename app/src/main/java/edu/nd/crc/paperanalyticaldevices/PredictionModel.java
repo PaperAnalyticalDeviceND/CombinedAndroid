@@ -103,6 +103,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
     }
 
     public void predict(final Intent data) {
+        Log.d("ARTIFACTS", "Predict");
         Uri resultStream = data.getData();
         if (resultStream != null) {
             try {
@@ -178,10 +179,12 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
 
                 retVal.RectifiedImage = Uri.fromFile(rectifiedFile);
                 retVal.Predicted = output_string.toString();
+                Log.d("ARTIFACTS", "Predicted: " + retVal.PredictedDrug);
                 if (data.hasExtra("qr")) retVal.QRCode = Optional.of(data.getExtras().getString("qr"));
                 if (data.hasExtra("timestamp")) retVal.Timestamp = Optional.of(timestamp);
 
                 resultData.setValue(retVal);
+
             } catch (Exception e) {
                 FirebaseCrashlytics.getInstance().recordException(e);
                 e.printStackTrace();
@@ -271,6 +274,30 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
         if(key.equals("secondary")){
             String secondary = sharedPreferences.getString("secondary", "");
             LoadModel(sharedPreferences, secondary);
+        }
+    }
+
+    public void LoadModelForArtifacts(SharedPreferences sharedPreferences, String network){
+        Log.d("ARTIFACTS", "Load model " + network);
+        try{
+            File networkFile = new File(getApplication().getApplicationContext()
+                    .getDir("tflitemodels", Context.MODE_PRIVATE).getPath(),
+                    sharedPreferences.getString(network + "filename", "notafile"));
+            if(networkFile.exists()){
+                MainActivity.setSemaphore(true);
+                networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(),
+                        sharedPreferences.getString(network + "filename", "")));
+
+                Boolean usePls = sharedPreferences.getBoolean("pls", false);
+                if(usePls && pls == null){
+                    pls = PartialLeastSquares.from(getApplication().getApplicationContext());
+                }
+            }else{
+                DownloadSpecifiedModel(sharedPreferences, network);
+            }
+        }catch(IOException e){
+            FirebaseCrashlytics.getInstance().recordException(e);
+            e.printStackTrace();
         }
     }
 

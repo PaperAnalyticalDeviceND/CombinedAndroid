@@ -289,7 +289,7 @@ fun ArtifactswTaskViewPreview(){
 }*/
 
 
-@Composable
+/*@Composable
 fun ArtifactsResultView(modifier: Modifier = Modifier, vm: ArtifactsTasksViewModel){
     val task = vm.getSelected()
     Surface(modifier = Modifier.fillMaxSize()) {
@@ -299,7 +299,7 @@ fun ArtifactsResultView(modifier: Modifier = Modifier, vm: ArtifactsTasksViewMod
             }
         }
     }
-}
+}*/
 
 @Composable
 fun NetworksList(modifier: Modifier = Modifier,
@@ -340,7 +340,10 @@ fun NetworksListItem(modifier: Modifier = Modifier,
     Surface(modifier = Modifier
         .padding(4.dp)
         .clickable(true,
-            onClick = { onItemClicked(taskVm.getSelected()!!, network) }),
+            onClick = {
+                onItemClicked(taskVm.getSelected()!!, network)
+                taskVm.clearConfirmation()
+            }),
         color = MaterialTheme.colorScheme.primary) {
 
         Row(modifier = Modifier

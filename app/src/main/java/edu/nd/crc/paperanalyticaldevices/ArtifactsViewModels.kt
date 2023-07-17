@@ -94,6 +94,10 @@ class ArtifactsTasksViewModel : ViewModel() {
         taskConfirmed = true
     }
 
+    fun clearConfirmation(){
+        taskConfirmed = false
+    }
+
     fun getSelected(): ArtifactsTaskDisplayModel? {
         return _taskList.find{ it.selected }
     }

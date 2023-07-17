@@ -117,13 +117,18 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
     //var testPressed: Boolean = false
 
     val cameraResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){ result: ActivityResult ->
-        if(result.resultCode == Activity.RESULT_OK){
-            val intent = result.data
 
-            //tensorflowView.LoadModel(defaultPrefs, )
-        }
         Log.d("ARTIFACTS", "Result from activity ${result.resultCode}")
         Log.d("ARTIFACTS", "Selected Task: ${selectedTask?.sampleId}")
+        Log.d("ARTIFACTS", "Selected network ${selectedNetwork!!.network}")
+        if(result.resultCode == Activity.RESULT_OK){
+            Log.d("ARTIFACTS", "Result OK")
+            val intent = result.data
+
+            tensorflowView!!.LoadModelForArtifacts(defaultPrefs, selectedNetwork!!.network)
+            tensorflowView!!.predict(intent)
+        }
+
     }
 
     override fun onCreate(savedInstanceState: Bundle?){
@@ -162,40 +167,44 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
 
         tensorflowView = ViewModelProvider(owner = this)[PredictionModel::class.java]
 
-        tensorflowView!!.result.observe(this, Observer<PredictionModel.Result>(){
-            fun onChanged(result: PredictionModel.Result?) {
-                Log.d("ARTIFACTS", "PredictionModel Observer onChanged")
-                var intent = Intent(this, ResultActivity::class.java)
-                intent.data = result!!.RectifiedImage
-                intent.putExtra(MainActivity.EXTRA_PREDICTED, result.Predicted)
-                if (result.QRCode.isPresent) intent.putExtra(
-                    MainActivity.EXTRA_SAMPLEID,
-                    result.QRCode.get()
-                )
-                if (result.Timestamp.isPresent) intent.putExtra(
-                    MainActivity.EXTRA_TIMESTAMP,
-                    result.Timestamp.get()
-                )
-                if (result.Labels.size > 0) intent.putExtra(
-                    MainActivity.EXTRA_LABEL_DRUGS,
-                    result.Labels
-                )
+        tensorflowView!!.result.observe(this) {
 
-                intent.putExtra(MainActivity.EXTRA_NN_CONC, result.Concentration)
-                intent.putExtra(MainActivity.EXTRA_PREDICTED_DRUG, result.PredictedDrug)
+            //fun onChanged(result: PredictionModel.Result?) {
+            val result = it
+            Log.d("ARTIFACTS", "PredictionModel Observer onChanged")
+            var intent = Intent(this, ResultActivity::class.java)
+            intent.data = result!!.RectifiedImage
+            intent.putExtra(MainActivity.EXTRA_PREDICTED, result.Predicted)
+            if (result.QRCode.isPresent) intent.putExtra(
+                MainActivity.EXTRA_SAMPLEID,
+                result.QRCode.get()
+            )
+            if (result.Timestamp.isPresent) intent.putExtra(
+                MainActivity.EXTRA_TIMESTAMP,
+                result.Timestamp.get()
+            )
+            if (result.Labels.size > 0) intent.putExtra(
+                MainActivity.EXTRA_LABEL_DRUGS,
+                result.Labels
+            )
+
+            intent.putExtra(MainActivity.EXTRA_NN_CONC, result.Concentration)
+            intent.putExtra(MainActivity.EXTRA_PREDICTED_DRUG, result.PredictedDrug)
+            if(result.PLS != null) {
                 intent.putExtra(MainActivity.EXTRA_PLS_CONC, result.PLS)
-                intent.putExtra(MainActivity.EXTRA_PROBABILITY, result.Probability)
-                if (tensorflowView!!.usePls) {
-                    intent.putExtra(MainActivity.EXTRA_PLS_USED, true)
-                } else {
-                    intent.putExtra(MainActivity.EXTRA_PLS_USED, false)
-                }
-                intent.putExtra(MainActivity.EXTRA_STATED_DRUG, vm.getSelected()?.drug)
-                intent.putExtra(MainActivity.EXTRA_STATED_CONC, 100)
-
-                startActivity(intent)
             }
-        })
+            intent.putExtra(MainActivity.EXTRA_PROBABILITY, result.Probability)
+            if (tensorflowView!!.usePls) {
+                intent.putExtra(MainActivity.EXTRA_PLS_USED, true)
+            } else {
+                intent.putExtra(MainActivity.EXTRA_PLS_USED, false)
+            }
+            intent.putExtra(MainActivity.EXTRA_STATED_DRUG, vm.getSelected()?.drug)
+            intent.putExtra(MainActivity.EXTRA_STATED_CONC, 100)
+
+            startActivity(intent)
+            // }
+        }
 
         setContent {
             CombinedAndroidTheme {
