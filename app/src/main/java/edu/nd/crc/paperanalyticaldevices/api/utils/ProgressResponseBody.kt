@@ -8,7 +8,7 @@ internal class ProgressResponseBody(
     private val delegate: ResponseBody,
     private val callback: ProgressCallback,
 ) : ResponseBody() {
-    private val source: BufferedSource = Okio.buffer(CountingSource(delegate.source()))
+    private val source: BufferedSource = CountingSource(delegate.source()).buffer()
 
     override fun contentType(): MediaType? = delegate.contentType()
     override fun contentLength(): Long = delegate.contentLength()

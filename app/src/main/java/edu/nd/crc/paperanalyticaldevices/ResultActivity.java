@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
@@ -25,6 +26,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.FileProvider;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.PreferenceManager;
 import androidx.work.Constraints;
 import androidx.work.Data;
@@ -34,21 +36,30 @@ import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
 
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
+
 import java.util.HashMap;
+import java.util.TimeZone;
 import java.util.UUID;
+
+import edu.nd.crc.paperanalyticaldevices.api.ArtifactsAPIService;
+
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import okhttp3.MediaType;
+import okhttp3.ResponseBody;
+
 
 public class ResultActivity extends AppCompatActivity {
 
     // for data versioning in the database
     public static final Integer notesVersion = 1;
-    public static final Integer buildNumber = 14; // update this to follow the gradle version code
+    public static final Integer buildNumber = 17; // update this to follow the gradle version code
 
     SharedPreferences mPreferences = null;
     SharedPreferences defaultPrefs = null;
@@ -62,6 +73,17 @@ public class ResultActivity extends AppCompatActivity {
     boolean plsUsed = false;
 
     boolean unsafeForConsumption = false;
+
+    String neuralnet = "";
+
+    // Artifacts stuff
+    String authToken = "";
+
+    Integer taskId = 0;
+
+    String baseUrl = "api-pad.artifactsofresearch.io";
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -205,6 +227,35 @@ public class ResultActivity extends AppCompatActivity {
         if(intent.hasExtra(MainActivity.EXTRA_PLS_USED) ){
             plsUsed = intent.getBooleanExtra(MainActivity.EXTRA_PLS_USED, false);
         }
+
+        if(intent.hasExtra(ArtifactsActivity.Companion.getEXTRA_AUTH_TOKEN())){
+            authToken = intent.getStringExtra(ArtifactsActivity.Companion.getEXTRA_AUTH_TOKEN());
+        }
+
+        if(intent.hasExtra(ArtifactsActivity.Companion.getEXTRA_BASE_URL())){
+            baseUrl = intent.getStringExtra(ArtifactsActivity.Companion.getEXTRA_BASE_URL());
+        }
+
+        if(intent.hasExtra(ArtifactsActivity.Companion.getEXTRA_TASK_ID())){
+            taskId = intent.getIntExtra(ArtifactsActivity.Companion.getEXTRA_TASK_ID(), 0);
+        }
+
+        if(intent.hasExtra(ArtifactsActivity.Companion.getEXTRA_NEURAL_NET())){
+            neuralnet = intent.getStringExtra(ArtifactsActivity.Companion.getEXTRA_NEURAL_NET());
+        }else{
+            neuralnet = defaultPrefs.getString("neuralnet", "None");
+        }
+
+        Uri originalFileUri = FileProvider.getUriForFile(this,
+                getApplicationContext().getPackageName() + ".fileprovider",
+                new File(new File(getFilesDir(), timestamp), "original.png"));
+        Uri rectifiedFileUri = FileProvider.getUriForFile(this,
+                getApplicationContext().getPackageName() + ".fileprovider",
+                new File(new File(getFilesDir(), timestamp), "rectified.png"));
+        Log.d("ARTIFACTS", originalFileUri.toString());
+        Log.d("ARTIFACTS", originalFileUri.getPath());
+        Log.d("ARTIFACTS", rectifiedFileUri.toString());
+        Log.d("ARTIFACTS", rectifiedFileUri.getPath());
     }
 
     @Override
@@ -291,7 +342,7 @@ public class ResultActivity extends AppCompatActivity {
         compressedNotes += " User: " + userName + ".  ";
         hashMap.put("User", userName);
 
-        String neuralnet = defaultPrefs.getString("neuralnet", "None");
+        //neuralnet = defaultPrefs.getString("neuralnet", "None");
         //attach stored neural net used
         compressedNotes += "Neural net: " + neuralnet + ".  ";
         hashMap.put("Neural net", neuralnet);
@@ -309,6 +360,17 @@ public class ResultActivity extends AppCompatActivity {
                 .setRequiredNetworkType(NetworkType.UNMETERED)
                 .build();
 
+        Uri originalFileUri = FileProvider.getUriForFile(this,
+                getApplicationContext().getPackageName() + ".fileprovider",
+                new File(new File(getFilesDir(), timestamp), "original.png"));
+        Uri rectifiedFileUri = FileProvider.getUriForFile(this,
+                getApplicationContext().getPackageName() + ".fileprovider",
+                new File(new File(getFilesDir(), timestamp), "rectified.png"));
+        /*Log.d("ARTIFACTS", originalFileUri.toString());
+        Log.d("ARTIFACTS", originalFileUri.getPath());
+        Log.d("ARTIFACTS", rectifiedFileUri.toString());
+        Log.d("ARTIFACTS", rectifiedFileUri.getPath());*/
+
         WorkRequest myUploadWork = new OneTimeWorkRequest.Builder(UploadWorker.class)
                 .setConstraints(constraints)
                 .addTag("result_upload")
@@ -320,8 +382,8 @@ public class ResultActivity extends AppCompatActivity {
                                 .putString("NOTES", jsonNotesString)
                                 .putString("QUANTITY", getPercentage(getBrand()))
                                 .putString("TIMESTAMP", timestamp)
-                                .putString("ORIGINAL_IMAGE", FileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".fileprovider", new File(new File(getFilesDir(), timestamp), "original.png")).toString())
-                                .putString("RECTIFIED_IMAGE", FileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".fileprovider", new File(new File(getFilesDir(), timestamp), "rectified.png")).toString())
+                                .putString("ORIGINAL_IMAGE", originalFileUri.toString())
+                                .putString("RECTIFIED_IMAGE", rectifiedFileUri.toString())
                                 .build()
                 )
                 .build();
@@ -343,8 +405,10 @@ public class ResultActivity extends AppCompatActivity {
         //dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_NOTES, compressedNotes);
         dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_NOTES, jsonNotesString);
         dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_TIMESTAMP, timestamp);
-        dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_IMAGE_CAPTURED, FileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".fileprovider", new File(new File(getFilesDir(), timestamp), "original.png")).toString());
-        dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_IMAGE_RECTIFIED, FileProvider.getUriForFile(this, getApplicationContext().getPackageName() + ".fileprovider", new File(new File(getFilesDir(), timestamp), "rectified.png")).toString());
+        dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_IMAGE_CAPTURED,
+                originalFileUri.toString());
+        dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_IMAGE_RECTIFIED,
+                rectifiedFileUri.toString());
         dbValues.put(WorkInfoContract.WorkInfoEntry.COLUMN_NAME_PREDICTED_DRUG, getDrug());  // actually expected drug, but I don't want to do another DB migration
 
         WorkInfoDbHelper dbHelper = new WorkInfoDbHelper(getBaseContext());
@@ -352,9 +416,126 @@ public class ResultActivity extends AppCompatActivity {
 
         db.insert(WorkInfoContract.WorkInfoEntry.TABLE_NAME, null, dbValues);
 
+        if(authToken != ""){
+            Log.d("ARTIFACTS", "Trying to send artifacts data with token: " + authToken);
+            Log.d("ARTIFACTS", "Task ID: " + taskId);
+            //ArtifactsAPIService apiService = ArtifactsAPIService.Companion.getInstance(baseUrl);
+            TimeZone tz = TimeZone.getTimeZone("UTC");
+            Timestamp javaTimestamp = new Timestamp(Long.parseLong(timestamp));
+            Date date = new Date(javaTimestamp.getTime());
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+            sdf.setTimeZone(tz);
+            String newDate = sdf.format(date);
+            Log.d("ARTIFACTS", "Datetime: " + newDate);
+
+            // task_notes = "PAD ID: " + padId + "\r\n" + neuralNet + "\r\n" + prediction + "\r\n" + notes
+            String prediction = predictedDrug + " (" + probability + ")";
+            if(nnConcentration != 0){
+                prediction = prediction + ", " + nnConcentration + "%";
+            }
+            if(plsConc != 0){
+                prediction = prediction + ",\r\n(PLS " + plsConc + "%)";
+            }
+            String taskNotes = "PAD ID: " + parseQR(qr) + "\r\n" + neuralnet + "\r\n" + prediction + "\r\n" + getNotes();
+
+            String result = "positive";
+            if(unsafeForConsumption){
+                result = "negative";
+            }
+
+            File targetDir = new File(getApplication().getFilesDir(), timestamp);
+            File rectifiedFile = new File(targetDir, "rectified.png");
+            File originalFile = new File(targetDir, "original.png");
+            ArtifactsResultViewModel vm = new ViewModelProvider(this).get(ArtifactsResultViewModel.class);
+            vm.sendResult(this, authToken, baseUrl, newDate, taskId, taskNotes, result, rectifiedFileUri, originalFileUri, rectifiedFile, originalFile);
+
+            // correct parameters
+            /*sendArtifactResult(authToken, baseUrl, newDate, taskId, taskNotes, result,
+                    rectifiedFileUri,
+                    originalFileUri);*/
+        }
+
         Toast.makeText(this, "Results added to upload queue", Toast.LENGTH_SHORT).show();
 
-        new Handler().postDelayed(this::finish, 1250);
+        new Handler().postDelayed(this::finish, 1550);
+    }
+
+    public MultipartBody.Part prepareStringPart(String name, String text){
+        return MultipartBody.Part.createFormData(name, text);
+    }
+
+    public MultipartBody.Part prepareFilePart(String name, Uri fileUri, File file){
+        //File file = new File(fileUri.toString());
+        RequestBody requestFile = RequestBody.create(MediaType.parse(getContentResolver().getType(fileUri)), file);
+        return MultipartBody.Part.createFormData(name, file.getName(), requestFile);
+    }
+
+    /*public RequestBody makeFileRequest(Uri fileUri, File file){
+
+        return RequestBody.create(MediaType.parse(getContentResolver().getType(fileUri)), file);
+    }
+
+    public RequestBody makeTextRequest(String text){
+        return RequestBody.create(MediaType.parse("text/plain"), text);
+    }*/
+
+    public void sendArtifactResult(String authToken, String baseUrl, String testDate, Integer taskId, String taskNotes, String result,
+                                    Uri rectFileUri, Uri rawFileUri){
+
+
+        ArtifactsAPIService apiService = ArtifactsAPIService.Companion.getInstance("https://" + baseUrl);
+        /*
+        val dateField = prepareStringPart("test_date", testDate)
+                val taskNotesField = prepareStringPart("task_notes", taskNotes)
+                val resultField = prepareStringPart("result", result)
+                val rectFileField = prepareFilePart(context, "files", rectFile)
+                val rawFileField = prepareFilePart(context, "files", rawFile)
+                apiService.sendArtifactsResult(token = "Bearer $authToken", taskId = taskId,
+                    rectFile = rectFileField, rawFile = rawFileField, testDate = dateField,
+                    taskNotes = taskNotesField, result = resultField)
+         */
+        //Map<String, RequestBody> map = new HashMap<>();
+        File targetDir = new File(getApplication().getFilesDir(), timestamp);
+        File rectifiedFile = new File(targetDir, "rectified.png");
+        File originalFile = new File(targetDir, "original.png");
+        MultipartBody.Part testDatePart = prepareStringPart("test_date", testDate);
+        MultipartBody.Part taskNotesPart = prepareStringPart("task_notes", taskNotes);
+        MultipartBody.Part resultPart = prepareStringPart("result", result);
+        MultipartBody.Part rectFilePart = prepareFilePart("files", rectFileUri, rectifiedFile);
+        MultipartBody.Part rawFilePart = prepareFilePart("files", rawFileUri, originalFile);
+        // correct parameters
+        /*Call<ResponseBody> res = apiService.sendArtifactsResult("Bearer " + authToken,
+                taskId,
+                rectFilePart,
+                rawFilePart,
+                testDatePart,
+                taskNotesPart,
+                resultPart);
+        try {
+            ResponseBody body = res.execute().body();
+            Log.d("ARTIFACTS", body.toString());
+        }catch(IOException e){
+            e.printStackTrace();
+        }*/
+
+        /*RequestBody testDateRequest = makeTextRequest(testDate);
+        map.put("test_date", testDateRequest);
+        RequestBody taskNotesRequest = makeTextRequest(taskNotes);
+        map.put("task_notes", taskNotesRequest);
+        RequestBody resultRequest = makeTextRequest(result);
+        map.put("result", resultRequest);
+        File rect = new File(rectFile.getPath());
+        RequestBody rectFileRequest = makeFileRequest(rectFile, rect);
+        map.put("name=\"files\"; filename=\"" + rect.getName() + "\"", rectFileRequest);
+        File raw = new File(rawFile.getPath());
+        RequestBody rawRequest = makeFileRequest(rawFile, raw);
+        map.put("name=\"files\"; filename=\"" + raw.getName() + "\"", rawRequest);
+
+        ResponseBody res = apiService.sendArtifactsResult("Bearer " + authToken, taskId, map);
+        */
+        //Log.d("ARTIFACTS", res.toString());
+
     }
 
     public void discardData(View view) {

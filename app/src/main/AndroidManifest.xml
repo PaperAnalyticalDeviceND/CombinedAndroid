@@ -98,6 +98,10 @@
                     android:scheme="pad" />
             </intent-filter>
         </activity>
+        <activity android:name=".DualResultActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"/>
+
     </application>
 
 </manifest>

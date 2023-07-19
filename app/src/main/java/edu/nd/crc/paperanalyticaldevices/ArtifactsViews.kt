@@ -1,23 +1,29 @@
 package edu.nd.crc.paperanalyticaldevices
 
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
@@ -33,9 +39,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
+import coil.request.ImageRequest
 import edu.nd.crc.paperanalyticaldevices.ui.theme.CombinedAndroidTheme
 
 @Composable
@@ -449,3 +462,88 @@ fun TestNetworkListPreview(){
         TestNetworkList(networks = networks)
     }
 }
+
+@Composable
+fun ResultFieldsView(modifier: Modifier = Modifier,
+                     imageUri: Uri,
+                     stateDrug: String,
+                     predictedDrug: String,
+                     predictedConc: String,
+                     safe: String,
+                    vm: ArtifactsResultViewModel){
+    Surface(modifier = Modifier.padding(4.dp),
+        color = MaterialTheme.colorScheme.primary){
+        Column(modifier = Modifier.padding(4.dp)) {
+
+            Image(painter = rememberAsyncImagePainter(ImageRequest.Builder(LocalContext.current).data(data = imageUri).build(),
+                contentScale = ContentScale.Fit), contentDescription = "Result Image")
+            Surface(modifier = Modifier.padding(4.dp),
+                color = MaterialTheme.colorScheme.background) {
+                Column() {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
+                        Text(text = "Stated Drug:", style = MaterialTheme.typography.bodySmall)
+                    }
+                    Row() {
+                        Text(text = stateDrug)
+                    }
+                }
+            }
+            Surface(modifier = Modifier.padding(4.dp),
+                color = MaterialTheme.colorScheme.background) {
+                Column() {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
+                        Text(text = "Predicted Conc%:", style = MaterialTheme.typography.bodySmall)
+                    }
+                    Row() {
+                        Text(text = predictedConc)
+                    }
+                }
+            }
+            Surface(modifier = Modifier.padding(4.dp),
+                color = MaterialTheme.colorScheme.background) {
+                Column() {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
+                        Text(text = "Predicted Drug:", style = MaterialTheme.typography.bodySmall)
+                    }
+                    Row() {
+                        Text(text = predictedDrug)
+                    }
+                }
+            }
+            Surface(modifier = Modifier.padding(4.dp),
+                color = MaterialTheme.colorScheme.background) {
+                Column() {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
+                        Text(text = "Suspected Unsafe:", style = MaterialTheme.typography.bodySmall)
+                    }
+                    Row() {
+                        Text(text = safe)
+                    }
+                }
+            }
+            Row(modifier = Modifier.fillMaxWidth()) {
+                ElevatedButton(modifier = Modifier.weight(1f), onClick = { /*TODO*/ }) {
+                    Row() {
+                        Icon(imageVector = Icons.Default.Delete, contentDescription = "Discard")
+                        Text(text = "Discard")
+                    }
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                ElevatedButton(modifier = Modifier.weight(1f), onClick = { /*TODO*/ }) {
+                    Row() {
+                        Icon(imageVector = Icons.Default.Send, contentDescription = "Send")
+                        Text(text = "Upload")
+                    }
+                }
+            }
+        }
+    }
+}
+
+/*@Preview(showBackground = true, widthDp = 320, heightDp = 720)
+@Composable
+fun ResultFieldsViewPreview(){
+    CombinedAndroidTheme() {
+        ResultFieldsView(image = , stateDrug = "Amoxicilin", predictedDrug = "Albendazole", predictedConc = "100%", safe = "Suspected unsafe")
+    }
+}*/

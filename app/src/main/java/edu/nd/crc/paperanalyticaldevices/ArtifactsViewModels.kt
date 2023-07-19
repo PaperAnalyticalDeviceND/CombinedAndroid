@@ -1,16 +1,28 @@
 package edu.nd.crc.paperanalyticaldevices
 
+import android.content.Context
 import android.database.Cursor
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import edu.nd.crc.paperanalyticaldevices.api.ArtifactsAPIService
 import edu.nd.crc.paperanalyticaldevices.api.TasksList
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
+
 
 
 class ArtifactsAuthViewModel : ViewModel() {
@@ -51,6 +63,7 @@ class ArtifactsTasksViewModel : ViewModel() {
     private val _taskList = mutableStateListOf<ArtifactsTaskDisplayModel>()
 
     var errorMessage: String by mutableStateOf("")
+
     val taskList: List<ArtifactsTaskDisplayModel>
         get() = _taskList
 
@@ -103,6 +116,8 @@ class ArtifactsTasksViewModel : ViewModel() {
     }
 }
 
+
+
 class NetworksViewModel : ViewModel() {
     private val _networksList = mutableStateListOf<NetworksDisplayModel>()
 
@@ -137,5 +152,45 @@ class NetworksViewModel : ViewModel() {
 
     fun getSelected(): NetworksDisplayModel? {
         return _networksList.find { it.selected }
+    }
+}
+
+
+class ArtifactsResultViewModel : ViewModel() {
+
+    var errorMessage: String by mutableStateOf("")
+
+    private fun prepareStringPart(partName: String, text: String): MultipartBody.Part {
+        return MultipartBody.Part.createFormData(partName, text)
+    }
+
+    private fun prepareFilePart(context: Context, partName: String, fileUri: Uri, file: File): MultipartBody.Part {
+        //val file = File(fileUri.path)
+        //val requestFile = RequestBody.create(MediaType.parse(context.contentResolver.getType(fileUri)), file)
+        //val requestFile = file.asRequestBody(file.extension.toMediaType())
+        val requestFile = file.asRequestBody("image/png".toMediaType())
+        return MultipartBody.Part.createFormData(partName, file.name, requestFile)
+    }
+    fun sendResult(context: Context, authToken: String, baseUrl: String, testDate: String, taskId: Int,
+                   taskNotes: String, result: String, rectFileUri: Uri, rawFileUri: Uri, rectFile: File, rawFile: File){
+        viewModelScope.launch {
+            var apiService = ArtifactsAPIService.getInstance(baseUrl = baseUrl)
+            Log.d("ARTIFACTS", "Starting Artifacts send")
+            try{
+                val dateField = prepareStringPart("test_date", testDate)
+                val taskNotesField = prepareStringPart("task_notes", taskNotes)
+                val resultField = prepareStringPart("result", result)
+                val rectFileField = prepareFilePart(context, "files", rectFileUri, rectFile)
+                val rawFileField = prepareFilePart(context, "files", rawFileUri, rawFile)
+                val re = apiService.sendArtifactsResult(token = "Bearer $authToken", taskId = taskId,
+                    rectFile = rectFileField, rawFile = rawFileField, testDate = dateField,
+                    taskNotes = taskNotesField, result = resultField)
+                Log.d("ARTIFACTS", "Send result: ${re.toString()}" )
+            }catch(e: Exception){
+                errorMessage = e.message.toString()
+                Log.d("ARTIFACTS", "Send Error: $errorMessage")
+            }
+        }
+
     }
 }

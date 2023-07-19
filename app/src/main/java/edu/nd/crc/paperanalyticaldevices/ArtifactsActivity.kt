@@ -18,7 +18,7 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
-import androidx.compose.animation.animateContentSize
+/*import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.clickable
@@ -54,7 +54,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Observer
+import androidx.lifecycle.Observer*/
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import edu.nd.crc.paperanalyticaldevices.api.ArtifactsWebService
@@ -70,6 +70,14 @@ import java.io.IOException
 
 
 class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
+
+    companion object{
+        val EXTRA_AUTH_TOKEN = "e.nd.paddatacapture.EXTRA_AUTH_TOKEN"
+        val EXTRA_BASE_URL = "e.nd.paddatacapture.EXTRA_BASE_URL"
+        val EXTRA_TASK_ID = "e.nd.paddatacapture.EXTRA_TASK_ID"
+        val EXTRA_NEURAL_NET = "e.nd.paddatacapture.EXTRA_NEURAL_NET"
+    }
+
     /*
     QR code will have:
     code
@@ -127,6 +135,24 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
 
             tensorflowView!!.LoadModelForArtifacts(defaultPrefs, selectedNetwork!!.network)
             tensorflowView!!.predict(intent)
+            // The PredictionModel.Result observer will start the ResultActivity
+            // POST endpoint + "/tasks/" + String(taskId) + "/test_automatic/"
+            //The Artifacts API wants:
+            // Multi-part form encoded
+            // Task ID
+            // PAD ID
+            // Neural Net
+            // Prediction
+            // Rectified Image
+            // Raw image
+            // Image file names
+            // test_date: dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
+            // Notes
+            // Format:  prediction (0.000), concentration% \r\n(PLS Int%)
+            // Suspicious?
+            // result: Unsafe = negative, safe = positive
+            // task_notes = "PAD ID: " + padId + "\r\n" + neuralNet + "\r\n" + prediction + "\r\n" + notes
+            // hostUrl = URL(string: endpoint + "/tasks/" + String(taskId) + "/test_automatic/")!
         }
 
     }
@@ -173,6 +199,7 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
             val result = it
             Log.d("ARTIFACTS", "PredictionModel Observer onChanged")
             var intent = Intent(this, ResultActivity::class.java)
+            //var intent = Intent(this, DualResultActivity::class.java)
             intent.data = result!!.RectifiedImage
             intent.putExtra(MainActivity.EXTRA_PREDICTED, result.Predicted)
             if (result.QRCode.isPresent) intent.putExtra(
@@ -199,8 +226,13 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
             } else {
                 intent.putExtra(MainActivity.EXTRA_PLS_USED, false)
             }
+            intent.putExtra(MainActivity.EXTRA_LABEL_DRUGS, Array<String>(1){vm.getSelected()?.drug!!});
             intent.putExtra(MainActivity.EXTRA_STATED_DRUG, vm.getSelected()?.drug)
-            intent.putExtra(MainActivity.EXTRA_STATED_CONC, 100)
+            intent.putExtra(MainActivity.EXTRA_STATED_CONC, "100")
+            intent.putExtra(EXTRA_AUTH_TOKEN, authVm.authToken)
+            intent.putExtra(EXTRA_BASE_URL, baseUrl)
+            intent.putExtra(EXTRA_TASK_ID, selectedTask!!.id)
+            intent.putExtra(EXTRA_NEURAL_NET, selectedNetwork!!.network)
 
             startActivity(intent)
             // }
