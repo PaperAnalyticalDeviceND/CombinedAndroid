@@ -119,7 +119,7 @@ class DualResultActivity : AppCompatActivity(){
 
         unsafeForConsumption = predictedDrug.substring(0, statedDrug.length) != statedDrug
 
-        val artifactsVm = ArtifactsResultViewModel()
+        val artifactsVm = ArtifactsResultViewModel(application)
 
         setContent {
             ResultFieldsView(

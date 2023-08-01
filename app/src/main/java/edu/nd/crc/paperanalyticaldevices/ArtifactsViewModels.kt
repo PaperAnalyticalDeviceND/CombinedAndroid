@@ -1,5 +1,6 @@
 package edu.nd.crc.paperanalyticaldevices
 
+import android.app.Application
 import android.content.Context
 import android.database.Cursor
 import android.net.Uri
@@ -11,7 +12,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.work.Data
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import edu.nd.crc.paperanalyticaldevices.api.ArtifactsAPIService
 import edu.nd.crc.paperanalyticaldevices.api.TasksList
 import kotlinx.coroutines.Dispatchers
@@ -79,6 +84,7 @@ class ArtifactsTasksViewModel : ViewModel() {
                 _taskList.addAll(getResultsAsObjects(apiService.getTasks(token = "Bearer $token", status = "awaiting", page = page)))
             }catch(e: Exception){
                 errorMessage = e.message.toString()
+                Log.d("ARTIFACTS", "Task error response: $errorMessage")
             }
         }
     }
@@ -86,7 +92,7 @@ class ArtifactsTasksViewModel : ViewModel() {
     private fun getResultsAsObjects(tasks: TasksList): Collection<ArtifactsTaskDisplayModel> {
 
         var taskCollection = ArrayList<ArtifactsTaskDisplayModel>()
-
+        Log.d("ARTIFACTS", tasks.toString())
         for(r in tasks.Results){
             var obj = ArtifactsTaskDisplayModel(id = r.Id, sampleId = r.Sample,
                 drug = r.MainAPIs[0].Name, manufacturer = if(null != r.Manufacturer) r.Manufacturer.Name else "",
@@ -156,9 +162,11 @@ class NetworksViewModel : ViewModel() {
 }
 
 
-class ArtifactsResultViewModel : ViewModel() {
+class ArtifactsResultViewModel(application: Application) : ViewModel() {
 
     var errorMessage: String by mutableStateOf("")
+
+    private val workManager = WorkManager.getInstance(application)
 
     private fun prepareStringPart(partName: String, text: String): MultipartBody.Part {
         return MultipartBody.Part.createFormData(partName, text)
@@ -171,26 +179,63 @@ class ArtifactsResultViewModel : ViewModel() {
         val requestFile = file.asRequestBody("image/png".toMediaType())
         return MultipartBody.Part.createFormData(partName, file.name, requestFile)
     }
-    fun sendResult(context: Context, authToken: String, baseUrl: String, testDate: String, taskId: Int,
-                   taskNotes: String, result: String, rectFileUri: Uri, rawFileUri: Uri, rectFile: File, rawFile: File){
+    fun sendResult(context: Context, authToken: String, baseUrl: String, timestamp: String,
+                   testDate: String, taskId: Int,
+                   taskNotes: String, result: String, rectFileUri: Uri,
+                   rawFileUri: Uri, rectFile: File, rawFile: File){
         viewModelScope.launch {
-            var apiService = ArtifactsAPIService.getInstance(baseUrl = baseUrl)
+            //var apiService = ArtifactsAPIService.getInstance(baseUrl = baseUrl)
             Log.d("ARTIFACTS", "Starting Artifacts send")
             try{
-                val dateField = prepareStringPart("test_date", testDate)
+                /*val dateField = prepareStringPart("test_date", testDate)
                 val taskNotesField = prepareStringPart("task_notes", taskNotes)
                 val resultField = prepareStringPart("result", result)
                 val rectFileField = prepareFilePart(context, "files", rectFileUri, rectFile)
                 val rawFileField = prepareFilePart(context, "files", rawFileUri, rawFile)
                 val re = apiService.sendArtifactsResult(token = "Bearer $authToken", taskId = taskId,
                     rectFile = rectFileField, rawFile = rawFileField, testDate = dateField,
-                    taskNotes = taskNotesField, result = resultField)
-                Log.d("ARTIFACTS", "Send result: ${re.toString()}" )
+                    taskNotes = taskNotesField, result = resultField)*/
+                //Log.d("ARTIFACTS", "Send result: ${re.toString()}" )
+                val re = sendArtifactsResult(authToken = "Bearer $authToken", baseUrl = baseUrl,
+                    taskId = taskId, timestamp = timestamp, testDate = testDate,
+                    taskNotes = taskNotes, result = result)
+
+
             }catch(e: Exception){
                 errorMessage = e.message.toString()
                 Log.d("ARTIFACTS", "Send Error: $errorMessage")
             }
         }
 
+    }
+
+    private fun sendArtifactsResult(authToken: String, baseUrl: String, taskId: Int,
+                            timestamp: String, testDate: String,
+                            taskNotes: String, result: String){
+        val inputData = Data.Builder()
+            .putString(AUTH_TOKEN, authToken)
+            .putString(BASE_URL, baseUrl)
+            .putInt(TASK_ID, taskId)
+            .putString(TIMESTAMP, timestamp)
+            .putString(TEST_DATE, testDate)
+            .putString(TASK_NOTES, taskNotes)
+            .putString(TASK_RESULT, result)
+            .build()
+
+        val oneTimeWorkRequest = OneTimeWorkRequestBuilder<ArtifactsWorker>()
+            .setInputData(inputData)
+            .build()
+
+        workManager.enqueue(oneTimeWorkRequest)
+    }
+}
+
+class ArtifactsViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        return if(modelClass.isAssignableFrom(ArtifactsResultViewModel::class.java)){
+            ArtifactsResultViewModel(application) as T
+        }else{
+            throw IllegalArgumentException("Unknown ViewModel class")
+        }
     }
 }

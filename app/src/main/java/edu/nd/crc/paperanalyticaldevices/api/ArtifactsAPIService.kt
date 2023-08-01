@@ -47,14 +47,14 @@ interface ArtifactsAPIService {
 
     @Multipart
     @POST("/tasks/{task_id}/test_automatic/")
-    suspend fun sendArtifactsResult(@Header("Authorization") token: String,
+    fun sendArtifactsResult(@Header("Authorization") token: String,
                                     @Path("task_id") taskId: Int,
                             @Part rectFile: MultipartBody.Part,
                             @Part rawFile: MultipartBody.Part,
                             @Part testDate: MultipartBody.Part,
                             @Part taskNotes: MultipartBody.Part,
                             @Part result: MultipartBody.Part
-                                    ): ResponseBody //: Call<ResponseBody>
+                                    ):  Call<ResponseBody>
     /*@Part("files") rectFile: MultipartBody.Part,
                                     @Part("files") rawFile: MultipartBody.Part,
                                     @Part("test_date") testDate: MultipartBody.Part,

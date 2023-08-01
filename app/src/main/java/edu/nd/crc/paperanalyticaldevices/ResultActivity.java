@@ -447,8 +447,10 @@ public class ResultActivity extends AppCompatActivity {
             File targetDir = new File(getApplication().getFilesDir(), timestamp);
             File rectifiedFile = new File(targetDir, "rectified.png");
             File originalFile = new File(targetDir, "original.png");
-            ArtifactsResultViewModel vm = new ViewModelProvider(this).get(ArtifactsResultViewModel.class);
-            vm.sendResult(this, authToken, baseUrl, newDate, taskId, taskNotes, result, rectifiedFileUri, originalFileUri, rectifiedFile, originalFile);
+            //ArtifactsResultViewModel vm = new ViewModelProvider(this).get(ArtifactsResultViewModel.class);
+            ArtifactsResultViewModel vm = new ArtifactsViewModelFactory(getApplication()).create(edu.nd.crc.paperanalyticaldevices.ArtifactsResultViewModel.class);
+            vm.sendResult(this, authToken, baseUrl, timestamp, newDate, taskId, taskNotes,
+                    result, rectifiedFileUri, originalFileUri, rectifiedFile, originalFile);
 
             // correct parameters
             /*sendArtifactResult(authToken, baseUrl, newDate, taskId, taskNotes, result,
@@ -458,7 +460,12 @@ public class ResultActivity extends AppCompatActivity {
 
         Toast.makeText(this, "Results added to upload queue", Toast.LENGTH_SHORT).show();
 
-        new Handler().postDelayed(this::finish, 1550);
+        if(authToken != ""){
+            new Handler().postDelayed(this::finish, 2550);
+        }else{
+            new Handler().postDelayed(this::finish, 1550);
+        }
+
     }
 
     public MultipartBody.Part prepareStringPart(String name, String text){
