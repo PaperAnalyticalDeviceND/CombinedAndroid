@@ -78,19 +78,20 @@ fun ArtifactsLoginView(modifier: Modifier = Modifier,
             ArtifactsTaskView(vm = taskVm, token = authVm.authToken, baseUrl = baseUrl,
                 onItemClicked = onItemClicked, testPressed = testPressed)
         }else{
-            Column() {
-                Row() {
-                    ElevatedButton(onClick = {
+            Column(verticalArrangement = Arrangement.Center) {
+                Row(horizontalArrangement = Arrangement.Center) {
+                    /*ElevatedButton(onClick = {
                         Log.d("ARTIFACTS", "Clicked Log In")
                         authVm.getAuth(baseUrl, code, codeVerifier, redirectUri, clientId, grantType)
                         //authorized = true
-                        /*if(authVm.authToken != ""){
+                        *//*if(authVm.authToken != ""){
                             Log.d("ARTIFACTS", "Marking authorized")
                             authorized = true
-                        }*/
+                        }*//*
                     }) {
                         Text(text = "Log In")
-                    }
+                    }*/
+                    Text(text = "Logging In...")
                 }
             }
         }

@@ -188,7 +188,8 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
         val vm = ArtifactsTasksViewModel()
         //vm.getTasksList(authToken, "https://$baseUrl", 1)
         val authVm = ArtifactsAuthViewModel()
-        val netVm = NetworksViewModel()
+        //val netVm = NetworksViewModel()
+        val netVm = NetworksViewModelFactory(application).create(NetworksViewModel::class.java)
 
 
         tensorflowView = ViewModelProvider(owner = this)[PredictionModel::class.java]

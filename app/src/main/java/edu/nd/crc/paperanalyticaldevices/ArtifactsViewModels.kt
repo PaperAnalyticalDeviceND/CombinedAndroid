@@ -2,32 +2,26 @@ package edu.nd.crc.paperanalyticaldevices
 
 import android.app.Application
 import android.content.Context
+import android.content.SharedPreferences
 import android.database.Cursor
 import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.preference.PreferenceManager
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import edu.nd.crc.paperanalyticaldevices.api.ArtifactsAPIService
 import edu.nd.crc.paperanalyticaldevices.api.TasksList
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import okhttp3.MediaType
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MultipartBody
-import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
-
 
 
 class ArtifactsAuthViewModel : ViewModel() {
@@ -124,10 +118,15 @@ class ArtifactsTasksViewModel : ViewModel() {
 
 
 
-class NetworksViewModel : ViewModel() {
+class NetworksViewModel(application: Application) : AndroidViewModel(application) {
     private val _networksList = mutableStateListOf<NetworksDisplayModel>()
 
     var networkSelected by mutableStateOf(false)
+
+    //val sharedPreferences = application.getSharedPreferences("default", 0)
+    val sharedPrefs = PreferenceManager.getDefaultSharedPreferences(application)
+
+    private val context = getApplication<Application>().applicationContext
     val networkList: List<NetworksDisplayModel>
         get() = _networksList
 
@@ -140,10 +139,21 @@ class NetworksViewModel : ViewModel() {
             if(null != cursor){
                 while(cursor.moveToNext()){
                     val network = cursor.getString(cursor.getColumnIndexOrThrow(DrugsContract.DrugsEntry.COLUMN_NAME_NETWORK))
-                    _networksList.add(NetworksDisplayModel(network = network, initialSelectedValue = false))
+                    if(haveNetwork(sharedPrefs, network = network)){
+                        _networksList.add(NetworksDisplayModel(network = network, initialSelectedValue = false))
+                    }
                 }
             }
         }
+    }
+
+    private fun haveNetwork(sharedPreferences: SharedPreferences, network: String) : Boolean{
+        val networkFile: File = File(
+            getApplication<Application>().applicationContext
+                .getDir("tflitemodels", Context.MODE_PRIVATE).getPath(),
+            sharedPreferences.getString(network + "filename", "notafile")
+        )
+        return networkFile.exists()
     }
 
     fun selectNetwork(selectedNetwork: NetworksDisplayModel){
@@ -167,35 +177,15 @@ class ArtifactsResultViewModel(application: Application) : ViewModel() {
     var errorMessage: String by mutableStateOf("")
 
     private val workManager = WorkManager.getInstance(application)
-
-    private fun prepareStringPart(partName: String, text: String): MultipartBody.Part {
-        return MultipartBody.Part.createFormData(partName, text)
-    }
-
-    private fun prepareFilePart(context: Context, partName: String, fileUri: Uri, file: File): MultipartBody.Part {
-        //val file = File(fileUri.path)
-        //val requestFile = RequestBody.create(MediaType.parse(context.contentResolver.getType(fileUri)), file)
-        //val requestFile = file.asRequestBody(file.extension.toMediaType())
-        val requestFile = file.asRequestBody("image/png".toMediaType())
-        return MultipartBody.Part.createFormData(partName, file.name, requestFile)
-    }
     fun sendResult(context: Context, authToken: String, baseUrl: String, timestamp: String,
                    testDate: String, taskId: Int,
                    taskNotes: String, result: String, rectFileUri: Uri,
                    rawFileUri: Uri, rectFile: File, rawFile: File){
         viewModelScope.launch {
-            //var apiService = ArtifactsAPIService.getInstance(baseUrl = baseUrl)
+
             Log.d("ARTIFACTS", "Starting Artifacts send")
             try{
-                /*val dateField = prepareStringPart("test_date", testDate)
-                val taskNotesField = prepareStringPart("task_notes", taskNotes)
-                val resultField = prepareStringPart("result", result)
-                val rectFileField = prepareFilePart(context, "files", rectFileUri, rectFile)
-                val rawFileField = prepareFilePart(context, "files", rawFileUri, rawFile)
-                val re = apiService.sendArtifactsResult(token = "Bearer $authToken", taskId = taskId,
-                    rectFile = rectFileField, rawFile = rawFileField, testDate = dateField,
-                    taskNotes = taskNotesField, result = resultField)*/
-                //Log.d("ARTIFACTS", "Send result: ${re.toString()}" )
+
                 val re = sendArtifactsResult(authToken = "Bearer $authToken", baseUrl = baseUrl,
                     taskId = taskId, timestamp = timestamp, testDate = testDate,
                     taskNotes = taskNotes, result = result)
@@ -236,6 +226,16 @@ class ArtifactsViewModelFactory(private val application: Application) : ViewMode
             ArtifactsResultViewModel(application) as T
         }else{
             throw IllegalArgumentException("Unknown ViewModel class")
+        }
+    }
+}
+
+class NetworksViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        return if(modelClass.isAssignableFrom((NetworksViewModel::class.java))){
+            NetworksViewModel(application) as T
+        }else{
+            throw java.lang.IllegalArgumentException("Unknown ViewModel class")
         }
     }
 }

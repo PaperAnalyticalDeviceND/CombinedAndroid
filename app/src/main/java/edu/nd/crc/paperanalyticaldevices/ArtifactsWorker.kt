@@ -25,19 +25,7 @@ class ArtifactsWorker(context: Context, params: WorkerParameters) : Worker(conte
         val testDate = inputData.getString(TEST_DATE)
 
         return try{
-            /*val targetDir: File = File(applicationContext.filesDir, timestamp)
-            val rectifiedFile = File(targetDir, "rectified.png")
-            val originalFile = File(targetDir, "original.png")
-            var apiService = baseUrl?.let { ArtifactsAPIService.getInstance(baseUrl = it) }
-            val dateField = testDate?.let { prepareStringPart("test_date", it) }
-            val taskNotesField = taskNotes?.let { prepareStringPart("task_notes", it) }
-            val resultField = result?.let { prepareStringPart("result", it) }
-            val rectFileField = prepareFilePart( "files",  rectifiedFile)
-            val rawFileField = prepareFilePart( "files",  originalFile)
 
-            val re = apiService.sendArtifactsResult(token = "Bearer $authToken", taskId = taskId,
-                rectFile = rectFileField, rawFile = rawFileField, testDate = dateField!!,
-                taskNotes = taskNotesField!!, result = resultField!!)*/
             uploadArtifactsData(authToken = authToken!!, baseUrl = baseUrl!!, taskId = taskId,
                 timestamp = timestamp!!, testDate = testDate!!, taskNotes = taskNotes!!,
                 result = result!!)
