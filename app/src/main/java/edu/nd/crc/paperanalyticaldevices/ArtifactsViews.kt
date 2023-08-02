@@ -248,6 +248,11 @@ fun ArtifactsTaskView(modifier: Modifier = Modifier, vm: ArtifactsTasksViewModel
                       token: String, baseUrl: String,
                       onItemClicked: (ArtifactsTaskDisplayModel) -> Unit,
                       testPressed: (ArtifactsTaskDisplayModel) -> Unit){
+
+    LaunchedEffect(Unit, block = {
+        vm.getTasksList(token = token, baseUrl = baseUrl, page = 1)
+    })
+
     Surface() {
         Column {
             Row(modifier = Modifier
@@ -261,8 +266,8 @@ fun ArtifactsTaskView(modifier: Modifier = Modifier, vm: ArtifactsTasksViewModel
                 horizontalArrangement = Arrangement.Center) {
                 Text(text = "Tasks")
             }
-            BasicTextField(modifier = Modifier.fillMaxWidth(),
-                value = "Search", onValueChange = {})
+            /*BasicTextField(modifier = Modifier.fillMaxWidth(),
+                value = "Search", onValueChange = {})*/
             if(vm.errorMessage.isEmpty()){
                 //vm.getResultsAsObjects()
                 ArtifactsTaskList(modifier = Modifier.weight(1f),
@@ -273,9 +278,12 @@ fun ArtifactsTaskView(modifier: Modifier = Modifier, vm: ArtifactsTasksViewModel
             Row(modifier = Modifier
                 .padding(8.dp)
                 .fillMaxWidth(1f), horizontalArrangement = Arrangement.Center) {
-                IconButton(onClick = { /*TODO*/ }) {
-                    Icon(imageVector = Icons.Default.KeyboardArrowLeft,
-                        contentDescription = "Previous page")
+
+                if(vm.previous != 0){
+                    IconButton(onClick = { vm.getPreviousPage(token = token, baseUrl = baseUrl) }) {
+                        Icon(imageVector = Icons.Default.KeyboardArrowLeft,
+                            contentDescription = "Previous page")
+                    }
                 }
                 ElevatedButton(
                     onClick = {
@@ -284,9 +292,11 @@ fun ArtifactsTaskView(modifier: Modifier = Modifier, vm: ArtifactsTasksViewModel
                     }) {
                     Text(text = "REFRESH")
                 }
-                IconButton(onClick = { /*TODO*/ }) {
-                    Icon(imageVector = Icons.Default.KeyboardArrowRight,
-                        contentDescription = "Next page")
+                if(vm.next != 0){
+                    IconButton(onClick = { vm.getNextPage(token = token, baseUrl = baseUrl) }) {
+                        Icon(imageVector = Icons.Default.KeyboardArrowRight,
+                            contentDescription = "Next page")
+                    }
                 }
             }
         }

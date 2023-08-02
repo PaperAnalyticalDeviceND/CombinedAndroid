@@ -9,6 +9,7 @@ import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
@@ -68,6 +69,11 @@ class ArtifactsTasksViewModel : ViewModel() {
 
     var taskConfirmed by mutableStateOf(false)
 
+    var currentPage: Int by mutableStateOf(1)
+
+    var next: Int by mutableStateOf(0)
+    var previous: Int by mutableStateOf(0)
+
     fun getTasksList(token: String, baseUrl: String, page: Int){
         Log.d("ARTIFACTS", "getTasksList")
         Log.d("ARTIFACTS", "Token: $token, baseUrl: $baseUrl")
@@ -76,6 +82,32 @@ class ArtifactsTasksViewModel : ViewModel() {
             try{
                 _taskList.clear()
                 _taskList.addAll(getResultsAsObjects(apiService.getTasks(token = "Bearer $token", status = "awaiting", page = page)))
+            }catch(e: Exception){
+                errorMessage = e.message.toString()
+                Log.d("ARTIFACTS", "Task error response: $errorMessage")
+            }
+        }
+    }
+
+    fun getNextPage(token: String, baseUrl: String){
+        viewModelScope.launch {
+            val apiService = ArtifactsAPIService.getInstance(baseUrl = baseUrl)
+            try{
+                _taskList.clear()
+                _taskList.addAll(getResultsAsObjects(apiService.getTasks(token = "Bearer $token", status = "awaiting", page = next)))
+            }catch(e: Exception){
+                errorMessage = e.message.toString()
+                Log.d("ARTIFACTS", "Task error response: $errorMessage")
+            }
+        }
+    }
+
+    fun getPreviousPage(token: String, baseUrl: String){
+        viewModelScope.launch {
+            val apiService = ArtifactsAPIService.getInstance(baseUrl = baseUrl)
+            try{
+                _taskList.clear()
+                _taskList.addAll(getResultsAsObjects(apiService.getTasks(token = "Bearer $token", status = "awaiting", page = previous)))
             }catch(e: Exception){
                 errorMessage = e.message.toString()
                 Log.d("ARTIFACTS", "Task error response: $errorMessage")
@@ -94,6 +126,16 @@ class ArtifactsTasksViewModel : ViewModel() {
                 initialSelectedValue = false)
 
             taskCollection.add(obj)
+        }
+        if(tasks.Links != null){
+            if(tasks.Links.next != null && tasks.CountPages > currentPage){
+                //next = tasks.Links.next
+                next = currentPage + 1
+            }
+            if(tasks.Links.previous != null && currentPage > 1){
+                //previous = tasks.Links.previous
+                previous = currentPage - 1
+            }
         }
         return taskCollection
     }
