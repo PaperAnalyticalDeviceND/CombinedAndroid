@@ -89,6 +89,10 @@ class ArtifactsTasksViewModel : ViewModel() {
         }
     }
 
+    /*fun filterTaskList(searchText: String): List<ArtifactsTaskDisplayModel> {
+
+    }*/
+
     fun getNextPage(token: String, baseUrl: String){
         viewModelScope.launch {
             val apiService = ArtifactsAPIService.getInstance(baseUrl = baseUrl)
@@ -125,7 +129,21 @@ class ArtifactsTasksViewModel : ViewModel() {
                 dose = r.Dosage + "" + r.dosageType.Name,
                 initialSelectedValue = false)
 
+            //DEBUG TESTING
+            /*var obj2 = ArtifactsTaskDisplayModel(id = r.Id * 4, sampleId = "1234",
+                drug = "Losartan", manufacturer = if(null != r.Manufacturer) r.Manufacturer.Name else "",
+                dose = r.Dosage + "" + r.dosageType.Name,
+                initialSelectedValue = false)
+
+            var obj3 = ArtifactsTaskDisplayModel(id = r.Id * 7, sampleId = "abcd",
+                drug = "Aluterol", manufacturer = if(null != r.Manufacturer) r.Manufacturer.Name else "",
+                dose = r.Dosage + "" + r.dosageType.Name,
+                initialSelectedValue = false)*/
+
             taskCollection.add(obj)
+            //DEBUG TESTING
+            /*taskCollection.add(obj2)
+            taskCollection.add(obj3)*/
         }
         if(tasks.Links != null){
             if(tasks.Links.next != null && tasks.CountPages > currentPage){
