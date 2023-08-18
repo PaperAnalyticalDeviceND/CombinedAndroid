@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.BaseColumns;
 import android.provider.Settings;
@@ -409,8 +410,12 @@ public class MainActivity extends AppCompatActivity {
     public void startImageCapture(View view) {
         Log.i("GBR", "Image capture starting");
 
-        if ((ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
-                | (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)) {
+        // Android 13 does not use these permissions and will not prompt for them
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S_V2 &&
+                ((ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+                | (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)))
+        {
+            Log.d("GBR", "Request camera permissions");
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 90);
         } else {
 
@@ -433,10 +438,12 @@ public class MainActivity extends AppCompatActivity {
 */
                 // only allow proceeding if all downloads are finished
                 if(workerSemaphore) {
+                    Log.d("GBR", "Trying to start Camera");
                     Intent intent = new Intent(this, Camera2Activity.class);
                     startActivityForResult(intent, 10);
                 }else{
-                    Toast.makeText(getBaseContext(), R.string.pleasewaitdownload, Toast.LENGTH_SHORT).show();
+                    Log.d("GBR", "Not starting Camera");
+                    Toast.makeText(getBaseContext(), R.string.pleasewaitdownload, Toast.LENGTH_LONG).show();
                 }
 
             }catch(Exception e){

@@ -112,6 +112,7 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
 
     private var selectedTask: ArtifactsTaskDisplayModel? = null
     private var selectedNetwork: NetworksDisplayModel? = null
+    private var concNetwork: NetworksDisplayModel? = null
 
     private var tensorflowView: PredictionModel? = null
 
@@ -133,7 +134,11 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
             Log.d("ARTIFACTS", "Result OK")
             val intent = result.data
 
+            tensorflowView!!.clearNetworks()
             tensorflowView!!.LoadModelForArtifacts(defaultPrefs, selectedNetwork!!.network)
+            if(concNetwork != null && concNetwork!!.network != "None"){
+                tensorflowView!!.LoadModelForArtifacts(defaultPrefs, concNetwork!!.network)
+            }
             tensorflowView!!.predict(intent)
             // The PredictionModel.Result observer will start the ResultActivity
             // POST endpoint + "/tasks/" + String(taskId) + "/test_automatic/"
@@ -216,7 +221,10 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
                 result.Labels
             )
 
-            intent.putExtra(MainActivity.EXTRA_NN_CONC, result.Concentration)
+            if(result.Concentration != null){
+                intent.putExtra(MainActivity.EXTRA_NN_CONC, result.Concentration )
+            }
+
             intent.putExtra(MainActivity.EXTRA_PREDICTED_DRUG, result.PredictedDrug)
             if(result.PLS != null) {
                 intent.putExtra(MainActivity.EXTRA_PLS_CONC, result.PLS)
@@ -227,8 +235,11 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
             } else {
                 intent.putExtra(MainActivity.EXTRA_PLS_USED, false)
             }
-            intent.putExtra(MainActivity.EXTRA_LABEL_DRUGS, Array<String>(1){vm.getSelected()?.drug!!});
-            intent.putExtra(MainActivity.EXTRA_STATED_DRUG, vm.getSelected()?.drug)
+            Log.d("ARTIFACTS", "Selected" + (selectedTask?.drug ?: "NULL"))
+            //intent.putExtra(MainActivity.EXTRA_LABEL_DRUGS, Array<String>(1){vm.getSelected()?.drug!!});
+            //intent.putExtra(MainActivity.EXTRA_STATED_DRUG, vm.getSelected()?.drug)
+            intent.putExtra(MainActivity.EXTRA_LABEL_DRUGS, Array<String>(1){selectedTask?.drug ?: "Error"});
+            intent.putExtra(MainActivity.EXTRA_STATED_DRUG, selectedTask?.drug ?: "Error")
             intent.putExtra(MainActivity.EXTRA_STATED_CONC, "100")
             intent.putExtra(EXTRA_AUTH_TOKEN, authVm.authToken)
             intent.putExtra(EXTRA_BASE_URL, baseUrl)
@@ -275,7 +286,7 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
         }
     }
 
-    private fun startCamera(task: ArtifactsTaskDisplayModel, network: NetworksDisplayModel){
+    private fun startCamera(task: ArtifactsTaskDisplayModel, network: NetworksDisplayModel, conc: NetworksDisplayModel){
         //testPressed = false
         Log.d("ARTIFACTS", "In startCamera")
         Log.d("ARTIFACTS", "Task: ${task.sampleId}")
@@ -283,6 +294,7 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
         // Store the selected task so we can refernce it when we handle the camera activity result
         selectedTask = task
         selectedNetwork = network
+        concNetwork = conc
         cameraResult.launch(Intent(this, Camera2Activity::class.java))
     }
 

@@ -370,21 +370,23 @@ fun ArtifactsResultView(modifier: Modifier = Modifier, vm: ArtifactsTasksViewMod
 fun NetworksList(modifier: Modifier = Modifier,
                  networks: List<NetworksDisplayModel>,
                  taskVm: ArtifactsTasksViewModel,
-                 onItemClicked: (ArtifactsTaskDisplayModel, NetworksDisplayModel) -> Unit){
+                 netVm: NetworksViewModel,
+                 onItemClicked: (ArtifactsTaskDisplayModel, NetworksDisplayModel, NetworksDisplayModel) -> Unit){
     Surface() {
         LazyColumn(modifier = Modifier.padding(vertical = 4.dp)){
             items(items = networks){ item ->
-                NetworksListItem(network = item, taskVm = taskVm, onItemClicked = onItemClicked)
+                NetworksListItem(network = item, taskVm = taskVm, netVm = netVm, onItemClicked = onItemClicked)
             }
         }
     }
 }
 
 @Composable
-fun NetworkListView(modifier: Modifier = Modifier, networkViewModel: NetworksViewModel,
+fun NetworkListView(modifier: Modifier = Modifier,
+                    networkViewModel: NetworksViewModel,
                     taskViewModel: ArtifactsTasksViewModel,
                     dbHelper: ProjectsDbHelper,
-                    onItemClicked: (ArtifactsTaskDisplayModel, NetworksDisplayModel) -> Unit){
+                    onItemClicked: (ArtifactsTaskDisplayModel, NetworksDisplayModel, NetworksDisplayModel) -> Unit){
     LaunchedEffect(Unit, block = {
         networkViewModel.getNetworks(taskViewModel.getSelected()!!, dbHelper = dbHelper)
     })
@@ -405,7 +407,7 @@ fun NetworkListView(modifier: Modifier = Modifier, networkViewModel: NetworksVie
                 }
             }else{
                 Text(text = "Select Neural Network", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
-                NetworksList(networks = networkViewModel.networkList, taskVm = taskViewModel, onItemClicked = onItemClicked)
+                NetworksList(networks = networkViewModel.networkList, taskVm = taskViewModel, netVm = networkViewModel, onItemClicked = onItemClicked)
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                     ElevatedButton(onClick = { taskViewModel.clearConfirmation() }) {
                         Text("Cancel")
@@ -421,12 +423,13 @@ fun NetworkListView(modifier: Modifier = Modifier, networkViewModel: NetworksVie
 fun NetworksListItem(modifier: Modifier = Modifier,
                      network: NetworksDisplayModel,
                      taskVm: ArtifactsTasksViewModel,
-                     onItemClicked: (ArtifactsTaskDisplayModel, NetworksDisplayModel) -> Unit){
+                     netVm: NetworksViewModel,
+                     onItemClicked: (ArtifactsTaskDisplayModel, NetworksDisplayModel, NetworksDisplayModel) -> Unit){
     Surface(modifier = Modifier
         .padding(4.dp)
         .clickable(true,
             onClick = {
-                onItemClicked(taskVm.getSelected()!!, network)
+                onItemClicked(taskVm.getSelected()!!, network, netVm.getConcNetwork(taskVm.getSelected()!!))
                 taskVm.clearConfirmation()
             }),
         color = MaterialTheme.colorScheme.primary) {
@@ -531,7 +534,7 @@ fun ArtifactsMainView(modifier: Modifier = Modifier,
                       dbHelper: ProjectsDbHelper,
                       onItemClicked: (ArtifactsTaskDisplayModel) -> Unit,
                       testPressed: (ArtifactsTaskDisplayModel) -> Unit,
-                      onNetworkPressed: (ArtifactsTaskDisplayModel, NetworksDisplayModel) -> Unit){
+                      onNetworkPressed: (ArtifactsTaskDisplayModel, NetworksDisplayModel, NetworksDisplayModel) -> Unit){
 
     Scaffold(
         topBar = { ArtifactsTopBar() },

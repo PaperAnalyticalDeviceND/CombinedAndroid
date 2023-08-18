@@ -89,10 +89,6 @@ class ArtifactsTasksViewModel : ViewModel() {
         }
     }
 
-    /*fun filterTaskList(searchText: String): List<ArtifactsTaskDisplayModel> {
-
-    }*/
-
     fun getNextPage(token: String, baseUrl: String){
         viewModelScope.launch {
             val apiService = ArtifactsAPIService.getInstance(baseUrl = baseUrl)
@@ -159,11 +155,13 @@ class ArtifactsTasksViewModel : ViewModel() {
     }
 
     fun selectTask(selectedTask: ArtifactsTaskDisplayModel){
+        Log.d("ARTIFACTS", "Select Task")
         _taskList.forEach { it.selected = false }
         _taskList.find { it.id == selectedTask.id }?.selected = true
     }
 
     fun confirmTask(selectedTask: ArtifactsTaskDisplayModel){
+        Log.d("ARTIFACTS", "Confirm Task")
         taskConfirmed = true
     }
 
@@ -205,6 +203,16 @@ class NetworksViewModel(application: Application) : AndroidViewModel(application
                 }
             }
         }
+    }
+
+    fun getConcNetwork(task: ArtifactsTaskDisplayModel) : NetworksDisplayModel {
+        var concNet = NetworksDisplayModel(network = "None", initialSelectedValue = false)
+        for (n in _networksList){
+            if(n.network.contains("conc")){
+                concNet = NetworksDisplayModel(network = n.network, initialSelectedValue = false)
+            }
+        }
+        return concNet
     }
 
     private fun haveNetwork(sharedPreferences: SharedPreferences, network: String) : Boolean{
