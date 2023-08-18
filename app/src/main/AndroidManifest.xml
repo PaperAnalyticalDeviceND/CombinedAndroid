@@ -32,6 +32,7 @@
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
                     android:host="authorize"
@@ -98,6 +99,10 @@
                     android:scheme="pad" />
             </intent-filter>
         </activity>
+        <activity android:name=".DualResultActivity"
+            android:exported="false"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"/>
+
     </application>
 
 </manifest>

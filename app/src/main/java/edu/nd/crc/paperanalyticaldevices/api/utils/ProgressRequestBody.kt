@@ -17,7 +17,7 @@ internal class ProgressRequestBody(
     override fun contentLength(): Long = delegate.contentLength()
 
     override fun writeTo(sink: BufferedSink) {
-        val countingSink = Okio.buffer(CountingSink(sink))
+        val countingSink = CountingSink(sink).buffer()
         delegate.writeTo(countingSink)
         countingSink.flush()
     }

@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.zip.ZipEntry;
@@ -102,7 +103,12 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
         return resultData;
     }
 
+    public void clearNetworks(){
+        networks.clear();
+    }
+
     public void predict(final Intent data) {
+        Log.d("ARTIFACTS", "Predict");
         Uri resultStream = data.getData();
         if (resultStream != null) {
             try {
@@ -140,21 +146,27 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                     output_string.append(results.get(i).Label);
 
                     if (i == 0) {
-                        output_string.append(String.format(" (%.3f)", results.get(i).Probability));
+                        output_string.append(String.format(Locale.US," (%.3f)", results.get(i).Probability));
                         // separate this out from the drug for readability, searchability
                         retVal.PredictedDrug = results.get(i).Label;
-                        retVal.Probability = Double.valueOf(String.format("%.3f", results.get(i).Probability));
+                        //retVal.Probability = Double.valueOf(String.format("%.3f", results.get(i).Probability));
+                        // This String.format can cause NumberFormatExceptions if the user's phone is in a European locale
+                        // so we'll force it to US
+                        retVal.Probability = Double.valueOf(String.format(Locale.US, "%.3f", results.get(i).Probability));
+
+                        if (results.size() > 1) {
+                            output_string.append(", ");
+                        }
                     }
                     if(i == 1){
+                        output_string.append("%");
                         List<String> concList = new ArrayList<>(Arrays.asList(MainActivity.concentrations));
                         if(concList.contains(results.get(i).Label)) {
                             retVal.Concentration = Integer.valueOf(results.get(i).Label);
                         }
                     }
 
-                    if (results.size() > 1) {
-                        output_string.append(", ");
-                    }
+
                 }
 
 
@@ -172,16 +184,18 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                     double concentration = pls.calculate(bmRect, drugStr);
 
                     // add conc. result to string
-                    output_string.append("%, (PLS ").append((int) concentration).append("%)");
+                    output_string.append(", (PLS ").append((int) concentration).append("%)");
                     retVal.PLS =  (int) concentration ;
                 }
 
                 retVal.RectifiedImage = Uri.fromFile(rectifiedFile);
                 retVal.Predicted = output_string.toString();
+                Log.d("ARTIFACTS", "Predicted: " + retVal.PredictedDrug);
                 if (data.hasExtra("qr")) retVal.QRCode = Optional.of(data.getExtras().getString("qr"));
                 if (data.hasExtra("timestamp")) retVal.Timestamp = Optional.of(timestamp);
 
                 resultData.setValue(retVal);
+
             } catch (Exception e) {
                 FirebaseCrashlytics.getInstance().recordException(e);
                 e.printStackTrace();
@@ -274,84 +288,118 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
         }
     }
 
+    public void LoadModelForArtifacts(SharedPreferences sharedPreferences, String network){
+        Log.d("ARTIFACTS", "Load model " + network);
+        try{
+            File networkFile = new File(getApplication().getApplicationContext()
+                    .getDir("tflitemodels", Context.MODE_PRIVATE).getPath(),
+                    sharedPreferences.getString(network + "filename", "notafile"));
+            if(networkFile.exists()){
+                MainActivity.setSemaphore(true);
+                networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(),
+                        sharedPreferences.getString(network + "filename", "")));
+
+                Boolean usePls = sharedPreferences.getBoolean("pls", false);
+                if(usePls && pls == null){
+                    pls = PartialLeastSquares.from(getApplication().getApplicationContext());
+                }
+            }else{
+                DownloadSpecifiedModel(sharedPreferences, network);
+            }
+        }catch(IOException e){
+            FirebaseCrashlytics.getInstance().recordException(e);
+            e.printStackTrace();
+        }
+    }
+
     public void LoadModel(SharedPreferences sharedPreferences, String project){
         networks.clear();
         try {
             String projectFolder;
 
-            String[] selectedNetworks = new String[]{sharedPreferences.getString("neuralnet", ""), sharedPreferences.getString("secondary", "")};
-          for(String selected : selectedNetworks){
+            String[] selectedNetworks = new String[]{sharedPreferences.getString("neuralnet", ""),
+                    sharedPreferences.getString("secondary", "")};
+            for(String selected : selectedNetworks){
               //switch (sharedPreferences.getString("neuralnet", "")) {
               // leave the old values for backwards compatibility, but use new values in default case
-            switch (selected) {
-                case "Veripad idPAD":
-                    //projectFolder = subId;
-                    File idpadFile = new File(getApplication().getApplicationContext().getDir("tflitemodels", Context.MODE_PRIVATE).getPath(), sharedPreferences.getString(subId + "filename", idPadName));
-                    if(idpadFile.exists()) {
-                        MainActivity.setSemaphore(true);
-                        networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(), sharedPreferences.getString(subId + "filename", idPadName)));
-                    }else{
-                        DownloadModels(sharedPreferences);
-                    }
-                    break;
-                case "MSH Tanzania":
-                    //projectFolder = subMsh;
-                    File mshFile = new File(getApplication().getApplicationContext().getDir("tflitemodels", Context.MODE_PRIVATE).getPath(), sharedPreferences.getString(subMsh + "filename", mshName));
-                    if(mshFile.exists()) {
-                        MainActivity.setSemaphore(true);
-                        networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(), sharedPreferences.getString(subMsh + "filename", mshName)));
-                    }else{
-                        DownloadModels(sharedPreferences);
-                    }
-                    break;
-                //default:
-                case "FHI360-App":
-                    File fhiFile = new File(getApplication().getApplicationContext().getDir("tflitemodels", Context.MODE_PRIVATE).getPath(), sharedPreferences.getString(subFhi + "filename", fhiName));
-                    if(fhiFile.exists()) {
-                        MainActivity.setSemaphore(true);
-                        networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(), sharedPreferences.getString(subFhi + "filename", fhiName)));
-                        networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(), sharedPreferences.getString(subFhiConc + "filename", fhiConcName)));
-                        if (pls == null) {
-                            pls = PartialLeastSquares.from(getApplication().getApplicationContext());
+                switch (selected) {
+                    case "Veripad idPAD":
+                        //projectFolder = subId;
+                        File idpadFile = new File(getApplication().getApplicationContext()
+                                .getDir("tflitemodels", Context.MODE_PRIVATE).getPath(),
+                                sharedPreferences.getString(subId + "filename", idPadName));
+                        if(idpadFile.exists()) {
+                            MainActivity.setSemaphore(true);
+                            networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(),
+                                    sharedPreferences.getString(subId + "filename", idPadName)));
+                        }else{
+                            DownloadModels(sharedPreferences);
                         }
-                    }else{
-                        DownloadModels(sharedPreferences);
-                    }
-                    //projectFolder = subFhi;
-                    break;
-
-                case "":
-                    break;
-
-                default:
-                    File networkFile = new File(getApplication().getApplicationContext().getDir("tflitemodels", Context.MODE_PRIVATE).getPath(), sharedPreferences.getString(selected + "filename", "notafile"));
-                    if(networkFile.exists()){
-                        MainActivity.setSemaphore(true);
-                        networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(), sharedPreferences.getString(selected + "filename", "")));
-
-                        Boolean usePls = sharedPreferences.getBoolean("pls", false);
-                        if(usePls && pls == null){
-                            pls = PartialLeastSquares.from(getApplication().getApplicationContext());
+                        break;
+                    case "MSH Tanzania":
+                        //projectFolder = subMsh;
+                        File mshFile = new File(getApplication().getApplicationContext()
+                                .getDir("tflitemodels", Context.MODE_PRIVATE).getPath(),
+                                sharedPreferences.getString(subMsh + "filename", mshName));
+                        if(mshFile.exists()) {
+                            MainActivity.setSemaphore(true);
+                            networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(),
+                                    sharedPreferences.getString(subMsh + "filename", mshName)));
+                        }else{
+                            DownloadModels(sharedPreferences);
                         }
-                    }else{
-                        DownloadSpecifiedModel(sharedPreferences, selected);
-                    }
+                        break;
+                    //default:
+                    case "FHI360-App":
+                        File fhiFile = new File(getApplication().getApplicationContext()
+                                .getDir("tflitemodels", Context.MODE_PRIVATE).getPath(),
+                                sharedPreferences.getString(subFhi + "filename", fhiName));
+                        if(fhiFile.exists()) {
+                            MainActivity.setSemaphore(true);
+                            networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(),
+                                    sharedPreferences.getString(subFhi + "filename", fhiName)));
+                            networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(),
+                                    sharedPreferences.getString(subFhiConc + "filename", fhiConcName)));
+                            if (pls == null) {
+                                pls = PartialLeastSquares.from(getApplication().getApplicationContext());
+                            }
+                        }else{
+                            DownloadModels(sharedPreferences);
+                        }
+                        //projectFolder = subFhi;
+                        break;
 
-                    break;
-            } //end switch case
+                    case "":
+                        break;
 
-          } //end for loop
+                    default:
+                        File networkFile = new File(getApplication().getApplicationContext()
+                                .getDir("tflitemodels", Context.MODE_PRIVATE).getPath(),
+                                sharedPreferences.getString(selected + "filename", "notafile"));
+                        if(networkFile.exists()){
+                            MainActivity.setSemaphore(true);
+                            networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(),
+                                    sharedPreferences.getString(selected + "filename", "")));
 
+                            Boolean usePls = sharedPreferences.getBoolean("pls", false);
+                            if(usePls && pls == null){
+                                pls = PartialLeastSquares.from(getApplication().getApplicationContext());
+                            }
+                        }else{
+                            DownloadSpecifiedModel(sharedPreferences, selected);
+                        }
+
+                        break;
+                } //end switch case
+            } //end for loop
 
             CurrentProject = project;
 
             //new UpdatesAsyncTask().execute(projectFolder);
 
-
         } catch (IOException e) {
             FirebaseCrashlytics.getInstance().recordException(e);
             e.printStackTrace();
-
         }
     }
 

@@ -123,7 +123,8 @@ public class SettingsActivity extends AppCompatActivity {
 
             String network;
 
-            try( Cursor netCursor = db.query(NetworksContract.NetworksEntry.TABLE_NAME, null, netSelection, null, null, null, netSortOrder)){
+            try( Cursor netCursor = db.query(NetworksContract.NetworksEntry.TABLE_NAME,
+                    null, netSelection, null, null, null, netSortOrder)){
                 while(netCursor.moveToNext()){
                     network = netCursor.getString(netCursor.getColumnIndexOrThrow(NetworksContract.NetworksEntry.COLUMN_NAME_NETWORKNAME));
                     networkEntries.add(network);
