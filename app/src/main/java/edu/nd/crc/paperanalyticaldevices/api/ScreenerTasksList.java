@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class TasksList {
+public class ScreenerTasksList {
 
     public static class StringListDeserializer implements JsonDeserializer<List<String>> {
         @Override
@@ -29,7 +29,7 @@ public class TasksList {
     }
 
     @SerializedName("links")
-    public Links Links;
+    public TasksList.Links Links;
 
     @SerializedName("count_pages")
     public Integer CountPages;
@@ -38,61 +38,29 @@ public class TasksList {
     public Integer CurrentPage;
 
     @SerializedName("results")
-    public ArrayList<Result> Results;
+    public ArrayList<ScreenerResult> Results;
 
-    public class Links {
+    public class ScreenerResult {
 
-        @SerializedName("next")
-        public String next;
-
-        @SerializedName("previous")
-        public String previous;
-    }
-
-    public class Result {
+        public String toString(){
+            return Id + " " + Sample + " " + Name;
+        }
         @SerializedName("id")
         public Integer Id;
 
         @SerializedName("sample")
         public String Sample;
 
-        @SerializedName("manufacturer")
-        public DrugManufacturer Manufacturer;
-
-        @SerializedName("dosage")
-        public String Dosage;
-
         @SerializedName("dosage_type")
-        public DosageType dosageType;
+        public TasksList.Result.DosageType dosageType;
 
-        @SerializedName("main_apis")
-        public List<MainApi> MainAPIs;
+        @SerializedName("name")
+        public String Name;
 
-        public class DrugManufacturer {
-            @SerializedName("id")
-            public Integer Id;
+        @SerializedName("expected_main_substances")
+        public String ExpectedMainSubstances;
 
-            @SerializedName("name")
-            public String Name;
-        }
-
-
-        public class DosageType {
-            @SerializedName("name")
-            public String Name;
-        }
-
-        public class MainApi {
-            @SerializedName("id")
-            public Integer Id;
-
-            @SerializedName("name")
-            public String Name;
-        }
-
+        @SerializedName("expected_other_substances")
+        public String ExpectedOtherSubstances;
     }
 }
-
-
-
-

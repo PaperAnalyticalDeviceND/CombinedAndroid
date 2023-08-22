@@ -76,6 +76,7 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
         val EXTRA_BASE_URL = "e.nd.paddatacapture.EXTRA_BASE_URL"
         val EXTRA_TASK_ID = "e.nd.paddatacapture.EXTRA_TASK_ID"
         val EXTRA_NEURAL_NET = "e.nd.paddatacapture.EXTRA_NEURAL_NET"
+        val EXTRA_TENANT_TYPE = "e.nd.paddatacapture.EXTRA_TENANT_TYPE"
     }
 
     /*
@@ -85,7 +86,7 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
     client_id
     host
      */
-    private val redirectUri = "https://pad.artifactsofresearch.io/"
+    private var redirectUri = "https://pad.artifactsofresearch.io/"
     //"https://api-pad.artifactsofresearch.io"
     private var baseUrl: String = "api-pad.artifactsofresearch.io"
 
@@ -109,6 +110,8 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
     private var searchMenuItem: MenuItem? = null
 
     var taskPage: Int = 1
+
+    private var tenantType = "legal_drugs"
 
     private var selectedTask: ArtifactsTaskDisplayModel? = null
     private var selectedNetwork: NetworksDisplayModel? = null
@@ -186,11 +189,16 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
         val code = deeplinkIntent.data!!.getQueryParameter("code").toString()
         val codeVerifier = deeplinkIntent.data!!.getQueryParameter("code_verifier").toString()
         val clientId = deeplinkIntent.data!!.getQueryParameter("client_id").toString()
+        //idPADs integration:  tenant_type = "legal_drugs" or "street_drugs"
+        tenantType = deeplinkIntent.data!!.getQueryParameter("tenant_type").toString()
+        Log.d("ARTIFACTS", "Tenant: $tenantType")
+        //redirectUri = deeplinkIntent.data!!.getQueryParameter("redirect_uri").toString()
         baseUrl = deeplinkIntent.data!!.getQueryParameter("host").toString()
 
         Log.d("ARTIFACTS", "Base URL $baseUrl")
         //loadTasks()
         val vm = ArtifactsTasksViewModel()
+        val screenrVm = ScreenerTaskViewModel()
         //vm.getTasksList(authToken, "https://$baseUrl", 1)
         val authVm = ArtifactsAuthViewModel()
         //val netVm = NetworksViewModel()
@@ -245,6 +253,8 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
             intent.putExtra(EXTRA_BASE_URL, baseUrl)
             intent.putExtra(EXTRA_TASK_ID, selectedTask!!.id)
             intent.putExtra(EXTRA_NEURAL_NET, selectedNetwork!!.network)
+            intent.putExtra(EXTRA_TENANT_TYPE, tenantType)
+            // pass on the tenant type "legal_drugs" | "street_drugs" to determine the final processing
 
             startActivity(intent)
             // }
@@ -267,21 +277,42 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
                         testPressed =  this::pressedTestButton
                     )
                 */
-                ArtifactsMainView(
-                    baseUrl = "https://$baseUrl",
-                    clientId = clientId,
-                    redirectUri = redirectUri,
-                    code = code,
-                    codeVerifier = codeVerifier,
-                    grantType = grantType,
-                    authVm = authVm,
-                    taskVm = vm,
-                    networksVm = netVm,
-                    dbHelper = dbHelper!!,
-                    onItemClicked = vm::selectTask,
-                    testPressed = vm::confirmTask,
-                    onNetworkPressed = this::startCamera
-                )
+                if(tenantType == "street_drugs") {
+                    ArtifactsMainView(
+                        baseUrl = "https://$baseUrl",
+                        clientId = clientId,
+                        redirectUri = redirectUri,
+                        code = code,
+                        codeVerifier = codeVerifier,
+                        grantType = grantType,
+                        tenantType = tenantType,
+                        authVm = authVm,
+                        taskVm = screenrVm,
+                        networksVm = netVm,
+                        dbHelper = dbHelper!!,
+                        onItemClicked = screenrVm::selectTask,
+                        testPressed = screenrVm::confirmTask,
+                        onNetworkPressed = this::startCamera
+                    )
+
+                }else{
+                    ArtifactsMainView(
+                        baseUrl = "https://$baseUrl",
+                        clientId = clientId,
+                        redirectUri = redirectUri,
+                        code = code,
+                        codeVerifier = codeVerifier,
+                        grantType = grantType,
+                        tenantType = tenantType,
+                        authVm = authVm,
+                        taskVm = vm,
+                        networksVm = netVm,
+                        dbHelper = dbHelper!!,
+                        onItemClicked = vm::selectTask,
+                        testPressed = vm::confirmTask,
+                        onNetworkPressed = this::startCamera
+                    )
+                }
             }
         }
     }

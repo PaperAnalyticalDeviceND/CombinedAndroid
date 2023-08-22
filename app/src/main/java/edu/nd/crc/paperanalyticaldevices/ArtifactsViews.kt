@@ -1,6 +1,5 @@
 package edu.nd.crc.paperanalyticaldevices
 
-import android.R
 import android.content.Intent
 
 
@@ -40,7 +39,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -52,8 +50,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
@@ -74,13 +70,14 @@ fun ArtifactsLoginView(modifier: Modifier = Modifier,
                        code: String,
                        codeVerifier: String,
                        grantType: String,
+                       tenantType: String,
                        authVm: ArtifactsAuthViewModel,
-                       taskVm: ArtifactsTasksViewModel,
+                       taskVm: PadsTaskViewModel,
                        onItemClicked: (ArtifactsTaskDisplayModel) -> Unit,
                        testPressed: (ArtifactsTaskDisplayModel) -> Unit){
 
     LaunchedEffect(Unit, block = {
-        authVm.getAuth(baseUrl, code, codeVerifier, redirectUri, clientId, grantType)
+        authVm.getAuth(baseUrl, code, codeVerifier, redirectUri, clientId, grantType, tenantType)
     })
 
     //var authorized by rememberSaveable { mutableStateOf(false) }
@@ -108,6 +105,64 @@ fun ArtifactsLoginView(modifier: Modifier = Modifier,
                     }*/
                     Text(text = "Logging In...")
                 }
+            }
+        }
+    }
+
+}
+
+@Composable
+fun ScreenerTaskListItem(modifier: Modifier = Modifier, task: ArtifactsTaskDisplayModel,
+                        onItemClicked: (ArtifactsTaskDisplayModel) -> Unit,
+                        testPressed: (ArtifactsTaskDisplayModel) -> Unit){
+
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
+    Surface(color = if(task.selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
+        modifier = Modifier
+            .padding(4.dp)
+            .clickable(true, onClick = { onItemClicked(task) })
+    ) {
+        Column(){
+            Row(modifier = Modifier
+                .padding(4.dp)
+                .fillMaxWidth()
+                .animateContentSize(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessLow
+                    )
+                ))   {
+                IconButton(
+                    onClick = {
+                        expanded = !expanded
+                    }
+                ) {
+                    Icon(imageVector = if(expanded) Icons.Default.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
+                        contentDescription = "Expand")
+                }
+                Column(modifier = Modifier.padding(horizontal = 4.dp)) {
+                    Text(text = "ID:")
+                    Text(text = "Name:", style = MaterialTheme.typography.bodySmall)
+
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = task.sampleId)
+                    Text(text = task.name, style = MaterialTheme.typography.bodySmall)
+
+                }
+
+                if(task.selected){
+                    ElevatedButton(onClick =
+
+                    { testPressed(task) }
+                    ) {
+                        Text(text = "Test")
+                    }
+                }
+            }
+            if(expanded) {
+                ScreenerTaskListItemDetail(task = task)
             }
         }
     }
@@ -175,6 +230,28 @@ fun ArtifactsTaskListItem(modifier: Modifier = Modifier, task: ArtifactsTaskDisp
 }
 
 @Composable
+fun ScreenerTaskListItemDetail(modifier: Modifier = Modifier, task: ArtifactsTaskDisplayModel){
+    Row(modifier = Modifier
+        .padding(4.dp)
+        .fillMaxWidth()) {
+        Column(modifier = Modifier.padding(horizontal = 8.dp)) {
+
+            Text(text = "Task ID:")
+            Text(text = "Expected Main Substance:")
+            Text(text = "Dosage:")
+            Text(text = "Expected Other Substances:")
+        }
+        Column(modifier = Modifier.weight(1f)) {
+
+            Text(text = task.id.toString())
+            Text(text = task.expectedMainSubstances)
+            Text(text = task.dose)
+            Text(text = task.expectedOtherSubstances)
+        }
+    }
+}
+
+@Composable
 fun ArtifactsTaskListItemDetail(modifier: Modifier = Modifier, task: ArtifactsTaskDisplayModel){
     Row(modifier = Modifier
         .padding(4.dp)
@@ -206,8 +283,9 @@ fun ArtifactsTaskListItemDetailsPreview(){
         taskOne.drug = "Acetaminophen"
         taskOne.manufacturer = "Pfizer"
         taskOne.dosage = "12.0"*/
-        var taskOne = ArtifactsTaskDisplayModel(id = 89, sampleId = "22ETCL-17",
-            drug = "Acetaminophen", manufacturer = "Pfizer", dose = "12.00 mg",
+        var taskOne = ArtifactsTaskDisplayModel(id = 89, sampleId = "22ETCL-17", name = "Acetaminophen",
+            drug = "Acetaminophen", manufacturer = "Pfizer", dose = "12.00 mg", doseType = "mg",
+            expectedMainSubstances = "Acetaminophen", expectedOtherSubstances = "",
             initialSelectedValue = false)
         ArtifactsTaskListItemDetail(task = taskOne)
     }
@@ -217,8 +295,10 @@ fun ArtifactsTaskListItemDetailsPreview(){
 @Composable
 fun AtrifactsTaskListItemPreview(){
     CombinedAndroidTheme() {
-        var taskOne = ArtifactsTaskDisplayModel(id = 89, sampleId = "22ETCL-17",
+        var taskOne = ArtifactsTaskDisplayModel(id = 89, sampleId = "22ETCL-17", name = "Acetaminophen",
             drug = "Acetaminophen", manufacturer = "Pfizer", dose = "12.00 mg",
+            doseType = "mg",
+            expectedMainSubstances = "Acetaminophen", expectedOtherSubstances = "",
             initialSelectedValue = false)
         ArtifactsTaskListItem(task = taskOne, onItemClicked = {}, testPressed = {})
 
@@ -254,7 +334,17 @@ fun ArtifactsTaskList(modifier: Modifier = Modifier,
         }
 
         items(items = filteredTaskList, key = { it.id }){drug ->
-            ArtifactsTaskListItem(task = drug, onItemClicked = onItemClicked, testPressed = testPressed)
+            if(drug.type == "street_drugs") {
+                ScreenerTaskListItem(task = drug, onItemClicked = onItemClicked, testPressed = testPressed)
+
+            }else{
+                ArtifactsTaskListItem(
+                    task = drug,
+                    onItemClicked = onItemClicked,
+                    testPressed = testPressed
+                )
+            }
+
         }
     }
 }
@@ -280,7 +370,7 @@ fun ArtifactsTaskListPreview(){
 }*/
 
 @Composable
-fun ArtifactsTaskView(modifier: Modifier = Modifier, vm: ArtifactsTasksViewModel,
+fun ArtifactsTaskView(modifier: Modifier = Modifier, vm: PadsTaskViewModel,
                       token: String, baseUrl: String,
                       onItemClicked: (ArtifactsTaskDisplayModel) -> Unit,
                       testPressed: (ArtifactsTaskDisplayModel) -> Unit){
@@ -369,7 +459,7 @@ fun ArtifactsResultView(modifier: Modifier = Modifier, vm: ArtifactsTasksViewMod
 @Composable
 fun NetworksList(modifier: Modifier = Modifier,
                  networks: List<NetworksDisplayModel>,
-                 taskVm: ArtifactsTasksViewModel,
+                 taskVm: PadsTaskViewModel,
                  netVm: NetworksViewModel,
                  onItemClicked: (ArtifactsTaskDisplayModel, NetworksDisplayModel, NetworksDisplayModel) -> Unit){
     Surface() {
@@ -381,10 +471,11 @@ fun NetworksList(modifier: Modifier = Modifier,
     }
 }
 
+/// List the Neural Nets for selection after task confirmation
 @Composable
 fun NetworkListView(modifier: Modifier = Modifier,
                     networkViewModel: NetworksViewModel,
-                    taskViewModel: ArtifactsTasksViewModel,
+                    taskViewModel: PadsTaskViewModel,
                     dbHelper: ProjectsDbHelper,
                     onItemClicked: (ArtifactsTaskDisplayModel, NetworksDisplayModel, NetworksDisplayModel) -> Unit){
     LaunchedEffect(Unit, block = {
@@ -422,14 +513,18 @@ fun NetworkListView(modifier: Modifier = Modifier,
 @Composable
 fun NetworksListItem(modifier: Modifier = Modifier,
                      network: NetworksDisplayModel,
-                     taskVm: ArtifactsTasksViewModel,
+                     taskVm: PadsTaskViewModel,
                      netVm: NetworksViewModel,
                      onItemClicked: (ArtifactsTaskDisplayModel, NetworksDisplayModel, NetworksDisplayModel) -> Unit){
     Surface(modifier = Modifier
         .padding(4.dp)
         .clickable(true,
             onClick = {
-                onItemClicked(taskVm.getSelected()!!, network, netVm.getConcNetwork(taskVm.getSelected()!!))
+                onItemClicked(
+                    taskVm.getSelected()!!,
+                    network,
+                    netVm.getConcNetwork(taskVm.getSelected()!!)
+                )
                 taskVm.clearConfirmation()
             }),
         color = MaterialTheme.colorScheme.primary) {
@@ -461,7 +556,7 @@ fun ArtifactsTopBar(){
         title = {
             Row(modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center) {
-                Text("ARTIFACTS", fontSize = 18.sp)
+                Text("ARTIFACTS Verify", fontSize = 18.sp)
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
@@ -470,6 +565,21 @@ fun ArtifactsTopBar(){
     )
 
 
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ScreenerTopBar(){
+    TopAppBar(
+        title = {
+            Row(modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center) {
+                Text("ARTIFACTS Screenr", fontSize = 18.sp)
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            titleContentColor = MaterialTheme.colorScheme.surface)
+    )
 }
 
 @Preview(showBackground = true)
@@ -520,6 +630,32 @@ fun TaskSearchPreview(){
     }
 }
 
+
+@Composable
+fun ScreenerMainView(modifier: Modifier = Modifier,
+                     baseUrl: String,
+                     clientId: String,
+                     redirectUri: String,
+                     code: String,
+                     codeVerifier: String,
+                     grantType: String,
+                     authVm: ArtifactsAuthViewModel,
+                     taskVm: ScreenerTaskViewModel,
+                     networksVm: NetworksViewModel,
+                     dbHelper: ProjectsDbHelper,
+                     onItemClicked: (ArtifactsTaskDisplayModel) -> Unit,
+                     testPressed: (ArtifactsTaskDisplayModel) -> Unit,
+                     onNetworkPressed: (ArtifactsTaskDisplayModel, NetworksDisplayModel, NetworksDisplayModel) -> Unit){
+
+    Scaffold(
+        topBar = { ScreenerTopBar() },
+        content = {
+                paddingValues -> Column(modifier = Modifier.padding(paddingValues)){
+
+                }
+        }
+    )
+}
 @Composable
 fun ArtifactsMainView(modifier: Modifier = Modifier,
                       baseUrl: String,
@@ -528,8 +664,9 @@ fun ArtifactsMainView(modifier: Modifier = Modifier,
                       code: String,
                       codeVerifier: String,
                       grantType: String,
+                      tenantType: String,
                       authVm: ArtifactsAuthViewModel,
-                      taskVm: ArtifactsTasksViewModel,
+                      taskVm: PadsTaskViewModel,
                       networksVm: NetworksViewModel,
                       dbHelper: ProjectsDbHelper,
                       onItemClicked: (ArtifactsTaskDisplayModel) -> Unit,
@@ -537,7 +674,8 @@ fun ArtifactsMainView(modifier: Modifier = Modifier,
                       onNetworkPressed: (ArtifactsTaskDisplayModel, NetworksDisplayModel, NetworksDisplayModel) -> Unit){
 
     Scaffold(
-        topBar = { ArtifactsTopBar() },
+        topBar = { if(tenantType == "street_drugs") ScreenerTopBar()
+                 else ArtifactsTopBar()},
         content = {
             paddingValues -> Column(modifier = Modifier.padding(paddingValues)){
                 if(taskVm.taskConfirmed){
@@ -555,6 +693,7 @@ fun ArtifactsMainView(modifier: Modifier = Modifier,
                         code = code,
                         codeVerifier = codeVerifier,
                         grantType = grantType,
+                        tenantType = tenantType,
                         authVm = authVm,
                         taskVm = taskVm,
                         onItemClicked = onItemClicked,

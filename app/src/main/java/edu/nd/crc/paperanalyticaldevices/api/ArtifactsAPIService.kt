@@ -29,12 +29,18 @@ interface ArtifactsAPIService {
                         @Field("code") code: String,
                         @Field("code_verifier") codeVerifier: String,
                         @Field("redirect_uri") redirectUri: String,
-                        @Field("grant_type") grantType: String): AuthResponse
+                        @Field("grant_type") grantType: String,
+                        @Field("tenant_type") tenantType: String): AuthResponse
 
     @GET("tasks/")
     suspend fun getTasks(@Header("Authorization") token: String,
                          @Query("status") status: String,
                          @Query("page") page: Int): TasksList
+
+    @GET("tasks/")
+    suspend fun getScreenerTasks(@Header("Authorization") token: String,
+                                 @Query("status") status: String,
+                                 @Query("page") page: Int) : ScreenerTasksList
 
     @GET("tasks/?status=awaiting")
     suspend fun getDefaultTasks(@Header("Authorization") token: String): TasksList
