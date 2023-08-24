@@ -68,6 +68,17 @@ interface ArtifactsAPIService {
                                     @Part("result") result: MultipartBody.Part
      */
 
+    @Multipart
+    @POST("/tasks/{task_id}/test_automatic/")
+    fun sendScreenerResult(@Header("Authorization") token: String,
+                           @Path("task_id") taskId: Int,
+                           @Part rectFile: MultipartBody.Part,
+                           @Part rawFile: MultipartBody.Part,
+                           @Part testDate: MultipartBody.Part,
+                           @Part taskNotes: MultipartBody.Part,
+                           @Part substances: MultipartBody.Part
+                           ): Call<ResponseBody>
+
     companion object {
         var apiService: ArtifactsAPIService? = null
         fun getInstance(baseUrl: String): ArtifactsAPIService {

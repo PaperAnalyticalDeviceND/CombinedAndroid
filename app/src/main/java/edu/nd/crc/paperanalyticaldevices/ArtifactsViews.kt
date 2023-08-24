@@ -477,9 +477,14 @@ fun NetworkListView(modifier: Modifier = Modifier,
                     networkViewModel: NetworksViewModel,
                     taskViewModel: PadsTaskViewModel,
                     dbHelper: ProjectsDbHelper,
+                    tenantType: String,
                     onItemClicked: (ArtifactsTaskDisplayModel, NetworksDisplayModel, NetworksDisplayModel) -> Unit){
     LaunchedEffect(Unit, block = {
-        networkViewModel.getNetworks(taskViewModel.getSelected()!!, dbHelper = dbHelper)
+        if(tenantType == "street_drugs"){
+            networkViewModel.getIdPadsNetworks(dbHelper = dbHelper)
+        }else{
+            networkViewModel.getNetworks(taskViewModel.getSelected()!!, dbHelper = dbHelper)
+        }
     })
 
     val context = LocalContext.current
@@ -683,6 +688,7 @@ fun ArtifactsMainView(modifier: Modifier = Modifier,
                         networkViewModel = networksVm,
                         taskViewModel = taskVm,
                         dbHelper = dbHelper,
+                        tenantType = tenantType,
                         onItemClicked = onNetworkPressed
                     )
                 }else{

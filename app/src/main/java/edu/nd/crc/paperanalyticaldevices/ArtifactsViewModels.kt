@@ -343,8 +343,28 @@ class NetworksViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch{
             val db = dbHelper.readableDatabase
             var cursor: Cursor? = db?.rawQuery(
-                "SELECT DISTINCT(${DrugsContract.DrugsEntry.COLUMN_NAME_NETWORK}) from ${DrugsContract.DrugsEntry.TABLE_NAME} WHERE ${DrugsContract.DrugsEntry.COLUMN_NAME_DRUGNAME} = ?",
+                "SELECT DISTINCT(${DrugsContract.DrugsEntry.COLUMN_NAME_NETWORK}) from ${DrugsContract.DrugsEntry.TABLE_NAME} " +
+                        "WHERE ${DrugsContract.DrugsEntry.COLUMN_NAME_DRUGNAME} = ?",
                  Array<String>(1){task.drug} )
+            _networksList.clear()
+            if(null != cursor){
+                while(cursor.moveToNext()){
+                    val network = cursor.getString(cursor.getColumnIndexOrThrow(DrugsContract.DrugsEntry.COLUMN_NAME_NETWORK))
+                    if(haveNetwork(sharedPrefs, network = network)){
+                        _networksList.add(NetworksDisplayModel(network = network, initialSelectedValue = false))
+                    }
+                }
+            }
+        }
+    }
+
+    fun getIdPadsNetworks(dbHelper: ProjectsDbHelper){
+        viewModelScope.launch{
+            val db = dbHelper.readableDatabase
+            var cursor: Cursor? = db?.rawQuery(
+                "SELECT DISTINCT(${DrugsContract.DrugsEntry.COLUMN_NAME_NETWORK}) from ${DrugsContract.DrugsEntry.TABLE_NAME} " +
+                        "WHERE ${DrugsContract.DrugsEntry.COLUMN_NAME_NETWORK} LIKE ?", Array<String>(1){"idpad%"}
+                 )
             _networksList.clear()
             if(null != cursor){
                 while(cursor.moveToNext()){
@@ -397,18 +417,22 @@ class ArtifactsResultViewModel(application: Application) : ViewModel() {
     var errorMessage: String by mutableStateOf("")
 
     private val workManager = WorkManager.getInstance(application)
-    fun sendResult(context: Context, authToken: String, baseUrl: String, timestamp: String,
+    fun sendResult(context: Context, tenantType: String, authToken: String,
+                   baseUrl: String, timestamp: String,
                    testDate: String, taskId: Int,
-                   taskNotes: String, result: String, rectFileUri: Uri,
+                   taskNotes: String, result: String,
+                   predictedDrug: String, concentration: String,
+                   rectFileUri: Uri,
                    rawFileUri: Uri, rectFile: File, rawFile: File){
         viewModelScope.launch {
 
             Log.d("ARTIFACTS", "Starting Artifacts send")
             try{
 
-                val re = sendArtifactsResult(authToken = "Bearer $authToken", baseUrl = baseUrl,
+                val re = sendArtifactsResult(tenantType = tenantType, authToken = "Bearer $authToken", baseUrl = baseUrl,
                     taskId = taskId, timestamp = timestamp, testDate = testDate,
-                    taskNotes = taskNotes, result = result)
+                    taskNotes = taskNotes, result = result, predictedDrug = predictedDrug,
+                    concentration = concentration)
 
 
             }catch(e: Exception){
@@ -419,10 +443,13 @@ class ArtifactsResultViewModel(application: Application) : ViewModel() {
 
     }
 
-    private fun sendArtifactsResult(authToken: String, baseUrl: String, taskId: Int,
+    private fun sendArtifactsResult(tenantType: String, authToken: String,
+                                    baseUrl: String, taskId: Int,
                             timestamp: String, testDate: String,
-                            taskNotes: String, result: String){
+                            taskNotes: String, result: String,
+                            predictedDrug: String, concentration: String){
         val inputData = Data.Builder()
+            .putString(TENANT_TYPE, tenantType)
             .putString(AUTH_TOKEN, authToken)
             .putString(BASE_URL, baseUrl)
             .putInt(TASK_ID, taskId)
@@ -430,6 +457,8 @@ class ArtifactsResultViewModel(application: Application) : ViewModel() {
             .putString(TEST_DATE, testDate)
             .putString(TASK_NOTES, taskNotes)
             .putString(TASK_RESULT, result)
+            .putString(PREDICTED_DRUG, predictedDrug)
+            .putString(CONCENTRATION, concentration)
             .build()
 
         val oneTimeWorkRequest = OneTimeWorkRequestBuilder<ArtifactsWorker>()

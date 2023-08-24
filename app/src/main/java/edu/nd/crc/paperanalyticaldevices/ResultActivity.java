@@ -83,7 +83,7 @@ public class ResultActivity extends AppCompatActivity {
 
     String baseUrl = "api-pad.artifactsofresearch.io";
 
-
+    String tenantType = "legal_drugs";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -234,6 +234,10 @@ public class ResultActivity extends AppCompatActivity {
 
         if(intent.hasExtra(ArtifactsActivity.Companion.getEXTRA_BASE_URL())){
             baseUrl = intent.getStringExtra(ArtifactsActivity.Companion.getEXTRA_BASE_URL());
+        }
+
+        if(intent.hasExtra(ArtifactsActivity.Companion.getEXTRA_TENANT_TYPE())){
+            tenantType = intent.getStringExtra(ArtifactsActivity.Companion.getEXTRA_TENANT_TYPE());
         }
 
         if(intent.hasExtra(ArtifactsActivity.Companion.getEXTRA_TASK_ID())){
@@ -449,8 +453,8 @@ public class ResultActivity extends AppCompatActivity {
             File originalFile = new File(targetDir, "original.png");
             //ArtifactsResultViewModel vm = new ViewModelProvider(this).get(ArtifactsResultViewModel.class);
             ArtifactsResultViewModel vm = new ArtifactsViewModelFactory(getApplication()).create(edu.nd.crc.paperanalyticaldevices.ArtifactsResultViewModel.class);
-            vm.sendResult(this, authToken, baseUrl, timestamp, newDate, taskId, taskNotes,
-                    result, rectifiedFileUri, originalFileUri, rectifiedFile, originalFile);
+            vm.sendResult(this, tenantType, authToken, baseUrl, timestamp, newDate, taskId, taskNotes,
+                    result, predictedDrug, String.valueOf(nnConcentration), rectifiedFileUri, originalFileUri, rectifiedFile, originalFile);
 
             // correct parameters
             /*sendArtifactResult(authToken, baseUrl, newDate, taskId, taskNotes, result,
