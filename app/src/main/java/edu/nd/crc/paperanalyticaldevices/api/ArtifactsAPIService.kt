@@ -2,11 +2,14 @@ package edu.nd.crc.paperanalyticaldevices.api
 
 import com.google.firebase.crashlytics.internal.network.HttpResponse
 import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.create
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
@@ -76,17 +79,24 @@ interface ArtifactsAPIService {
                            @Part rawFile: MultipartBody.Part,
                            @Part testDate: MultipartBody.Part,
                            @Part taskNotes: MultipartBody.Part,
-                           @Part substances: MultipartBody.Part
+                           @Part substances: MultipartBody.Part? = null,
+                           @Part resultIsNotRecognized: MultipartBody.Part? = null
                            ): Call<ResponseBody>
 
     companion object {
         var apiService: ArtifactsAPIService? = null
         fun getInstance(baseUrl: String): ArtifactsAPIService {
             if(apiService == null){
+                var logger = HttpLoggingInterceptor()
+                logger.level = HttpLoggingInterceptor.Level.BODY
+
+                var client = OkHttpClient.Builder().addInterceptor(logger)
+
                 apiService = Retrofit.Builder()
                     .baseUrl(baseUrl)
                     .addConverterFactory(GsonConverterFactory.create())
-                    .build().create(ArtifactsAPIService::class.java)
+                    .client(client.build()).build().create(ArtifactsAPIService::class.java)
+                    //.build().create(ArtifactsAPIService::class.java)
             }
             return apiService!!
         }

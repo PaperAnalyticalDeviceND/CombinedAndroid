@@ -118,4 +118,7 @@ dependencies {
 
     // Put last to fix listenable future issue
     implementation 'com.google.guava:guava:27.0.1-android'
+
+    //implementation("com.squareup.okhttp3:logging-interceptor:3.14.9")
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.6.0'
 }

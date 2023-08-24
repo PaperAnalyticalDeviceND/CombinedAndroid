@@ -111,6 +111,53 @@ fun ArtifactsLoginView(modifier: Modifier = Modifier,
 
 }
 
+/*
+{"links":{"next":null,"previous":null},"count":9,"count_pages":1,"current_page":1,
+"results":[{"is_able_to_add_task_notes":true,"is_able_to_edit_task":false,"id":10,
+"test_type":{"id":4,"name":"idPAD","group":{"id":1,"name":"Screening",
+"is_accurate":false,"is_visual":false},"is_other":false,"methods":[]},"sample":"23USND-1",
+"initial_laboratory":{"id":2,"name":"University of Notre Dame","label":"USND",
+"label_tooltip":"University of Notre Dame","icon_text":"ND","group":2},
+"status":{"key":"awaiting","value":"Awaiting"},"dosage_type":null,"task_notes":[],
+"name":"Sample 1","weight":null,"physical_form":null,"expected_main_substances":null,
+"expected_other_substances":null,"submitter_code":null,"sample_attachments":[]},
+{"is_able_to_add_task_notes":true,"is_able_to_edit_task":false,"id":9,
+"test_type":{"id":4,"name":"idPAD","group":{"id":1,"name":"Screening",
+"is_accurate":false,"is_visual":false},"is_other":false,"methods":[]},
+"sample":"23USND-1","initial_laboratory":{"id":2,"name":"University of Notre Dame",
+"label":"USND","label_tooltip":"University of Notre Dame","icon_text":"ND","group":2},
+"status":{"key":"awaiting","value":"Awaiting"},"dosage_type":null,"task_notes":[],
+"name":"Sample 1","weight":null,"physical_form":null,"expected_main_substances":null,
+"expected_other_substances":null,"submitter_code":null,"sample_attachments":[]},
+{"is_able_to_add_task_notes":true,"is_able_to_edit_task":false,"id":8,
+"test_type":{"id":4,"name":"idPAD","group":{"id":1,"name":"Screening","is_accurate":false,"is_visual":false},
+"is_other":false,"methods":[]},"sample":"23USND-1","initial_laboratory":{"id":2,"name":"University of Notre Dame",
+"label":"USND","label_tooltip":"University of Notre Dame","icon_text":"ND","group":2},
+"status":{"key":"awaiting","value":"Awaiting"},"dosage_type":null,"task_notes":[],"name":"Sample 1","weight":null,
+"physical_form":null,"expected_main_substances":null,"expected_other_substances":null,"submitter_code":null,
+"sample_attachments":[]},{"is_able_to_add_task_notes":true,"is_able_to_edit_task":false,"id":7,
+"test_type":{"id":4,"name":"idPAD","group":{"id":1,"name":"Screening","is_accurate":false,"is_visual":false},
+"is_other":false,"methods":[]},"sample":"23USND-1","initial_laboratory":{"id":2,"name":"University of Notre Dame",
+"label":"USND","label_tooltip":"University of Notre Dame","icon_text":"ND","group":2},
+"status":{"key":"awaiting","value":"Awaiting"},"dosage_type":null,"task_notes":[],"name":"Sample 1","weight":null,"physical_form":null,"expected_main_substances":null,"expected_other_substances":null,"submitter_code":null,"sample_attachments":[]},{"is_able_to_add_task_notes":true,"is_able_to_edit_task":false,"id":6,"test_type":{"id":4,"name":"idPAD","group":{"id":1,"name":"Screening","is_accurate":false,"is_visual":false},"is_other":false,"methods":[]},"sample":"23USND-1","initial_laboratory":{"id":2,"name":"University of Notre Dame","label":"USND","label_tooltip":"University of Notre Dame","icon_text":"ND","group":2},"status":{"key":"awaiting","value":"Awaiting"},"dosage_type":null,"task_notes":[],"name":"Sample 1","weight":null,"physical_form":null,"expected_main_substances":null,"expected_other_substances":null,"submitter_code":null,"sample_attachments":[]},{"is_able_to_add_task_notes":true,"is_able_to_edit_task":false,"id":5,"test_type":{"id":4,"name":"idPAD","group":{"id":1,"name":"Screening","is_accurate":false,"is_visual":false},"is_other":false,"methods":[]},"sample":"23USND-1","initial_laboratory":{"id":2,"name":"University of Notre Dame","label":"USND","label_tooltip":"University of Notre Dame","icon_text":"ND","group":2},"status":{"key":"awaiting","value":"Awaiting"},"dosage_type":null,"task_notes":[],"name":"Sample 1","weight":null,"physical_form":null,"expected_main_substances":null,"expected_other_substances":null,"submitter_code":null,"sample_attachments":[]},{"is_able_to_add_task_notes":true,"is_able_to_edit_task":false,"id":4,
+"test_type":{"id":4,"name":"idPAD","group":{"id":1,"name":"Screening","is_accurate":false,"is_visual":false},"is_other":false,"methods":[]},"sample":"23USND-1","initial_laboratory":{"id":2,"name":"University of Notre Dame","label":"USND","label_tooltip":"University of Notre Dame","icon_text":"ND","group":2},"status":{"key":"awaiting","value":"Awaiting"},"dosage_type":null,"task_notes":[],"name":"Sample 1","weight":null,"physical_form":null,"expected_main_substances":null,"expected_other_substances":null,"submitter_code":null,"sample_attachments":[]},{"is_able_to_add_task_notes":true,"is_able_to_edit_task":false,"id":3,"test_type":{"id":4,"name":"idPAD","group":{"id":1,"name":"Screening","is_accurate":false,"is_visual":false},"is_other":false,"methods":[]},"sample":"23USND-1","initial_laboratory":{"id":2,"name":"University of Notre Dame","label":"USND","label_tooltip":"University of Notre Dame","icon_text":"ND","group":2},"status":{"key":"awaiting","value":"Awaiting"},"dosage_type":null,"task_notes":[],"name":"Sample 1","weight":null,"physical_form":null,"expected_main_substances":null,"expected_other_substances":null,"submitter_code":null,"sample_attachments":[]},{"is_able_to_add_task_notes":true,"is_able_to_edit_task":false,"id":1,"test_type":{"id":4,"name":"idPAD","group":{"id":1,"name":"Screening","is_accurate":false,"is_visual":false},"is_other":false,"methods":[]},"sample":"23USND-1","initial_laboratory":{"id":2,"name":"University of Notre Dame","label":"USND","label_tooltip":"University of Notre Dame","icon_text":"ND","group":2},"status":{"key":"awaiting","value":"Awaiting"},"dosage_type":null,"task_notes":[],"name":"Sample 1","weight":null,"physical_form":null,"expected_main_substances":null,"expected_other_substances":null,"submitter_code":null,"sample_attachments":[]}]}
+2023-08-24 11:44:55.358  4946-5563  okhttp.OkHttpClient     edu.nd.crc.paperanalyticaldevices    I  <-- END HTTP (5729-byte body)
+ */
+
+/* Response
+{"id":1,"test_type":{"id":4,"name":"idPAD","group":{"id":1,"name":"Screening","is_accurate":false,"is_visual":false},"is_other":false,"methods":[]},
+"available_result":null,"result":{"key":"not_completed","value":"Not completed"},"result_name":null,"status":{"key":"completed","value":"Completed"},
+"sample":"23USND-1","initial_laboratory":{"id":2,"name":"University of Notre Dame","label":"USND","label_tooltip":"University of Notre Dame",
+"icon_text":"ND","icon_text_color":"#3898F3","icon_background_color":"#E5F3FE","group":{"id":2,"name":"Central Lab.","sample_creator":true,
+"sample_splitter":true,"sample_retest_performer":false,"sample_retest_informer":false,"manage_test_reports":true,"manage_document_storage":true,
+"manage_dashboard_analytics":true,"receiver_of_test_requests":false,"sender_of_test_requests":false,"receiver_of_purchase_requests":false,
+"sender_of_purchase_requests":false,"is_able_to_view_results":true}},"dosage_type":null,"started_at":"2023-08-24T15:46:18Z",
+"finished_at":"2023-08-24T15:46:18Z","step":4,"attachments":[{"id":2,"attachment_type":{"key":"file","value":"File"},"object_id":1,
+"attachment_section":{"key":"test_report","value":"Test report"},"name":"rectified.png",
+"link":"https://pad-artifactsofresearch-attachments.s3.amazonaws.com/screener/media/rectified.png?response-content-disposition=attachment%3B%20filename%3Drectified.png&AWSAccessKeyId=AKIAQCN7TTB64MMPC7XM&Signature=fjHqODdWIoA7onp7hmuF1%2F%2BJBqs%3D&Expires=1692892594","thumbnail_link":null,"size":"1.26 MB","instead":null,"saved":true},{"id":3,"attachment_type":{"key":"file","value":"File"},"object_id":1,"attachment_section":{"key":"test_report","value":"Test report"},"name":"original.png","link":null,"thumbnail_link":null,"size":"1.10 MB","instead":null,"saved":true}],"task_notes":[{"id":1,"user":{"id":316,"first_name":"Universityofnotredame","last_name":"Assistant"},"user_role":"laboratory_assistant","notes":"PAD ID: 16755\r\nidPAD_small_lite\r\nHeroin (0.51),\r\n(PLS 17%)","read_only":false}],"can_be_canceled":false,"is_able_to_add_task_notes":true,"is_able_to_edit_task":true,"sample_attachments":[],"available_section_settings":[{"id":13,"section":{"id":10,"name":"substances_recognized"},"title":"Substances recognized","ordering_key":1},{"id":14,"section":{"id":2,"name":"test_report"},"title":"Test report","ordering_key":2}],"sample_notes":"","name":"Sample 1","submitter_code":null,"physical_form":null,"weight":null,"expected_main_substances":null,"substance_result":[],
+"expected_other_substances":null,"test_notes":"","preparation":"","test_strip_brand":"","test_strip_batch":"","result_is_not_recognized":true,"sample_id":1,"test_type_method":null}
+2023-08-24 11:46:34.071  4946-6356  okhttp.OkHttpClient     edu.nd.crc.paperanalyticaldevices    I  <-- END HTTP (2674-byte body)
+ */
 @Composable
 fun ScreenerTaskListItem(modifier: Modifier = Modifier, task: ArtifactsTaskDisplayModel,
                         onItemClicked: (ArtifactsTaskDisplayModel) -> Unit,

@@ -10,6 +10,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import android.util.Log
+import org.apache.commons.lang3.math.NumberUtils.toInt
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -83,17 +84,25 @@ class ArtifactsWorker(context: Context, params: WorkerParameters) : Worker(conte
 
         var drugObj = JSONObject()
         drugObj.put("name", predictedDrug)
-        //drugObj.put("precentage", concentration)
-        var determinedObj = JSONObject()
-        determinedObj.put("is_not_determined", true)
+        if(concentration != "0") {
+            drugObj.put("percentage", toInt(concentration))
+        }
+
         var substanceArray = JSONArray()
         substanceArray.put(drugObj)
-        //substanceArray.put(determinedObj)
+        if(concentration == "0") {
+
+            drugObj.put("is_not_determined", true)
+        }
         val substanceString = substanceArray.toString()
         Log.d("ARTIFACTS", substanceString)
-        val substancesField = prepareStringPart("substances", substanceString)
+        var substancesField = prepareStringPart("substances", substanceString)
+
         val fieldString = substancesField.body.toString()
         Log.d("ARTIFACTS", fieldString)
+
+        val resultNotRecognized = MultipartBody.Part.createFormData("result_is_not_recognized", if(predictedDrug == "") "true" else "false")
+
 
         val rectFileField = prepareFilePart( "files",  rectifiedFile)
         val rawFileField = prepareFilePart( "files",  originalFile)
@@ -101,11 +110,17 @@ class ArtifactsWorker(context: Context, params: WorkerParameters) : Worker(conte
 
         val re = apiService.sendScreenerResult(token = authToken, taskId = taskId,
             rectFile = rectFileField, rawFile = rawFileField, testDate = dateField!!,
-            taskNotes = taskNotesField!!, substances = substancesField)
+            taskNotes = taskNotesField!!, substances = if(predictedDrug == "") null else substancesField,
+            resultIsNotRecognized = if(predictedDrug == "") resultNotRecognized else null)
+        
         Log.d("ARTIFACTS", "Executing Screener API call")
         val response = re.execute()
         Log.d("ARTIFACTS", response.toString())
 
+        /*
+        {"substances":["The substances should consist of ['clinically_meaningful', 'concentration', 'concentration_type', 'is_not_determined', 'name', 'percentage'] required keys."]}
+         */
+        Log.d("ARTIFACTS", fieldString)
         return true
     }
 
