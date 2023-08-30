@@ -112,7 +112,7 @@ class ArtifactsWorker(context: Context, params: WorkerParameters) : Worker(conte
             rectFile = rectFileField, rawFile = rawFileField, testDate = dateField!!,
             taskNotes = taskNotesField!!, substances = if(predictedDrug == "") null else substancesField,
             resultIsNotRecognized = if(predictedDrug == "") resultNotRecognized else null)
-        
+
         Log.d("ARTIFACTS", "Executing Screener API call")
         val response = re.execute()
         Log.d("ARTIFACTS", response.toString())

@@ -21,6 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.Spinner;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
@@ -37,6 +38,9 @@ import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
 
+import com.google.android.material.slider.LabelFormatter;
+import com.google.android.material.slider.Slider;
+import com.google.android.material.slider.Slider.OnSliderTouchListener;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.analytics.FirebaseAnalytics;
@@ -84,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
     String secondaryNeuralNetName;
 
     static final String[] concentrations = new String[]{"100", "80", "50", "20"};
+    static final String[] concentraionStrings = new String[]{"100%", "80%", "50%", "20%"};
 
     private PredictionModel tensorflowView;
 
@@ -101,6 +106,23 @@ public class MainActivity extends AppCompatActivity {
 
     NumberPicker sDrugs;
     //NumberPicker sConc;
+
+    int concIndex;
+
+    private final OnSliderTouchListener touchListener =
+            new OnSliderTouchListener() {
+                @Override
+                public void onStartTrackingTouch(Slider slider) {
+                    //showSnackbar(slider, R.string.cat_slider_start_touch_description);
+                }
+
+                @Override
+                public void onStopTrackingTouch(Slider slider) {
+                    //showSnackbar(slider, R.string.cat_slider_stop_touch_description);
+                    //concIndex = Integer.valueOf(String.valueOf(slider.getValue()));
+                    concIndex = Math.round(slider.getValue());
+                }
+            };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -160,10 +182,24 @@ public class MainActivity extends AppCompatActivity {
         sConc.setAdapter(aConcentrations);
 */
 
-        NumberPicker sConc = findViewById(R.id.concDrugSpinner);
-        sConc.setMinValue(0);
-        sConc.setMaxValue(Defaults.Brands.size() - 1);
-        sConc.setDisplayedValues(Defaults.Brands.toArray(new String[Defaults.Brands.size()]));
+        Slider sConc = findViewById(R.id.concDrugSpinner);
+        //NumberPicker sConc = findViewById(R.id.concDrugSpinner);
+        //sConc.setMinValue(0);
+        //sConc.setMaxValue(Defaults.Brands.size() - 1);
+        //sConc.setDisplayedValues(Defaults.Brands.toArray(new String[Defaults.Brands.size()]));
+        LabelFormatter formatter = new LabelFormatter() {
+            @NonNull
+            @Override
+            public String getFormattedValue(float value) {
+                //do what you want with the value in here...
+                int index = Math.round(value);
+                return concentraionStrings[index];
+            }
+        };
+
+        sConc.setLabelFormatter(formatter);
+        sConc.addOnSliderTouchListener(touchListener);
+
 
         networkLabel = findViewById(R.id.neuralnet_name_view);
         networkLabel.setText(project);
@@ -217,10 +253,12 @@ public class MainActivity extends AppCompatActivity {
                 String ret = drugList[drugIndex];
                 intent.putExtra(EXTRA_STATED_DRUG, ret);
 
-                NumberPicker spinnerConc = findViewById(R.id.concDrugSpinner);
+                /*NumberPicker spinnerConc = findViewById(R.id.concDrugSpinner);
                 String[] conList = spinnerConc.getDisplayedValues();
                 int concIndex = spinnerConc.getValue();
                 String conc = conList[concIndex];
+                intent.putExtra(EXTRA_STATED_CONC, conc);*/
+                String conc = concentraionStrings[concIndex];
                 intent.putExtra(EXTRA_STATED_CONC, conc);
 
                 startActivity(intent);
