@@ -198,6 +198,61 @@
         android:stepSize="1"
         app:labelBehavior="visible"/>
 
+    <TextView
+        android:id="@+id/markerTypeLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_weight="0"
+        android:paddingLeft="10dp"
+        android:paddingTop="10dp"
+        android:text="Marker Type"
+        app:layout_constraintBottom_toTopOf="@id/markerType"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/concDrugSpinner" />
+
+    <ImageView
+        android:id="@+id/fiducial"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/markerType"
+        app:layout_constraintTop_toBottomOf="@id/concDrugSpinner"
+        app:layout_constraintBottom_toTopOf="@id/button3"
+        app:srcCompat="@mipmap/fiducial"
+        />
+
+    <ImageView
+        android:id="@+id/aruco"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/markerType"
+        app:layout_constraintBottom_toTopOf="@id/button3"
+        app:layout_constraintTop_toBottomOf="@id/concDrugSpinner"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:srcCompat="@mipmap/aruco1"
+        />
+
+    <com.google.android.material.slider.Slider
+        android:id="@+id/markerType"
+        android:layout_width="110dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="36dp"
+        android:layout_marginEnd="36dp"
+        android:layout_marginBottom="16dp"
+        android:layout_weight="0"
+        android:stepSize="1"
+        android:valueFrom="0"
+        android:valueTo="1"
+        app:labelBehavior="gone"
+        app:layout_constraintBottom_toTopOf="@+id/button3"
+        app:layout_constraintEnd_toStartOf="@id/aruco"
+        app:layout_constraintStart_toEndOf="@id/fiducial"
+        app:layout_constraintTop_toBottomOf="@+id/markerTypeLabel" />
+
     <Button
         android:id="@+id/button3"
         android:layout_width="wrap_content"
@@ -213,7 +268,25 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/concDrugSpinner" />
+        app:layout_constraintTop_toBottomOf="@+id/markerType" />
+
+    <!--<Button
+        android:id="@+id/aruco_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="startArucoCapture"
+        android:text="Aruco"
+        android:padding="10dp"
+        android:textColor="#000FFF"
+        android:textSize="24dp"
+        app:icon="@drawable/outline_photo_camera_24"
+        style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+        app:iconTint="#000FFF"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/button3"
+        app:layout_constraintTop_toBottomOf="@+id/concDrugSpinner"
+        />-->
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"

@@ -15,4 +15,4 @@ rootProject.name = "PaperAnalyticalDevices"
 include ':app'
 
 include ':opencv'
-project(':opencv').projectDir = new File(rootDir, 'OpenCV454/sdk')
+project(':opencv').projectDir = new File(rootDir, 'OpenCV480/sdk')

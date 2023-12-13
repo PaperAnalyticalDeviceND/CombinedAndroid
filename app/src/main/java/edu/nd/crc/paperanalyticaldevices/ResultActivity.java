@@ -186,7 +186,7 @@ public class ResultActivity extends AppCompatActivity {
         }
         sDrugs.setSelection(aDrugs.getPosition(statedDrug));
 
-        if(!sPredicted.substring(0, statedDrug.length()).equals(statedDrug) ){
+        if(sPredicted.length() >= statedDrug.length() && !sPredicted.substring(0, statedDrug.length()).equals(statedDrug) ){
             okToConsumeSwitch.setChecked(true);
             unsafeForConsumption = true;
         }
