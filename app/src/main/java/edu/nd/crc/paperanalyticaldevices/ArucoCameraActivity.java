@@ -3,6 +3,8 @@ package edu.nd.crc.paperanalyticaldevices;
 //import androidx.appcompat.app.AppCompatActivity;
 import static android.Manifest.permission.CAMERA;
 
+import static java.lang.Math.sqrt;
+
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -187,7 +189,7 @@ public class ArucoCameraActivity extends Activity implements CameraBridgeViewBas
         //Mat work = new Mat();
         Mat work = inputFrame.gray();
         float ratio;
-
+        ratio = (float) mRgbaModified.size().height / (float) IMAGE_WIDTH;
         //create source points
         //List<Point> src_points = new Vector<>();
         float[] src_points = new float[8];
@@ -198,6 +200,45 @@ public class ArucoCameraActivity extends Activity implements CameraBridgeViewBas
             Log.d("ARUCO", "srcData: " + Arrays.toString(src_points));
             Log.d("ARUCO", "dstData: " + Arrays.toString(dst_points));
             if(arucosAcquired){
+
+                //setup to check not moving fast
+                boolean moving = false;
+
+                //setup last points or find norm difference
+                if (last_points == null) {
+                    last_points = new Vector<>();
+                    for (int i = 0; i < 4; i++) {
+                        last_points.add(new Point(src_points[i * 2], src_points[i * 2 + 1]));
+                    }
+                    moving = true;
+                } else {
+                    //test distance
+                    double norm = 0;
+                    for (int i = 0; i < 4; i++) {
+                        if (last_points.get(i).x > 0 && src_points[i * 2] > 0) {
+                            norm += (last_points.get(i).x - src_points[i * 2]) * (last_points.get(i).x - src_points[i * 2]) + (last_points.get(i).y - src_points[i * 2 + 1]) * (last_points.get(i).y - src_points[i * 2 + 1]);
+                        }
+                    }
+                    double sqrt_norm = sqrt(norm) / ratio;
+
+                    //test if moving too quickley
+                    if (sqrt_norm > 10) {
+                        moving = true;
+                    }
+                    Log.i("ARUCO", String.format("norm diff %f", sqrt(norm)));
+                }
+
+                //copy last point
+                //Collections.copy(last_points, src_points);
+                last_points = new Vector<>();
+                for (int i = 0; i < 4; i++) {
+                    last_points.add(new Point(src_points[i * 2], src_points[i * 2 + 1]));
+                }
+
+                //return if appears to be moving
+                if (moving) return mRgbaModified;
+
+
                 mRgbaTemp.copyTo(mRgba);
                 boolean rectified = ArucoDetection.RectifyImage(mRgba, cropped, src_points, dst_points);
 
@@ -205,7 +246,9 @@ public class ArucoCameraActivity extends Activity implements CameraBridgeViewBas
                     Rect roi = new Rect(456, 2, 76, 76);
                     Mat smallImg = new Mat(cropped, roi);
                     qrText = readQRCode(smallImg);
-                    showSaveDialog();
+                    if(qrText != ""){
+                        showSaveDialog();
+                    }
                 }
             }
         } catch (Exception e) {
