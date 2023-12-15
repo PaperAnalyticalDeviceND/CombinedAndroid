@@ -51,6 +51,7 @@ import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
@@ -243,7 +244,8 @@ public class ArucoCameraActivity extends Activity implements CameraBridgeViewBas
                 boolean rectified = ArucoDetection.RectifyImage(mRgba, cropped, src_points, dst_points);
 
                 if(rectified){
-                    Rect roi = new Rect(456, 2, 76, 76);
+                    Rect roi = new Rect(853, 457, 69, 69);
+                    //Imgproc.rectangle(mRgbaModified, new Point(942, 518), new Point(942 + 68, 518 + 68), new Scalar(255, 0, 0), 3);
                     Mat smallImg = new Mat(cropped, roi);
                     qrText = readQRCode(smallImg);
                     if(qrText != ""){

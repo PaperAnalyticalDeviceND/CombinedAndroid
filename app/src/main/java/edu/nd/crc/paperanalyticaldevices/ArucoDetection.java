@@ -54,28 +54,43 @@ public class ArucoDetection {
         }
         double scale_offset = ((work.size().height - (1163 * scale_ratio)) / 2) - (64 * scale_ratio);
 
-        // All the coordinates of the markers, lower left corner looking at it horizontally,
+        // All the coordinates of the markers, upper right corner looking at it horizontally with text at the right,
         // which is actually the upper left corner in its correct orientation
         List<Point> destPoints = new ArrayList<Point>();
         List<Point> targetPoints = new ArrayList<Point>();
         // the image
-        targetPoints.add(new Point(1038, 670)); // marker 0
+        /*targetPoints.add(new Point(1038, 670)); // marker 0
         targetPoints.add(new Point(186, 670)); // marker 1
         targetPoints.add(new Point(186, 145)); // marker 2
-        targetPoints.add(new Point(1038, 145)); // marker 3
+        targetPoints.add(new Point(1038, 145)); // marker 3*/
 
+        targetPoints.add(new Point(160, 58)); // marker 0
+        targetPoints.add(new Point(1010, 58)); // marker 1
+        targetPoints.add(new Point(1010, 586)); // marker 2
+        targetPoints.add(new Point(160, 586)); // marker 3
+
+        // draw some squares as a rough guide
         for(int i=0;  i < 4; i++){
-            Imgproc.rectangle(mRgbaModified, targetPoints.get(i), new Point(targetPoints.get(i).x - 80, targetPoints.get(i).y - 80), new Scalar(0, 0, 255), 10);
+            Imgproc.rectangle(mRgbaModified, targetPoints.get(i), new Point(targetPoints.get(i).x - 80, targetPoints.get(i).y + 80), new Scalar(0, 0, 255), 5);
         }
+        // draw some arrows to match up with the PAD
+        Imgproc.line(mRgbaModified, new Point(954, 202), new Point(1022, 202), new Scalar(0, 255, 255), 5); // body
+        Imgproc.line(mRgbaModified, new Point(990, 192), new Point(954, 202), new Scalar(0, 255, 255), 5); // head
+        Imgproc.line(mRgbaModified, new Point(990, 210), new Point(954, 202), new Scalar(0, 255, 255), 5);
+
+        Imgproc.line(mRgbaModified, new Point(90, 202), new Point(158, 202), new Scalar(0, 255, 255), 5); // body
+        Imgproc.line(mRgbaModified, new Point(128, 192), new Point(158, 202), new Scalar(0, 255, 255), 5); // head
+        Imgproc.line(mRgbaModified, new Point(128, 210), new Point(158, 202), new Scalar(0, 255, 255), 5);
+
         /*destPoints.add(new Point(1036, 604)); // marker 0
         destPoints.add(new Point(186, 604)); // marker 1
         destPoints.add(new Point(186, 78)); // marker 2
         destPoints.add(new Point(1036, 78)); // marker 3*/
         // transport to vertical
-        destPoints.add(new Point(60, 1040)); // marker 0
+        /*destPoints.add(new Point(60, 1040)); // marker 0
         destPoints.add(new Point(60, 187)); // marker 1
         destPoints.add(new Point(588, 187)); // marker 2
-        destPoints.add(new Point(588, 1040)); // marker 3
+        destPoints.add(new Point(588, 1040)); // marker 3*/
 
         List<Mat> corners = new ArrayList<Mat>();
         //List<Mat> rejectedImgPoints = new ArrayList<Mat>();
@@ -107,16 +122,18 @@ public class ArucoDetection {
                 Log.d("ARUCO", "Point3: " + p3);
                 Log.d("ARUCO", "Point4: " + p4);*/
 
+                // here we map the correct markers to the correct destination points
                 src_points[i * 2] = (float) p1.x;
                 src_points[i * 2 + 1] = (float) p1.y;
-                dst_points[i * 2] = (float) destPoints.get(id).x;
-                dst_points[i * 2 + 1] = (float) destPoints.get(id).y;
+                dst_points[i * 2] = (float) targetPoints.get(id).x;
+                dst_points[i * 2 + 1] = (float) targetPoints.get(id).y;
                 target_points[i * 2] = (float) targetPoints.get(id).x;
                 target_points[i * 2 + 1] = (float) targetPoints.get(id).y;
             }
             Log.d("ARUCO", "Detect srcData: " + Arrays.toString(src_points));
             Log.d("ARUCO", "Detect dstData: " + Arrays.toString(dst_points));
             Imgproc.cvtColor(mRgbaModified, mRgbaModified, Imgproc.COLOR_RGBA2RGB);
+
             Objdetect.drawDetectedMarkers(mRgbaModified, corners, ids, new Scalar(255, 0, 0));
 
             for(int j = 0; j < src_points.length; j++){
@@ -146,15 +163,22 @@ public class ArucoDetection {
         Mat transform = Imgproc.getPerspectiveTransform(sourcePoints, destinationpoints);
         Log.d("ARUCO", "tranform: " + transform.dump());
         //Imgproc.warpAffine(input, input, transform, input.size());
-        //Imgproc.warpPerspective(input, output, transform, input.size());
-        Imgproc.warpPerspective(input, output, transform, new Size(input.size().height, input.size().width));
+        Imgproc.warpPerspective(input, output, transform, input.size()); // keep it landscape
+        //Imgproc.warpPerspective(input, output, transform, new Size(input.size().height, input.size().width)); // switch to portrait
 
         // crop out the top and bottom so we just have the area inside the aruco markers
-        Point upperLeft = new Point(54, 117);
-        Point lowerRight = new Point(660, 1046);
+        /*Point upperLeft = new Point(54, 117);
+        Point lowerRight = new Point(660, 1046);*/
+        Point upperLeft = new Point(155, 54);
+        Point lowerRight = new Point(1078, 656);
         Rect cropRect = new Rect(upperLeft, lowerRight);
         Mat imageROI = new Mat(output, cropRect);
         imageROI.copyTo(output);
+
+        for (int i = 0; i < 7; i++) {
+            double px = 664 - (82 * i);
+            Imgproc.line(output, new Point(px, 1), new Point(px, 601), new Scalar(0, 255, 0), 2);
+        }
 
         return true;
     }
