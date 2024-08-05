@@ -61,6 +61,8 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -71,6 +73,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 public class ArucoCameraActivity extends Activity implements CameraBridgeViewBase.CvCameraViewListener2 {
@@ -431,6 +434,10 @@ public class ArucoCameraActivity extends Activity implements CameraBridgeViewBas
                         DateFormat df = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
                         Date today = Calendar.getInstance().getTime();
 
+                        String timestamp = String.format("%d", Calendar.getInstance().getTimeInMillis());
+                        File targetDir = new File(getApplication().getFilesDir(), timestamp);
+                        targetDir.mkdirs();
+
                         File imagePath = new File(getFilesDir(), "images");
                         File padImageDirectory = new File(imagePath + "/PAD/" + df.format(today));
                         padImageDirectory.mkdirs();
@@ -439,11 +446,15 @@ public class ArucoCameraActivity extends Activity implements CameraBridgeViewBas
                         File cFile = new File(padImageDirectory, "rectified.png");
                         Imgproc.cvtColor(cropped, cropped, Imgproc.COLOR_BGRA2RGB);
                         Imgcodecs.imwrite(cFile.getPath(), cropped);
+                        File rFile = new File(targetDir,"rectified.png");
+                        Imgcodecs.imwrite(rFile.getPath(), cropped);
 
                         //save original image
                         File oFile = new File(padImageDirectory, "original.png");
                         Imgproc.cvtColor(mRgba, mRgba, Imgproc.COLOR_BGRA2RGB);
                         Imgcodecs.imwrite(oFile.getPath(), mRgba);
+                        File orFile = new File(targetDir,"original.png");
+                        Imgcodecs.imwrite(orFile.getPath(), mRgba);
 
                         //gallery?
                         try {
@@ -464,8 +475,9 @@ public class ArucoCameraActivity extends Activity implements CameraBridgeViewBas
                                 mResultIntent.setData(FileProvider.getUriForFile(this, "edu.nd.crc.paperanalyticaldevices.fileprovider", cFile));
                                 mResultIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                                 mResultIntent.putExtra(MainActivity.EXTRA_SAMPLEID, qrText);
-                                String timestamp = String.format("%d", Calendar.getInstance().getTimeInMillis());
+
                                 mResultIntent.putExtra(MainActivity.EXTRA_TIMESTAMP, timestamp);
+
                                 finish();
                             } catch (Exception e) {
                                 FirebaseCrashlytics.getInstance().recordException(e);

@@ -175,10 +175,10 @@ public class ArucoDetection {
         Mat imageROI = new Mat(output, cropRect);
         imageROI.copyTo(output);
 
-        for (int i = 0; i < 7; i++) {
+        /*for (int i = 0; i < 7; i++) {
             double px = 664 - (82 * i);
             Imgproc.line(output, new Point(px, 1), new Point(px, 601), new Scalar(0, 255, 0), 2);
-        }
+        }*/
 
         return true;
     }
