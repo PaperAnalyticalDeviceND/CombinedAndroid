@@ -1,0 +1,16 @@
+package edu.nd.crc.paperanalyticaldevices
+
+const val BASE_URL = "BASE_URL"
+const val ORIGINAL_IMAGE = "ORIGINAL_IMAGE"
+const val RECTIFIED_IMAGE = "RECTIFIED_IMAGE"
+const val AUTH_TOKEN = "AUTH_TOKEN"
+const val TASK_ID = "TASK_ID"
+const val TEST_DATE = "TEST_DATE"
+const val TASK_NOTES = "TASK_NOTES"
+const val TASK_RESULT = "TASK_RESULT"
+const val ORIGINAL_IMAGE_URI = "ORIGINAL_IMAGE_URI"
+const val RECTIFIED_IMAGE_URI = "RECTIFIED_IMAGE_URI"
+const val TIMESTAMP = "TIMESTAMP"
+const val TENANT_TYPE = "TENANT_TYPE"
+const val PREDICTED_DRUG = "PREDICTED_DRUG"
+const val CONCENTRATION = "CONCENTRATION"

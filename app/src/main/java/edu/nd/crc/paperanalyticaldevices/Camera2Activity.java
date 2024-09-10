@@ -95,7 +95,7 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
     private AlertDialog ad = null;
     private SeekBar thresholdSeekBar = null;
     private TextView thresholdText = null;
-    int min = 66, max = 92, current = 125;
+    int min = 66, max = 92, current = 74;
     private Slider slider = null;
 
     SharedPreferences mPreferences = null;
@@ -155,7 +155,7 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
         mPreferences = getSharedPreferences(MainActivity.PROJECT, MODE_PRIVATE);
 
         current = mPreferences.getInt("Threshold", 74);
-        if(current % 5 == 0){
+        if(current % 2 != 0){
             current -= 1;
         }
         if(current < 66){
