@@ -21,6 +21,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.Spinner;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -108,6 +112,7 @@ public class MainActivity extends AppCompatActivity {
     //NumberPicker sConc;
 
     int concIndex;
+    int markerIndex;
 
     private final OnSliderTouchListener touchListener =
             new OnSliderTouchListener() {
@@ -121,8 +126,24 @@ public class MainActivity extends AppCompatActivity {
                     //showSnackbar(slider, R.string.cat_slider_stop_touch_description);
                     //concIndex = Integer.valueOf(String.valueOf(slider.getValue()));
                     concIndex = Math.round(slider.getValue());
+
                 }
             };
+
+    private final OnSliderTouchListener markerTouchListener = new OnSliderTouchListener() {
+        @Override
+        public void onStartTrackingTouch(@NonNull Slider slider) {
+
+        }
+
+        @Override
+        public void onStopTrackingTouch(@NonNull Slider slider) {
+            markerIndex = Math.round(slider.getValue());
+            Log.d("Marker Index", String.valueOf(markerIndex));
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+            prefs.edit().putInt("marker_type", markerIndex).apply();
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -147,6 +168,7 @@ public class MainActivity extends AppCompatActivity {
         fhiName = prefs.getString(subFhi + "filename", fhiName);
         fhiConcName = prefs.getString(subFhiConc + "filename", fhiConcName);
         mshName = prefs.getString(subMsh + "filename", mshName);
+        markerIndex = prefs.getInt("marker_type", 0);
 
         String project = prefs.getString("neuralnet", "");
         ProjectName = project;
@@ -183,6 +205,9 @@ public class MainActivity extends AppCompatActivity {
 */
 
         Slider sConc = findViewById(R.id.concDrugSpinner);
+        Slider markerSlider = findViewById(R.id.markerType);
+        markerSlider.addOnSliderTouchListener(markerTouchListener);
+        markerSlider.setValue(markerIndex);
         //NumberPicker sConc = findViewById(R.id.concDrugSpinner);
         //sConc.setMinValue(0);
         //sConc.setMaxValue(Defaults.Brands.size() - 1);
@@ -445,7 +470,45 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void startImageCapture(View view) {
+    public void startArucoCapture(View view){
+        Log.i("PAD", "Aruco capture starting");
+
+        // Android 13 does not use these permissions and will not prompt for them
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S_V2 &&
+                ((ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+                        | (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)))
+        {
+            Log.d("GBR", "Request camera permissions");
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 90);
+        } else {
+
+            try {
+                // only allow proceeding if all downloads are finished
+                if(workerSemaphore) {
+                    Log.d("GBR", "Trying to start Camera");
+                    Intent intent = new Intent(this, ArucoCameraActivity.class);
+                    //startActivityForResult(intent, 10);
+                    //startActivity(intent);
+                    mArucoPadLauncher.launch(intent);
+                }else{
+                    Log.d("GBR", "Not starting Camera");
+                    Toast.makeText(getBaseContext(), R.string.pleasewaitdownload, Toast.LENGTH_LONG).show();
+                }
+
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void startImageCapture(View view){
+        if(markerIndex == 0){
+            startSquareFiducialCapture(view);
+        }else{
+            startArucoCapture(view);
+        }
+    }
+    public void startSquareFiducialCapture(View view) {
         Log.i("GBR", "Image capture starting");
 
         // Android 13 does not use these permissions and will not prompt for them
@@ -478,7 +541,8 @@ public class MainActivity extends AppCompatActivity {
                 if(workerSemaphore) {
                     Log.d("GBR", "Trying to start Camera");
                     Intent intent = new Intent(this, Camera2Activity.class);
-                    startActivityForResult(intent, 10);
+                    //startActivityForResult(intent, 10);
+                    mSquareFiducialPadLauncher.launch(intent);
                 }else{
                     Log.d("GBR", "Not starting Camera");
                     Toast.makeText(getBaseContext(), R.string.pleasewaitdownload, Toast.LENGTH_LONG).show();
@@ -539,7 +603,36 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    @Override
+    ActivityResultLauncher<Intent> mSquareFiducialPadLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    Log.d("PADS", "onActivityResult: " + result.getResultCode());
+                    if(result.getResultCode() == RESULT_OK){
+                        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+
+                        String proj = prefs.getString("neuralnet", "");
+                        tensorflowView.LoadModel(prefs, proj);
+                        tensorflowView.predict(result.getData());
+                    }
+                }
+            });
+
+    ActivityResultLauncher<Intent> mArucoPadLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    Log.d("ARUCO", "onActivityResult: " + result.getResultCode());
+                    if(result.getResultCode() == RESULT_OK){
+                        Intent intent = new Intent(getApplicationContext(), ResultActivity.class);
+                        intent.setData(result.getData().getData());
+                        intent.putExtra(EXTRA_SAMPLEID, result.getData().getStringExtra(EXTRA_SAMPLEID));
+                        intent.putExtra(EXTRA_TIMESTAMP, result.getData().getStringExtra(EXTRA_TIMESTAMP));
+                        startActivity(intent);
+                    }
+                }
+            });
+    /*@Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
@@ -551,7 +644,7 @@ public class MainActivity extends AppCompatActivity {
             tensorflowView.LoadModel(prefs, proj);
             tensorflowView.predict(data);
         }
-    }
+    }*/
 
     @Override
     public void onDestroy() {
