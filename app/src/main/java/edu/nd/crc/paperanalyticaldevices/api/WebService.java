@@ -40,7 +40,9 @@ public interface WebService {
                 .registerTypeAdapter(Semver.class, new NetworkEntry.SemverDeserializer())
                 .registerTypeAdapter(TypeToken.getParameterized(List.class, String.class).getType(), new NetworkEntry.StringListDeserializer())
                 .create();
-
+//http://pad-naxos.crc.nd.edu/
+        //https://pad.crc.nd.edu/
+        //.baseUrl("https://pad.crc.nd.edu/")
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://pad.crc.nd.edu/")
                 .client(client)

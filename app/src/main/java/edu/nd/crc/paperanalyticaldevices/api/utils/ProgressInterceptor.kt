@@ -14,12 +14,12 @@ internal class ProgressInterceptor : Interceptor {
 
         val progressCallback = request.tag(ProgressCallback::class.java)
         if (progressCallback != null) {
-            if (request.body() != null) {
+            if (request.body != null) {
                 return chain.proceed(wrapRequest(request, progressCallback))
             }
 
             val response = chain.proceed(request)
-            if (response.body() != null) {
+            if (response.body != null) {
                 return wrapResponse(response, progressCallback)
             }
         }
@@ -28,18 +28,18 @@ internal class ProgressInterceptor : Interceptor {
     }
 
     private fun wrapRequest(request: Request, progressCallback: ProgressCallback): Request {
-        requireNotNull(request.body())
+        requireNotNull(request.body)
 
         return request.newBuilder()
-            .post(ProgressRequestBody(request.body()!!, progressCallback))
+            .post(ProgressRequestBody(request.body!!, progressCallback))
             .build()
     }
 
     private fun wrapResponse(response: Response, progressCallback: ProgressCallback): Response {
-        requireNotNull(response.body())
+        requireNotNull(response.body)
 
         return response.newBuilder()
-            .body(ProgressResponseBody(response.body()!!, progressCallback))
+            .body(ProgressResponseBody(response.body!!, progressCallback))
             .build()
     }
 }

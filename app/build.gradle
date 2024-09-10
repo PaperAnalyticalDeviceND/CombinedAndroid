@@ -4,17 +4,18 @@ plugins {
     id 'com.google.gms.google-services'
     id 'com.google.firebase.crashlytics'
     id 'com.google.firebase.firebase-perf'
+    id 'org.jetbrains.kotlin.android'
 }
 
 android {
-    compileSdk 31
+    compileSdk 34
 
     defaultConfig {
         applicationId "edu.nd.crc.paperanalyticaldevices"
         minSdk 26
-        targetSdk 31
-        versionCode 14
-        versionName "2.2"
+        targetSdk 34
+        versionCode 24
+        versionName "2.8"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -29,27 +30,54 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
     buildFeatures {
         viewBinding true
+        compose true
     }
+    composeOptions {
+        kotlinCompilerExtensionVersion '1.4.8'
+    }
+    namespace 'edu.nd.crc.paperanalyticaldevices'
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation 'androidx.core:core-ktx:1.7.0'
+    implementation 'androidx.core:core-ktx:1.10.1'
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
+
+    //implementation platform('androidx.compose:compose-bom:2022.10.00')
+    def composeBom = platform('androidx.compose:compose-bom:2023.05.01')
+    implementation composeBom
+    androidTestImplementation composeBom
+    //implementation 'androidx.compose.ui:ui'
+    //implementation 'androidx.compose.ui:ui-graphics'
+    implementation 'androidx.compose.material3:material3'
+    implementation 'androidx.compose.ui:ui-tooling-preview'
+    implementation 'androidx.activity:activity-compose:1.6.1'
+
+    implementation 'io.coil-kt:coil-compose:2.4.0'
+
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'androidx.appcompat:appcompat:1.4.1'
-    implementation 'com.google.android.material:material:1.6.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.preference:preference:1.2.0'
-    implementation 'androidx.navigation:navigation-fragment:2.4.2'
-    implementation 'androidx.navigation:navigation-ui:2.4.2'
+    implementation 'androidx.preference:preference:1.2.1'
+    implementation 'androidx.navigation:navigation-fragment:2.6.0'
+    implementation 'androidx.navigation:navigation-ui:2.6.0'
     testImplementation 'junit:junit:4.+'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+
+    //androidTestImplementation platform('androidx.compose:compose-bom:2022.10.00')
+    androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
+    debugImplementation 'androidx.compose.ui:ui-tooling'
+    debugImplementation 'androidx.compose.ui:ui-test-manifest'
 
     implementation project(':opencv')
 
@@ -61,8 +89,8 @@ dependencies {
     implementation 'org.tensorflow:tensorflow-lite-support:0.0.0-nightly-SNAPSHOT'
     implementation 'org.tensorflow:tensorflow-lite-metadata:0.0.0-nightly-SNAPSHOT'
 
-    def work_version = "2.7.0"
-    implementation "androidx.work:work-runtime:$work_version"
+    def work_version = "2.8.1"
+    implementation "androidx.work:work-runtime-ktx:$work_version"
     implementation "androidx.work:work-rxjava2:$work_version"
     implementation "androidx.work:work-gcm:$work_version"
     implementation "androidx.work:work-multiprocess:$work_version"
@@ -71,7 +99,7 @@ dependencies {
     implementation 'com.opencsv:opencsv:4.6'
 
     // https://mvnrepository.com/artifact/com.google.zxing/core
-    implementation group: 'com.google.zxing', name: 'core', version: '3.2.1'
+    implementation group: 'com.google.zxing', name: 'core', version: '3.3.0'
 
     // https://mvnrepository.com/artifact/com.google.zxing/android-core
     implementation group: 'com.google.zxing', name: 'android-core', version: '3.2.1'
@@ -84,14 +112,17 @@ dependencies {
     implementation 'com.google.firebase:firebase-perf'
     implementation 'com.google.firebase:firebase-crashlytics'
     implementation 'com.google.firebase:firebase-analytics'
-    implementation 'com.google.android.gms:play-services-basement:17.5.0'
+    implementation 'com.google.android.gms:play-services-basement:18.2.0'
 
     // Retrofit HTTP
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
     implementation 'com.vdurmont:semver4j:3.1.0'
-    implementation 'com.google.code.gson:gson:2.8.1'
+    implementation 'com.google.code.gson:gson:2.8.9'
 
     // Put last to fix listenable future issue
     implementation 'com.google.guava:guava:27.0.1-android'
+
+    //implementation("com.squareup.okhttp3:logging-interceptor:3.14.9")
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.6.0'
 }

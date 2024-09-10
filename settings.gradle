@@ -3,7 +3,11 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        jcenter() // Warning: this repository is going to shut down soon
+        //jcenter() // Warning: this repository is going to shut down soon
+        maven {
+            name 'ossrh-snapshot'
+            url 'https://oss.sonatype.org/content/repositories/snapshots'
+        }
     }
 }
 rootProject.name = "PaperAnalyticalDevices"
@@ -11,4 +15,4 @@ rootProject.name = "PaperAnalyticalDevices"
 include ':app'
 
 include ':opencv'
-project(':opencv').projectDir = new File(rootDir, 'OpenCV454/sdk')
+project(':opencv').projectDir = new File(rootDir, 'OpenCV480/sdk')
