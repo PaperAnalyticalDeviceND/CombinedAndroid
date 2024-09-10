@@ -1,6 +1,5 @@
 package edu.nd.crc.paperanalyticaldevices
 
-import android.R
 import android.content.Intent
 
 
@@ -40,7 +39,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -52,8 +50,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
@@ -74,13 +70,14 @@ fun ArtifactsLoginView(modifier: Modifier = Modifier,
                        code: String,
                        codeVerifier: String,
                        grantType: String,
+                       tenantType: String,
                        authVm: ArtifactsAuthViewModel,
-                       taskVm: ArtifactsTasksViewModel,
+                       taskVm: PadsTaskViewModel,
                        onItemClicked: (ArtifactsTaskDisplayModel) -> Unit,
                        testPressed: (ArtifactsTaskDisplayModel) -> Unit){
 
     LaunchedEffect(Unit, block = {
-        authVm.getAuth(baseUrl, code, codeVerifier, redirectUri, clientId, grantType)
+        authVm.getAuth(baseUrl, code, codeVerifier, redirectUri, clientId, grantType, tenantType)
     })
 
     //var authorized by rememberSaveable { mutableStateOf(false) }
@@ -108,6 +105,111 @@ fun ArtifactsLoginView(modifier: Modifier = Modifier,
                     }*/
                     Text(text = "Logging In...")
                 }
+            }
+        }
+    }
+
+}
+
+/*
+{"links":{"next":null,"previous":null},"count":9,"count_pages":1,"current_page":1,
+"results":[{"is_able_to_add_task_notes":true,"is_able_to_edit_task":false,"id":10,
+"test_type":{"id":4,"name":"idPAD","group":{"id":1,"name":"Screening",
+"is_accurate":false,"is_visual":false},"is_other":false,"methods":[]},"sample":"23USND-1",
+"initial_laboratory":{"id":2,"name":"University of Notre Dame","label":"USND",
+"label_tooltip":"University of Notre Dame","icon_text":"ND","group":2},
+"status":{"key":"awaiting","value":"Awaiting"},"dosage_type":null,"task_notes":[],
+"name":"Sample 1","weight":null,"physical_form":null,"expected_main_substances":null,
+"expected_other_substances":null,"submitter_code":null,"sample_attachments":[]},
+{"is_able_to_add_task_notes":true,"is_able_to_edit_task":false,"id":9,
+"test_type":{"id":4,"name":"idPAD","group":{"id":1,"name":"Screening",
+"is_accurate":false,"is_visual":false},"is_other":false,"methods":[]},
+"sample":"23USND-1","initial_laboratory":{"id":2,"name":"University of Notre Dame",
+"label":"USND","label_tooltip":"University of Notre Dame","icon_text":"ND","group":2},
+"status":{"key":"awaiting","value":"Awaiting"},"dosage_type":null,"task_notes":[],
+"name":"Sample 1","weight":null,"physical_form":null,"expected_main_substances":null,
+"expected_other_substances":null,"submitter_code":null,"sample_attachments":[]},
+{"is_able_to_add_task_notes":true,"is_able_to_edit_task":false,"id":8,
+"test_type":{"id":4,"name":"idPAD","group":{"id":1,"name":"Screening","is_accurate":false,"is_visual":false},
+"is_other":false,"methods":[]},"sample":"23USND-1","initial_laboratory":{"id":2,"name":"University of Notre Dame",
+"label":"USND","label_tooltip":"University of Notre Dame","icon_text":"ND","group":2},
+"status":{"key":"awaiting","value":"Awaiting"},"dosage_type":null,"task_notes":[],"name":"Sample 1","weight":null,
+"physical_form":null,"expected_main_substances":null,"expected_other_substances":null,"submitter_code":null,
+"sample_attachments":[]},{"is_able_to_add_task_notes":true,"is_able_to_edit_task":false,"id":7,
+"test_type":{"id":4,"name":"idPAD","group":{"id":1,"name":"Screening","is_accurate":false,"is_visual":false},
+"is_other":false,"methods":[]},"sample":"23USND-1","initial_laboratory":{"id":2,"name":"University of Notre Dame",
+"label":"USND","label_tooltip":"University of Notre Dame","icon_text":"ND","group":2},
+"status":{"key":"awaiting","value":"Awaiting"},"dosage_type":null,"task_notes":[],"name":"Sample 1","weight":null,"physical_form":null,"expected_main_substances":null,"expected_other_substances":null,"submitter_code":null,"sample_attachments":[]},{"is_able_to_add_task_notes":true,"is_able_to_edit_task":false,"id":6,"test_type":{"id":4,"name":"idPAD","group":{"id":1,"name":"Screening","is_accurate":false,"is_visual":false},"is_other":false,"methods":[]},"sample":"23USND-1","initial_laboratory":{"id":2,"name":"University of Notre Dame","label":"USND","label_tooltip":"University of Notre Dame","icon_text":"ND","group":2},"status":{"key":"awaiting","value":"Awaiting"},"dosage_type":null,"task_notes":[],"name":"Sample 1","weight":null,"physical_form":null,"expected_main_substances":null,"expected_other_substances":null,"submitter_code":null,"sample_attachments":[]},{"is_able_to_add_task_notes":true,"is_able_to_edit_task":false,"id":5,"test_type":{"id":4,"name":"idPAD","group":{"id":1,"name":"Screening","is_accurate":false,"is_visual":false},"is_other":false,"methods":[]},"sample":"23USND-1","initial_laboratory":{"id":2,"name":"University of Notre Dame","label":"USND","label_tooltip":"University of Notre Dame","icon_text":"ND","group":2},"status":{"key":"awaiting","value":"Awaiting"},"dosage_type":null,"task_notes":[],"name":"Sample 1","weight":null,"physical_form":null,"expected_main_substances":null,"expected_other_substances":null,"submitter_code":null,"sample_attachments":[]},{"is_able_to_add_task_notes":true,"is_able_to_edit_task":false,"id":4,
+"test_type":{"id":4,"name":"idPAD","group":{"id":1,"name":"Screening","is_accurate":false,"is_visual":false},"is_other":false,"methods":[]},"sample":"23USND-1","initial_laboratory":{"id":2,"name":"University of Notre Dame","label":"USND","label_tooltip":"University of Notre Dame","icon_text":"ND","group":2},"status":{"key":"awaiting","value":"Awaiting"},"dosage_type":null,"task_notes":[],"name":"Sample 1","weight":null,"physical_form":null,"expected_main_substances":null,"expected_other_substances":null,"submitter_code":null,"sample_attachments":[]},{"is_able_to_add_task_notes":true,"is_able_to_edit_task":false,"id":3,"test_type":{"id":4,"name":"idPAD","group":{"id":1,"name":"Screening","is_accurate":false,"is_visual":false},"is_other":false,"methods":[]},"sample":"23USND-1","initial_laboratory":{"id":2,"name":"University of Notre Dame","label":"USND","label_tooltip":"University of Notre Dame","icon_text":"ND","group":2},"status":{"key":"awaiting","value":"Awaiting"},"dosage_type":null,"task_notes":[],"name":"Sample 1","weight":null,"physical_form":null,"expected_main_substances":null,"expected_other_substances":null,"submitter_code":null,"sample_attachments":[]},{"is_able_to_add_task_notes":true,"is_able_to_edit_task":false,"id":1,"test_type":{"id":4,"name":"idPAD","group":{"id":1,"name":"Screening","is_accurate":false,"is_visual":false},"is_other":false,"methods":[]},"sample":"23USND-1","initial_laboratory":{"id":2,"name":"University of Notre Dame","label":"USND","label_tooltip":"University of Notre Dame","icon_text":"ND","group":2},"status":{"key":"awaiting","value":"Awaiting"},"dosage_type":null,"task_notes":[],"name":"Sample 1","weight":null,"physical_form":null,"expected_main_substances":null,"expected_other_substances":null,"submitter_code":null,"sample_attachments":[]}]}
+2023-08-24 11:44:55.358  4946-5563  okhttp.OkHttpClient     edu.nd.crc.paperanalyticaldevices    I  <-- END HTTP (5729-byte body)
+ */
+
+/* Response
+{"id":1,"test_type":{"id":4,"name":"idPAD","group":{"id":1,"name":"Screening","is_accurate":false,"is_visual":false},"is_other":false,"methods":[]},
+"available_result":null,"result":{"key":"not_completed","value":"Not completed"},"result_name":null,"status":{"key":"completed","value":"Completed"},
+"sample":"23USND-1","initial_laboratory":{"id":2,"name":"University of Notre Dame","label":"USND","label_tooltip":"University of Notre Dame",
+"icon_text":"ND","icon_text_color":"#3898F3","icon_background_color":"#E5F3FE","group":{"id":2,"name":"Central Lab.","sample_creator":true,
+"sample_splitter":true,"sample_retest_performer":false,"sample_retest_informer":false,"manage_test_reports":true,"manage_document_storage":true,
+"manage_dashboard_analytics":true,"receiver_of_test_requests":false,"sender_of_test_requests":false,"receiver_of_purchase_requests":false,
+"sender_of_purchase_requests":false,"is_able_to_view_results":true}},"dosage_type":null,"started_at":"2023-08-24T15:46:18Z",
+"finished_at":"2023-08-24T15:46:18Z","step":4,"attachments":[{"id":2,"attachment_type":{"key":"file","value":"File"},"object_id":1,
+"attachment_section":{"key":"test_report","value":"Test report"},"name":"rectified.png",
+"link":"https://pad-artifactsofresearch-attachments.s3.amazonaws.com/screener/media/rectified.png?response-content-disposition=attachment%3B%20filename%3Drectified.png&AWSAccessKeyId=AKIAQCN7TTB64MMPC7XM&Signature=fjHqODdWIoA7onp7hmuF1%2F%2BJBqs%3D&Expires=1692892594","thumbnail_link":null,"size":"1.26 MB","instead":null,"saved":true},{"id":3,"attachment_type":{"key":"file","value":"File"},"object_id":1,"attachment_section":{"key":"test_report","value":"Test report"},"name":"original.png","link":null,"thumbnail_link":null,"size":"1.10 MB","instead":null,"saved":true}],"task_notes":[{"id":1,"user":{"id":316,"first_name":"Universityofnotredame","last_name":"Assistant"},"user_role":"laboratory_assistant","notes":"PAD ID: 16755\r\nidPAD_small_lite\r\nHeroin (0.51),\r\n(PLS 17%)","read_only":false}],"can_be_canceled":false,"is_able_to_add_task_notes":true,"is_able_to_edit_task":true,"sample_attachments":[],"available_section_settings":[{"id":13,"section":{"id":10,"name":"substances_recognized"},"title":"Substances recognized","ordering_key":1},{"id":14,"section":{"id":2,"name":"test_report"},"title":"Test report","ordering_key":2}],"sample_notes":"","name":"Sample 1","submitter_code":null,"physical_form":null,"weight":null,"expected_main_substances":null,"substance_result":[],
+"expected_other_substances":null,"test_notes":"","preparation":"","test_strip_brand":"","test_strip_batch":"","result_is_not_recognized":true,"sample_id":1,"test_type_method":null}
+2023-08-24 11:46:34.071  4946-6356  okhttp.OkHttpClient     edu.nd.crc.paperanalyticaldevices    I  <-- END HTTP (2674-byte body)
+ */
+@Composable
+fun ScreenerTaskListItem(modifier: Modifier = Modifier, task: ArtifactsTaskDisplayModel,
+                        onItemClicked: (ArtifactsTaskDisplayModel) -> Unit,
+                        testPressed: (ArtifactsTaskDisplayModel) -> Unit){
+
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
+    Surface(color = if(task.selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
+        modifier = Modifier
+            .padding(4.dp)
+            .clickable(true, onClick = { onItemClicked(task) })
+    ) {
+        Column(){
+            Row(modifier = Modifier
+                .padding(4.dp)
+                .fillMaxWidth()
+                .animateContentSize(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessLow
+                    )
+                ))   {
+                IconButton(
+                    onClick = {
+                        expanded = !expanded
+                    }
+                ) {
+                    Icon(imageVector = if(expanded) Icons.Default.KeyboardArrowRight else Icons.Default.KeyboardArrowDown,
+                        contentDescription = "Expand")
+                }
+                Column(modifier = Modifier.padding(horizontal = 4.dp)) {
+                    Text(text = "ID:")
+                    Text(text = "Name:", style = MaterialTheme.typography.bodySmall)
+
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = task.sampleId)
+                    Text(text = task.name, style = MaterialTheme.typography.bodySmall)
+
+                }
+
+                if(task.selected){
+                    ElevatedButton(onClick =
+
+                    { testPressed(task) }
+                    ) {
+                        Text(text = "Test")
+                    }
+                }
+            }
+            if(expanded) {
+                ScreenerTaskListItemDetail(task = task)
             }
         }
     }
@@ -175,6 +277,28 @@ fun ArtifactsTaskListItem(modifier: Modifier = Modifier, task: ArtifactsTaskDisp
 }
 
 @Composable
+fun ScreenerTaskListItemDetail(modifier: Modifier = Modifier, task: ArtifactsTaskDisplayModel){
+    Row(modifier = Modifier
+        .padding(4.dp)
+        .fillMaxWidth()) {
+        Column(modifier = Modifier.padding(horizontal = 8.dp)) {
+
+            Text(text = "Task ID:")
+            Text(text = "Expected Main Substance:")
+            Text(text = "Dosage:")
+            Text(text = "Expected Other Substances:")
+        }
+        Column(modifier = Modifier.weight(1f)) {
+
+            Text(text = task.id.toString())
+            Text(text = task.expectedMainSubstances)
+            Text(text = task.dose)
+            Text(text = task.expectedOtherSubstances)
+        }
+    }
+}
+
+@Composable
 fun ArtifactsTaskListItemDetail(modifier: Modifier = Modifier, task: ArtifactsTaskDisplayModel){
     Row(modifier = Modifier
         .padding(4.dp)
@@ -206,8 +330,9 @@ fun ArtifactsTaskListItemDetailsPreview(){
         taskOne.drug = "Acetaminophen"
         taskOne.manufacturer = "Pfizer"
         taskOne.dosage = "12.0"*/
-        var taskOne = ArtifactsTaskDisplayModel(id = 89, sampleId = "22ETCL-17",
-            drug = "Acetaminophen", manufacturer = "Pfizer", dose = "12.00 mg",
+        var taskOne = ArtifactsTaskDisplayModel(id = 89, sampleId = "22ETCL-17", name = "Acetaminophen",
+            drug = "Acetaminophen", manufacturer = "Pfizer", dose = "12.00 mg", doseType = "mg",
+            expectedMainSubstances = "Acetaminophen", expectedOtherSubstances = "",
             initialSelectedValue = false)
         ArtifactsTaskListItemDetail(task = taskOne)
     }
@@ -217,8 +342,10 @@ fun ArtifactsTaskListItemDetailsPreview(){
 @Composable
 fun AtrifactsTaskListItemPreview(){
     CombinedAndroidTheme() {
-        var taskOne = ArtifactsTaskDisplayModel(id = 89, sampleId = "22ETCL-17",
+        var taskOne = ArtifactsTaskDisplayModel(id = 89, sampleId = "22ETCL-17", name = "Acetaminophen",
             drug = "Acetaminophen", manufacturer = "Pfizer", dose = "12.00 mg",
+            doseType = "mg",
+            expectedMainSubstances = "Acetaminophen", expectedOtherSubstances = "",
             initialSelectedValue = false)
         ArtifactsTaskListItem(task = taskOne, onItemClicked = {}, testPressed = {})
 
@@ -254,7 +381,17 @@ fun ArtifactsTaskList(modifier: Modifier = Modifier,
         }
 
         items(items = filteredTaskList, key = { it.id }){drug ->
-            ArtifactsTaskListItem(task = drug, onItemClicked = onItemClicked, testPressed = testPressed)
+            if(drug.type == "street_drugs") {
+                ScreenerTaskListItem(task = drug, onItemClicked = onItemClicked, testPressed = testPressed)
+
+            }else{
+                ArtifactsTaskListItem(
+                    task = drug,
+                    onItemClicked = onItemClicked,
+                    testPressed = testPressed
+                )
+            }
+
         }
     }
 }
@@ -280,7 +417,7 @@ fun ArtifactsTaskListPreview(){
 }*/
 
 @Composable
-fun ArtifactsTaskView(modifier: Modifier = Modifier, vm: ArtifactsTasksViewModel,
+fun ArtifactsTaskView(modifier: Modifier = Modifier, vm: PadsTaskViewModel,
                       token: String, baseUrl: String,
                       onItemClicked: (ArtifactsTaskDisplayModel) -> Unit,
                       testPressed: (ArtifactsTaskDisplayModel) -> Unit){
@@ -369,7 +506,7 @@ fun ArtifactsResultView(modifier: Modifier = Modifier, vm: ArtifactsTasksViewMod
 @Composable
 fun NetworksList(modifier: Modifier = Modifier,
                  networks: List<NetworksDisplayModel>,
-                 taskVm: ArtifactsTasksViewModel,
+                 taskVm: PadsTaskViewModel,
                  netVm: NetworksViewModel,
                  onItemClicked: (ArtifactsTaskDisplayModel, NetworksDisplayModel, NetworksDisplayModel) -> Unit){
     Surface() {
@@ -381,14 +518,20 @@ fun NetworksList(modifier: Modifier = Modifier,
     }
 }
 
+/// List the Neural Nets for selection after task confirmation
 @Composable
 fun NetworkListView(modifier: Modifier = Modifier,
                     networkViewModel: NetworksViewModel,
-                    taskViewModel: ArtifactsTasksViewModel,
+                    taskViewModel: PadsTaskViewModel,
                     dbHelper: ProjectsDbHelper,
+                    tenantType: String,
                     onItemClicked: (ArtifactsTaskDisplayModel, NetworksDisplayModel, NetworksDisplayModel) -> Unit){
     LaunchedEffect(Unit, block = {
-        networkViewModel.getNetworks(taskViewModel.getSelected()!!, dbHelper = dbHelper)
+        if(tenantType == "street_drugs"){
+            networkViewModel.getIdPadsNetworks(dbHelper = dbHelper)
+        }else{
+            networkViewModel.getNetworks(taskViewModel.getSelected()!!, dbHelper = dbHelper)
+        }
     })
 
     val context = LocalContext.current
@@ -422,14 +565,18 @@ fun NetworkListView(modifier: Modifier = Modifier,
 @Composable
 fun NetworksListItem(modifier: Modifier = Modifier,
                      network: NetworksDisplayModel,
-                     taskVm: ArtifactsTasksViewModel,
+                     taskVm: PadsTaskViewModel,
                      netVm: NetworksViewModel,
                      onItemClicked: (ArtifactsTaskDisplayModel, NetworksDisplayModel, NetworksDisplayModel) -> Unit){
     Surface(modifier = Modifier
         .padding(4.dp)
         .clickable(true,
             onClick = {
-                onItemClicked(taskVm.getSelected()!!, network, netVm.getConcNetwork(taskVm.getSelected()!!))
+                onItemClicked(
+                    taskVm.getSelected()!!,
+                    network,
+                    netVm.getConcNetwork(taskVm.getSelected()!!)
+                )
                 taskVm.clearConfirmation()
             }),
         color = MaterialTheme.colorScheme.primary) {
@@ -461,7 +608,7 @@ fun ArtifactsTopBar(){
         title = {
             Row(modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center) {
-                Text("ARTIFACTS", fontSize = 18.sp)
+                Text("ARTIFACTS Verify", fontSize = 18.sp)
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
@@ -470,6 +617,21 @@ fun ArtifactsTopBar(){
     )
 
 
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ScreenerTopBar(){
+    TopAppBar(
+        title = {
+            Row(modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center) {
+                Text("ARTIFACTS Screenr", fontSize = 18.sp)
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            titleContentColor = MaterialTheme.colorScheme.surface)
+    )
 }
 
 @Preview(showBackground = true)
@@ -520,6 +682,32 @@ fun TaskSearchPreview(){
     }
 }
 
+
+@Composable
+fun ScreenerMainView(modifier: Modifier = Modifier,
+                     baseUrl: String,
+                     clientId: String,
+                     redirectUri: String,
+                     code: String,
+                     codeVerifier: String,
+                     grantType: String,
+                     authVm: ArtifactsAuthViewModel,
+                     taskVm: ScreenerTaskViewModel,
+                     networksVm: NetworksViewModel,
+                     dbHelper: ProjectsDbHelper,
+                     onItemClicked: (ArtifactsTaskDisplayModel) -> Unit,
+                     testPressed: (ArtifactsTaskDisplayModel) -> Unit,
+                     onNetworkPressed: (ArtifactsTaskDisplayModel, NetworksDisplayModel, NetworksDisplayModel) -> Unit){
+
+    Scaffold(
+        topBar = { ScreenerTopBar() },
+        content = {
+                paddingValues -> Column(modifier = Modifier.padding(paddingValues)){
+
+                }
+        }
+    )
+}
 @Composable
 fun ArtifactsMainView(modifier: Modifier = Modifier,
                       baseUrl: String,
@@ -528,8 +716,9 @@ fun ArtifactsMainView(modifier: Modifier = Modifier,
                       code: String,
                       codeVerifier: String,
                       grantType: String,
+                      tenantType: String,
                       authVm: ArtifactsAuthViewModel,
-                      taskVm: ArtifactsTasksViewModel,
+                      taskVm: PadsTaskViewModel,
                       networksVm: NetworksViewModel,
                       dbHelper: ProjectsDbHelper,
                       onItemClicked: (ArtifactsTaskDisplayModel) -> Unit,
@@ -537,7 +726,8 @@ fun ArtifactsMainView(modifier: Modifier = Modifier,
                       onNetworkPressed: (ArtifactsTaskDisplayModel, NetworksDisplayModel, NetworksDisplayModel) -> Unit){
 
     Scaffold(
-        topBar = { ArtifactsTopBar() },
+        topBar = { if(tenantType == "street_drugs") ScreenerTopBar()
+                 else ArtifactsTopBar()},
         content = {
             paddingValues -> Column(modifier = Modifier.padding(paddingValues)){
                 if(taskVm.taskConfirmed){
@@ -545,6 +735,7 @@ fun ArtifactsMainView(modifier: Modifier = Modifier,
                         networkViewModel = networksVm,
                         taskViewModel = taskVm,
                         dbHelper = dbHelper,
+                        tenantType = tenantType,
                         onItemClicked = onNetworkPressed
                     )
                 }else{
@@ -555,6 +746,7 @@ fun ArtifactsMainView(modifier: Modifier = Modifier,
                         code = code,
                         codeVerifier = codeVerifier,
                         grantType = grantType,
+                        tenantType = tenantType,
                         authVm = authVm,
                         taskVm = taskVm,
                         onItemClicked = onItemClicked,

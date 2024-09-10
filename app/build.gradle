@@ -8,14 +8,14 @@ plugins {
 }
 
 android {
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "edu.nd.crc.paperanalyticaldevices"
         minSdk 26
-        targetSdk 33
-        versionCode 21
-        versionName "2.5"
+        targetSdk 34
+        versionCode 24
+        versionName "2.8"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -30,6 +30,10 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
     buildFeatures {
         viewBinding true
         compose true
@@ -118,4 +122,7 @@ dependencies {
 
     // Put last to fix listenable future issue
     implementation 'com.google.guava:guava:27.0.1-android'
+
+    //implementation("com.squareup.okhttp3:logging-interceptor:3.14.9")
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.6.0'
 }
