@@ -1,5 +1,8 @@
 package edu.nd.crc.paperanalyticaldevices.api;
 
+import android.util.Log;
+
+import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -7,6 +10,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.annotations.SerializedName;
 import com.vdurmont.semver4j.Semver;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -58,14 +62,15 @@ public class NetworkV2 {
     public static class StringListDeserializer implements JsonDeserializer<List<String>> {
         @Override
         public List<String> deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-            return Arrays.stream(json.getAsJsonPrimitive().getAsString().split(",")).collect(Collectors.toList());
+
+            JsonArray jsonArray = json.getAsJsonArray();
+            ArrayList<String> returnArray = new ArrayList<>();
+            for(JsonElement element : jsonArray) {
+                Log.d("NetworkV2", element.getAsString());
+                returnArray.add(element.getAsString());
+            }
+            return returnArray;
         }
     }
 
-    public static class SemverDeserializer implements JsonDeserializer<Semver> {
-        @Override
-        public Semver deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-            return new Semver(json.getAsJsonPrimitive().getAsString(), Semver.SemverType.LOOSE);
-        }
-    }
 }

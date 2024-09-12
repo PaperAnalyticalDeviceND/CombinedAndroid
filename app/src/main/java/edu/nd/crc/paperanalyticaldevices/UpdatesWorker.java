@@ -32,8 +32,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 
 import edu.nd.crc.paperanalyticaldevices.api.NetworkEntry;
+import edu.nd.crc.paperanalyticaldevices.api.NetworkV2;
+import edu.nd.crc.paperanalyticaldevices.api.ProjectV2;
 import edu.nd.crc.paperanalyticaldevices.api.ResponseList;
 import edu.nd.crc.paperanalyticaldevices.api.WebService;
 import edu.nd.crc.paperanalyticaldevices.api.utils.ProgressCallback;
@@ -87,10 +90,15 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
         try {
 
             // First get the project names and neural net names
-            Response<ResponseList<String[]>> projectsResp = service.GetProjects("5NWT4K7IS60WMLR3J2LV").execute();
+            //Response<ResponseList<String[]>> projectsResp = service.GetProjects("5NWT4K7IS60WMLR3J2LV").execute();
             //load projects into database
+            Response<List<ProjectV2>> projectsRespV2 = service.GetProjectsV2().execute();
+            List<ProjectV2> projectsResultV2 = projectsRespV2.body();
+//            for(ProjectV2 proj : projectsResultV2){
+//                Log.d("Project API V2 Result", proj.ProjectName);
+//            }
 
-            ResponseList<String[]> projectsResult = projectsResp.body();
+            //ResponseList<String[]> projectsResult = projectsResp.body();
 
             ProjectsDbHelper dbHelper = new ProjectsDbHelper(getApplicationContext());
 
@@ -100,13 +108,16 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
             dbHelper.clearNetworks(db);
             dbHelper.clearDrugs(db);
 
-            for(String[] p : projectsResult.Entries){
-                //Log.d("API Result", p[0]);
+            //for(String[] p : projectsResult.Entries){
+            for(ProjectV2 p : projectsResultV2){
+                Log.d("API Result", p.ProjectName);
 
                 ContentValues dbValues = new ContentValues();
 
-                dbValues.put(ProjectContract.ProjectEntry.COLUMN_NAME_PROJECTID, p[0]);
-                dbValues.put(ProjectContract.ProjectEntry.COLUMN_NAME_PROJECTNAME, p[0]);
+//                dbValues.put(ProjectContract.ProjectEntry.COLUMN_NAME_PROJECTID, p[0]);
+//                dbValues.put(ProjectContract.ProjectEntry.COLUMN_NAME_PROJECTNAME, p[0]);
+                dbValues.put(ProjectContract.ProjectEntry.COLUMN_NAME_PROJECTID, p.Id);
+                dbValues.put(ProjectContract.ProjectEntry.COLUMN_NAME_PROJECTNAME, p.ProjectName);
                 db.insert(ProjectContract.ProjectEntry.TABLE_NAME, null, dbValues);
 
             }
@@ -116,15 +127,21 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
             //Response<ResponseList<String[]>> networksResp = service.GetNetworkNames("5NWT4K7IS60WMLR3J2LV").execute();
             //ResponseList<String[]> networksResult = networksResp.body();
 
-            Response<ResponseList<NetworkEntry>> resp = service.GetNetworkInfo("5NWT4K7IS60WMLR3J2LV").execute();
-            if (!resp.isSuccessful() || !resp.body().Status.equals("ok")) {
-                return Result.failure();
+            Response<List<NetworkV2>> netV2Resp = service.GetNeuralNetsV2().execute();
+            List<NetworkV2> netsV2 = netV2Resp.body();
+            for( NetworkV2 n : netsV2){
+                Log.d("Network API V2 Result", n.Name);
             }
 
-            ResponseList<NetworkEntry> result = resp.body();
+//            Response<ResponseList<NetworkEntry>> resp = service.GetNetworkInfo("5NWT4K7IS60WMLR3J2LV").execute();
+//            if (!resp.isSuccessful() || !resp.body().Status.equals("ok")) {
+//                return Result.failure();
+//            }
+//
+//            ResponseList<NetworkEntry> result = resp.body();
 
-            for (NetworkEntry network : result.Entries) {
-
+            //for (NetworkEntry network : result.Entries) {
+            for(NetworkV2 network : netsV2){
                 //write to the DB first
                 ContentValues dbValues = new ContentValues();
                 dbValues.put(NetworksContract.NetworksEntry.COLUMN_NAME_NETWORKID, network.Name);
@@ -158,8 +175,8 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
 
                 Semver currentVersion = new Semver(prefs.getString(projectSet + "version", "0.0"), Semver.SemverType.LOOSE);
 
-                for (NetworkEntry network : result.Entries) {
-
+                //for (NetworkEntry network : result.Entries) {
+                for(NetworkV2 network : netsV2){
                     if (!projectSet.equals(network.Name)) {
                         continue;
                     }
