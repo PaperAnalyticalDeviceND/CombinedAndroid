@@ -133,12 +133,28 @@ public class SettingsActivity extends AppCompatActivity {
             }
 
             String[] networksArray = networkEntries.toArray(new String[networkEntries.size()]);
+            ArrayList<String> concList = new ArrayList<>();
+            ArrayList<String> classifierList = new ArrayList<>();
+
+            // loop through the networksArray and put anything containing "conc" in the concArray,
+            // and anything without to the classifiersArray
+
+            for(String net : networksArray){
+                if(net.contains("conc")){
+                    concList.add(net);
+                } else {
+                    classifierList.add(net);
+                }
+            }
+
+            String[] concArray = concList.toArray(new String[concList.size()]);
+            String[] classifiersArray = classifierList.toArray(new String[classifierList.size()]);
 
             if(!networkEntries.isEmpty()){
-                networkList.setEntries(networksArray);
-                networkList.setEntryValues(networksArray);
-                secondaryNetworksList.setEntries(networksArray);
-                secondaryNetworksList.setEntryValues(networksArray);
+                networkList.setEntries(classifiersArray);
+                networkList.setEntryValues(classifiersArray);
+                secondaryNetworksList.setEntries(concArray);
+                secondaryNetworksList.setEntryValues(concArray);
             }
 
         }
