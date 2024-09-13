@@ -192,26 +192,11 @@ public class MainActivity extends AppCompatActivity {
         db = dbHelper.getReadableDatabase();
         setDrugSpinnerItems();
 
-/*
-        Spinner sDrugs = findViewById(R.id.statedDrugSpinner);
-        String[] drugsArray = drugEntries.toArray(new String[drugEntries.size()]);
-        ArrayAdapter<String> aDrugs = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, drugsArray);
-        sDrugs.setAdapter(aDrugs);
-
-        // prepare picker for drug %
-        ArrayAdapter<String> aConcentrations = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, Defaults.Brands);
-        Spinner sConc = findViewById(R.id.concDrugSpinner);
-        sConc.setAdapter(aConcentrations);
-*/
-
         Slider sConc = findViewById(R.id.concDrugSpinner);
         Slider markerSlider = findViewById(R.id.markerType);
         markerSlider.addOnSliderTouchListener(markerTouchListener);
         markerSlider.setValue(markerIndex);
-        //NumberPicker sConc = findViewById(R.id.concDrugSpinner);
-        //sConc.setMinValue(0);
-        //sConc.setMaxValue(Defaults.Brands.size() - 1);
-        //sConc.setDisplayedValues(Defaults.Brands.toArray(new String[Defaults.Brands.size()]));
+
         LabelFormatter formatter = new LabelFormatter() {
             @NonNull
             @Override
@@ -260,16 +245,6 @@ public class MainActivity extends AppCompatActivity {
                 }else{
                     intent.putExtra(EXTRA_PLS_USED, false);
                 }
-                /*
-                Spinner spinnerDrugs = findViewById(R.id.statedDrugSpinner);
-                String ret = String.valueOf(spinnerDrugs.getSelectedItem());
-                intent.putExtra(EXTRA_STATED_DRUG, ret);
-
-                Spinner spinnerConc = findViewById(R.id.concDrugSpinner);
-                String conc = String.valueOf(spinnerConc.getSelectedItem());
-                intent.putExtra(EXTRA_STATED_CONC, conc);
-
-                */
 
                 // get the selected drug and concentration to pass on to the result activity
                 NumberPicker spinnerDrugs = findViewById(R.id.statedDrugSpinner);
@@ -278,11 +253,6 @@ public class MainActivity extends AppCompatActivity {
                 String ret = drugList[drugIndex];
                 intent.putExtra(EXTRA_STATED_DRUG, ret);
 
-                /*NumberPicker spinnerConc = findViewById(R.id.concDrugSpinner);
-                String[] conList = spinnerConc.getDisplayedValues();
-                int concIndex = spinnerConc.getValue();
-                String conc = conList[concIndex];
-                intent.putExtra(EXTRA_STATED_CONC, conc);*/
                 String conc = concentraionStrings[concIndex];
                 intent.putExtra(EXTRA_STATED_CONC, conc);
 
@@ -292,6 +262,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // do we have permissions to show notifications so we can put the download progress in the notification bar?
+        ActivityResultLauncher<String[]> notificationPermissionRequest = registerForActivityResult(
+                new ActivityResultContracts.RequestMultiplePermissions(), isGranted -> {
+            if (isGranted.containsValue(false)) {
+                Toast.makeText(this, "Notification permission is used to display download progress", Toast.LENGTH_LONG).show();
+            }
+        });
+
+        int notificationPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS);
+        if(notificationPermission != PackageManager.PERMISSION_GRANTED){
+            notificationPermissionRequest.launch(new String[]{Manifest.permission.POST_NOTIFICATIONS});
+        }
 
     }
 
