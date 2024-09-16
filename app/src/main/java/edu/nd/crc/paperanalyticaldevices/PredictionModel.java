@@ -286,6 +286,12 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
             String secondary = sharedPreferences.getString("secondary", "");
             LoadModel(sharedPreferences, secondary);
         }
+        // MJC 9-16-24  Download selected PLS files
+        if(key.equals("plsmodel")){
+            // load pls function goes here
+            String plsModel = sharedPreferences.getString("plsmodel", "");
+            LoadPLS(sharedPreferences, plsModel);
+        }
     }
 
     public void LoadModelForArtifacts(SharedPreferences sharedPreferences, String network){
@@ -312,6 +318,24 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
         }
     }
 
+    public void LoadPLS(SharedPreferences sharedPreferences, String plsModel){
+        Log.d("PLS", "Load model " + plsModel);
+        try{
+            File plsFile = new File(getApplication().getApplicationContext()
+                    .getDir("tflitemodels", Context.MODE_PRIVATE).getPath(),
+                    sharedPreferences.getString(plsModel + "filename", "notafile"));
+            if(plsFile.exists()){
+                MainActivity.setSemaphore(true);
+                pls = PartialLeastSquares.from(getApplication().getApplicationContext());
+            }else{
+                DownloadSpecifiedModel(sharedPreferences, plsModel);
+            }
+        }catch(IOException e){
+            FirebaseCrashlytics.getInstance().recordException(e);
+            e.printStackTrace();
+        }
+    }
+
     public void LoadModel(SharedPreferences sharedPreferences, String project){
         networks.clear();
         try {
@@ -323,6 +347,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
               //switch (sharedPreferences.getString("neuralnet", "")) {
               // leave the old values for backwards compatibility, but use new values in default case
                 switch (selected) {
+                    /*
                     case "Veripad idPAD":
                         //projectFolder = subId;
                         File idpadFile = new File(getApplication().getApplicationContext()
@@ -368,7 +393,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                         }
                         //projectFolder = subFhi;
                         break;
-
+                        */
                     case "":
                         break;
 
@@ -405,8 +430,8 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
 
     public void DownloadSpecifiedModel(SharedPreferences sharedPreferences, String networkName){
 
-        String[] projectFolders;
-
+        //String[] projectFolders;
+        /*
         switch(networkName){
             case "FHI360-App":
 
@@ -425,6 +450,8 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                 //return;
                 projectFolders = new String[]{networkName};
         }
+        */
+        String[] projectFolders = new String[]{networkName};
 
         Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.UNMETERED)
@@ -437,7 +464,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                 )
                 .build();
 
-        Log.d("PredictionModel", "Queueing neuralnet_download worker.");
+        Log.d("PredictionModel", "Queueing neuralnet_download worker. " + networkName);
         WorkManager.getInstance(this.getApplication().getApplicationContext()).enqueue(myUploadWork);
         //bit of a workaround, locks out the camera until the background download worker is finished
         MainActivity.setSemaphore(false);

@@ -66,7 +66,7 @@ public class NetworkV2 {
             JsonArray jsonArray = json.getAsJsonArray();
             ArrayList<String> returnArray = new ArrayList<>();
             for(JsonElement element : jsonArray) {
-                Log.d("NetworkV2", element.getAsString());
+                //Log.d("NetworkV2", element.getAsString());
                 returnArray.add(element.getAsString());
             }
             return returnArray;

@@ -110,7 +110,7 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
 
             //for(String[] p : projectsResult.Entries){
             for(ProjectV2 p : projectsResultV2){
-                Log.d("API Result", p.ProjectName);
+                //Log.d("API Result", p.ProjectName);
 
                 ContentValues dbValues = new ContentValues();
 
@@ -129,9 +129,9 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
 
             Response<List<NetworkV2>> netV2Resp = service.GetNeuralNetsV2().execute();
             List<NetworkV2> netsV2 = netV2Resp.body();
-            for( NetworkV2 n : netsV2){
-                Log.d("Network API V2 Result", n.Name);
-            }
+//            for( NetworkV2 n : netsV2){
+//                Log.d("Network API V2 Result", n.Name);
+//            }
 
 //            Response<ResponseList<NetworkEntry>> resp = service.GetNetworkInfo("5NWT4K7IS60WMLR3J2LV").execute();
 //            if (!resp.isSuccessful() || !resp.body().Status.equals("ok")) {
@@ -151,7 +151,7 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
                 dbValues.put(NetworksContract.NetworksEntry.COLUMN_NAME_DESCRIPTION, network.Description);
                 dbValues.put(NetworksContract.NetworksEntry.COLUMN_NAME_DRUGS, network.Drugs.toString());
                 dbValues.put(NetworksContract.NetworksEntry.COLUMN_NAME_TYPE, network.Type);
-                Log.d("UPDATESWORKER", network.Drugs.toString());
+                //Log.d("UPDATESWORKER", network.Drugs.toString());
                 if(network.Weights != "" ){
                     String fileName = URLUtil.guessFileName(String.valueOf(network.Weights), null, null);
                     dbValues.put(NetworksContract.NetworksEntry.COLUMN_NAME_FILENAME, fileName);
