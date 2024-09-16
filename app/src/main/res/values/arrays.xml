@@ -24,6 +24,18 @@
         <item>MSH Tanzania</item>
     </string-array>
 
+    <string-array name="pls_entries">
+        <item></item>
+        <item>24fhiPLS1conc</item>
+        <item>pls_fhi360_conc</item>
+    </string-array>
+
+    <string-array name="pls_values">
+        <item></item>
+        <item>24fhiPLS1conc</item>
+        <item>pls_fhi360_conc</item>
+    </string-array>
+
     <string-array name="project_entries">
         <item></item>
         <item>AirGap</item>

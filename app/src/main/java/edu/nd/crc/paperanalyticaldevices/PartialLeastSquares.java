@@ -200,7 +200,10 @@ public class PartialLeastSquares {
         List<String> labels = new ArrayList<>();
         List<List<Float>> coefficients = new ArrayList<>();
 
-        try (InputStreamReader reader = new InputStreamReader(context.getAssets().open("pls_coefficients.csv"), StandardCharsets.UTF_8)) {
+        String plsFilename = "pls_coefficients.csv";
+
+
+        try (InputStreamReader reader = new InputStreamReader(context.getAssets().open(plsFilename), StandardCharsets.UTF_8)) {
             CSVReader csv = new CSVReader(reader);
             for( String[] record: csv){
                 labels.add(record[0]);

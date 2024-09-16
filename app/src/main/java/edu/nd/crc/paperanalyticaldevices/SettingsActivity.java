@@ -73,6 +73,7 @@ public class SettingsActivity extends AppCompatActivity {
         ListPreference projectsList;
         ListPreference networkList;
         ListPreference secondaryNetworksList;
+        ListPreference plsList;
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -83,6 +84,7 @@ public class SettingsActivity extends AppCompatActivity {
             projectsList = (ListPreference) findPreference("project");
             networkList = (ListPreference) findPreference("neuralnet");
             secondaryNetworksList = (ListPreference) findPreference("secondary");
+            plsList = (ListPreference) findPreference("plsmodel");
             // make an array of all projects and pass to the setEntries method
 
             dbHelper = new ProjectsDbHelper(getContext());
@@ -90,6 +92,7 @@ public class SettingsActivity extends AppCompatActivity {
 
             ArrayList<String> projectEntries = new ArrayList<>();
             ArrayList<String> networkEntries = new ArrayList<>();
+            ArrayList<String> plsEntries = new ArrayList<>();
 
             String[] projection = {
                     BaseColumns._ID,
@@ -155,6 +158,27 @@ public class SettingsActivity extends AppCompatActivity {
                 networkList.setEntryValues(classifiersArray);
                 secondaryNetworksList.setEntries(concArray);
                 secondaryNetworksList.setEntryValues(concArray);
+            }
+
+            String plsSelection = NetworksContract.NetworksEntry.COLUMN_NAME_TYPE + " = 'pls' AND " +
+                    NetworksContract.NetworksEntry.COLUMN_NAME_WEIGHTSURL + " != ''";
+            String plsOrder = NetworksContract.NetworksEntry.COLUMN_NAME_NETWORKNAME + " ASC";
+            String plsmodel;
+
+            try( Cursor netCursor = db.query(NetworksContract.NetworksEntry.TABLE_NAME,
+                    null, plsSelection, null, null, null, plsOrder)){
+                while(netCursor.moveToNext()){
+                    plsmodel = netCursor.getString(netCursor.getColumnIndexOrThrow(NetworksContract.NetworksEntry.COLUMN_NAME_NETWORKNAME));
+                    plsEntries.add(plsmodel);
+                    Log.d("DB_HELPER", plsmodel);
+                }
+            }
+
+            String[] plsArray = plsEntries.toArray(new String[plsEntries.size()]);
+
+            if(!plsEntries.isEmpty()){
+                plsList.setEntries(plsArray);
+                plsList.setEntryValues(plsArray);
             }
 
         }

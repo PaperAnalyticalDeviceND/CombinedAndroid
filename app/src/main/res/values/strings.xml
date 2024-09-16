@@ -35,6 +35,7 @@
     <string name="drugclassifier">Drug Classifier</string>
     <string name="secondary_network">Concentration Classifier</string>
     <string name="use_pls">Use PLS</string>
+    <string name="pls_model">PLS Model</string>
 
     <!-- Messages Preferences -->
     <string name="signature_title">Your signature</string>
