@@ -172,6 +172,7 @@ public class MainActivity extends AppCompatActivity {
 
         String project = prefs.getString("neuralnet", "");
         ProjectName = project;
+        String neuralNetVersion = prefs.getString(project + "version", "1.0");
 
         boolean sync = prefs.getBoolean("sync", true);
         //default to true to make sure this runs on first start
@@ -210,9 +211,9 @@ public class MainActivity extends AppCompatActivity {
         sConc.setLabelFormatter(formatter);
         sConc.addOnSliderTouchListener(touchListener);
 
-
+        Log.d("PADSMAINACTIVITY", "NeuralNet and Version: " + project + " " + neuralNetVersion);
         networkLabel = findViewById(R.id.neuralnet_name_view);
-        networkLabel.setText(project);
+        networkLabel.setText(project + " (" + neuralNetVersion + ")");
 
         projectLabel = findViewById(R.id.project_name_view);
         String projectName = prefs.getString("project", "");
@@ -542,9 +543,10 @@ public class MainActivity extends AppCompatActivity {
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         ProjectName = prefs.getString("neuralnet", "");
+        String netVersion = prefs.getString(ProjectName + "version", "1.0");
 
         networkLabel = findViewById(R.id.neuralnet_name_view);
-        networkLabel.setText(ProjectName);
+        networkLabel.setText(ProjectName + " (" + netVersion + ")");
 
         projectLabel = findViewById(R.id.project_name_view);
         String project = prefs.getString("project", "");

@@ -92,7 +92,9 @@ public class SettingsActivity extends AppCompatActivity {
 
             ArrayList<String> projectEntries = new ArrayList<>();
             ArrayList<String> networkEntries = new ArrayList<>();
+            ArrayList<String> networkValues = new ArrayList<>();
             ArrayList<String> plsEntries = new ArrayList<>();
+            ArrayList<String> plsValues = new ArrayList<>();
 
             String[] projection = {
                     BaseColumns._ID,
@@ -125,19 +127,24 @@ public class SettingsActivity extends AppCompatActivity {
             String netSortOrder = NetworksContract.NetworksEntry.COLUMN_NAME_NETWORKNAME + " ASC";
 
             String network;
+            String netVersion;
 
             try( Cursor netCursor = db.query(NetworksContract.NetworksEntry.TABLE_NAME,
                     null, netSelection, null, null, null, netSortOrder)){
                 while(netCursor.moveToNext()){
                     network = netCursor.getString(netCursor.getColumnIndexOrThrow(NetworksContract.NetworksEntry.COLUMN_NAME_NETWORKNAME));
-                    networkEntries.add(network);
+                    netVersion = netCursor.getString(netCursor.getColumnIndexOrThrow(NetworksContract.NetworksEntry.COLUMN_NAME_VERSIONSTRING));
+                    networkValues.add(network);
+                    networkEntries.add(network + " (" + netVersion + ")");
                     Log.d("DB_HELPER", network);
                 }
             }
 
             String[] networksArray = networkEntries.toArray(new String[networkEntries.size()]);
             ArrayList<String> concList = new ArrayList<>();
+            ArrayList<String> concValList = new ArrayList<>();
             ArrayList<String> classifierList = new ArrayList<>();
+            ArrayList<String> classifierValList = new ArrayList<>();
 
             // loop through the networksArray and put anything containing "conc" in the concArray,
             // and anything without to the classifiersArray
@@ -150,35 +157,49 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             }
 
+            for(String val : networkValues){
+                if(val.contains("conc")){
+                    concValList.add(val);
+                } else {
+                    classifierValList.add(val);
+                }
+            }
+
             String[] concArray = concList.toArray(new String[concList.size()]);
             String[] classifiersArray = classifierList.toArray(new String[classifierList.size()]);
+            String[] concValArray = concValList.toArray(new String[concValList.size()]);
+            String[] classifierValArray = classifierValList.toArray(new String[classifierValList.size()]);
 
             if(!networkEntries.isEmpty()){
                 networkList.setEntries(classifiersArray);
-                networkList.setEntryValues(classifiersArray);
+                networkList.setEntryValues(classifierValArray);
                 secondaryNetworksList.setEntries(concArray);
-                secondaryNetworksList.setEntryValues(concArray);
+                secondaryNetworksList.setEntryValues(concValArray);
             }
 
             String plsSelection = NetworksContract.NetworksEntry.COLUMN_NAME_TYPE + " = 'pls' AND " +
                     NetworksContract.NetworksEntry.COLUMN_NAME_WEIGHTSURL + " != ''";
             String plsOrder = NetworksContract.NetworksEntry.COLUMN_NAME_NETWORKNAME + " ASC";
             String plsmodel;
+            String plsVersion;
 
             try( Cursor netCursor = db.query(NetworksContract.NetworksEntry.TABLE_NAME,
                     null, plsSelection, null, null, null, plsOrder)){
                 while(netCursor.moveToNext()){
                     plsmodel = netCursor.getString(netCursor.getColumnIndexOrThrow(NetworksContract.NetworksEntry.COLUMN_NAME_NETWORKNAME));
-                    plsEntries.add(plsmodel);
+                    plsVersion = netCursor.getString(netCursor.getColumnIndexOrThrow(NetworksContract.NetworksEntry.COLUMN_NAME_VERSIONSTRING));
+                    plsEntries.add(plsmodel + " (" + plsVersion + ")");
+                    plsValues.add(plsmodel);
                     Log.d("DB_HELPER", plsmodel);
                 }
             }
 
             String[] plsArray = plsEntries.toArray(new String[plsEntries.size()]);
+            String[] plsValArray = plsValues.toArray(new String[plsValues.size()]);
 
             if(!plsEntries.isEmpty()){
                 plsList.setEntries(plsArray);
-                plsList.setEntryValues(plsArray);
+                plsList.setEntryValues(plsValArray);
             }
 
         }
