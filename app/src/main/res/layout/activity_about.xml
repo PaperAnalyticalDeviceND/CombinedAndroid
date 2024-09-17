@@ -52,6 +52,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toBottomOf="@id/abouttoolbar"
+        app:layout_constraintStart_toStartOf="parent"
         android:padding="24dp"
         android:text="@string/app_description"
         />
@@ -62,16 +63,24 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="24dp"
-        app:layout_constraintTop_toBottomOf="@id/about_description_textview"
-        />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/about_description_textview" />
 
     <TextView
         android:id="@+id/homepage_link"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="24dp"
-        app:layout_constraintTop_toBottomOf="@id/privacy_link"
-        />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/privacy_link" />
+
+    <TextView
+        android:id="@+id/version_textview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="24dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/homepage_link" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -41,6 +41,11 @@ public class AboutActivity extends AppCompatActivity {
         homepageView.setText(homeText);
 
         homepageView.setMovementMethod(LinkMovementMethod.getInstance());
+
+        TextView versionView = findViewById(R.id.version_textview);
+
+        String versionString = "PADReader Version: " + BuildConfig.VERSION_NAME;
+        versionView.setText(versionString);
     }
 
     public void finish(View view) {
