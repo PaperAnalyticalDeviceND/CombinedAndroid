@@ -141,6 +141,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
 
             String[] networksArray = networkEntries.toArray(new String[networkEntries.size()]);
+            String[] networksValuesArray = networkValues.toArray(new String[networkValues.size()]);
             ArrayList<String> concList = new ArrayList<>();
             ArrayList<String> concValList = new ArrayList<>();
             ArrayList<String> classifierList = new ArrayList<>();
@@ -157,7 +158,7 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             }
 
-            for(String val : networkValues){
+            for(String val : networksValuesArray){
                 if(val.contains("conc")){
                     concValList.add(val);
                 } else {
