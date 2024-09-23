@@ -14,6 +14,7 @@ import okhttp3.OkHttpClient;
 import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.http.Body;
 import retrofit2.http.FieldMap;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
@@ -34,6 +35,9 @@ public interface WebService {
     @FormUrlEncoded
     @POST("/index.php?option=com_jbackend&view=request&module=querytojson&action=post&resource=upload")
     Call<JsonObject> UploadResult(@FieldMap Map<String, String> names, @Tag ProgressCallback progress);
+
+    @POST("/api/v2/cards")
+    Call<JsonObject> UploadResultV2(@Body UploadRequest request, @Tag ProgressCallback progress);
 
     @GET("/api/v2/neural-networks")
     Call<List<NetworkV2>> GetNeuralNetsV2();

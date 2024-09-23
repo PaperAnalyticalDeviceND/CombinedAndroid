@@ -9,6 +9,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -26,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
+import edu.nd.crc.paperanalyticaldevices.api.UploadRequest;
 import edu.nd.crc.paperanalyticaldevices.api.WebService;
 import edu.nd.crc.paperanalyticaldevices.api.utils.ProgressCallback;
 import edu.nd.crc.paperanalyticaldevices.api.utils.ProgressInterceptor;
@@ -88,19 +90,26 @@ public class UploadWorker extends Worker implements ProgressCallback {
 
         final WebService service = WebService.instantiate(client);
         try {
-            final Map<String, String> parameters = UploadData.asMap(getInputData(), getApplicationContext());
-            if (parameters.containsValue(null)) {
-                return Result.failure();
-            }
-            LogEvent(parameters);
+//            final Map<String, String> parameters = UploadData.asMap(getInputData(), getApplicationContext());
+//            if (parameters.containsValue(null)) {
+//                return Result.failure();
+//            }
+//            LogEvent(parameters);
 
-            Response<JsonObject> resp = service.UploadResult(parameters, this).execute();
-            if (!resp.isSuccessful() || resp.body().has("status") && resp.body().get("status").getAsString().equals("ko")) {
+            final UploadRequest request = UploadData.asRequest(getInputData(), getApplicationContext());
+            Log.d("PAD UploadRequest", request.toString());
+            Response<JsonObject> resp = service.UploadResultV2(request, this).execute();
+            //Log.d("PAD UploadResponse", resp.body().toString());
+            //Response<JsonObject> resp = service.UploadResult(parameters, this).execute();
+            if (!resp.isSuccessful() /*|| resp.body().has("status") && resp.body().get("status").getAsString().equals("ko") */) {
+                Log.d("PAD UploadResult", "Failed");
+                Log.d("PAD UploadResponse", resp.code() + resp.message() + resp.errorBody().string());
                 return Result.failure();
             }
 
             //data.CleanupImages();
         } catch (Exception e) {
+            Log.d("PAD UploadResult", "Exception" + e.toString());
             FirebaseCrashlytics.getInstance().recordException(e);
             return Result.failure();
         }

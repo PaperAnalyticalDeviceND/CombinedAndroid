@@ -21,6 +21,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
+import edu.nd.crc.paperanalyticaldevices.api.UploadRequest;
+
 public class UploadData {
     private final Context mContext;
     private String Category, Camera, SampleName, SampleID, Notes, Quantity, Timestamp, OriginalImage, RectifiedImage;
@@ -66,6 +68,30 @@ public class UploadData {
         retVal.put("hash_file2", UploadData.MD5(rectifiedB64));
 
         if (retVal.containsValue(null)) throw new Exception("Invalid or missing data");
+
+        return retVal;
+    }
+
+    public static UploadRequest asRequest(@NotNull Data input, @NotNull Context context) throws Exception {
+        final String origianlB64 = FileToBase64(context, Uri.parse(input.getString("ORIGINAL_IMAGE")));
+        final String rectifiedB64 = FileToBase64(context, Uri.parse(input.getString("RECTIFIED_IMAGE")));
+
+        UploadRequest retVal = new UploadRequest();
+        retVal.FileName = "capture." + input.getString("TIMESTAMP") + ".png";
+        retVal.FileName2 = "rectified." + input.getString("TIMESTAMP") + ".png";
+        retVal.TestName = "12LanePADKenya2015";
+        retVal.CategoryName = PreferenceManager.getDefaultSharedPreferences(context).getString("project", "JCSTest");
+        retVal.Camera1 = Build.MANUFACTURER + " " + Build.MODEL;
+        retVal.SampleName = input.getString("SAMPLE_NAME");
+        retVal.SampleId = Integer.parseInt(input.getString("SAMPLE_ID"));
+        retVal.Notes = input.getString("NOTES");
+        retVal.Quantity = Integer.parseInt(input.getString("QUANTITY"));
+        retVal.UploadedFile = origianlB64;
+        retVal.UploadedFile2 = rectifiedB64;
+        retVal.HashFile1 = MD5(origianlB64);
+        retVal.HashFile2 = MD5(rectifiedB64);
+
+        if (retVal.FileName == null || retVal.FileName2 == null || retVal.TestName == null || retVal.CategoryName == null || retVal.Camera1 == null || retVal.SampleName == null || retVal.SampleId == 0 || retVal.Notes == null || retVal.Quantity == 0 || retVal.UploadedFile == null || retVal.UploadedFile2 == null || retVal.HashFile1 == null || retVal.HashFile2 == null) throw new Exception("Invalid or missing data");
 
         return retVal;
     }
