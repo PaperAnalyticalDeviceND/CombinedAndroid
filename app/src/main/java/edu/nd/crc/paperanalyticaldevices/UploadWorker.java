@@ -27,6 +27,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
+import edu.nd.crc.paperanalyticaldevices.api.AuthService;
+import edu.nd.crc.paperanalyticaldevices.api.PadAuthRequest;
+import edu.nd.crc.paperanalyticaldevices.api.PadAuthResponse;
 import edu.nd.crc.paperanalyticaldevices.api.UploadRequest;
 import edu.nd.crc.paperanalyticaldevices.api.WebService;
 import edu.nd.crc.paperanalyticaldevices.api.utils.ProgressCallback;
@@ -89,16 +92,26 @@ public class UploadWorker extends Worker implements ProgressCallback {
                 .build();
 
         final WebService service = WebService.instantiate(client);
+        final AuthService authService = AuthService.instantiate(client);
+
+        final PadAuthRequest authRequest = new PadAuthRequest("UeJGHJGjevseLwEyo39LRsyi9064OIVu",
+                "voEywl0Z86Niwt-nK8JGPheEx2S2ZVkKVonvugKaJHbkfPNoE0WtfJlOT_m538yw",
+                "https://pad.crc.nd.edu/api/v2", "client_credentials");
+
+
         try {
 //            final Map<String, String> parameters = UploadData.asMap(getInputData(), getApplicationContext());
 //            if (parameters.containsValue(null)) {
 //                return Result.failure();
 //            }
 //            LogEvent(parameters);
+            Response<PadAuthResponse> response = authService.getToken(authRequest).execute();
+            String token = response.body().AccessToken;
+            Log.d("PADS Token", token);
 
             final UploadRequest request = UploadData.asRequest(getInputData(), getApplicationContext());
             Log.d("PAD UploadRequest", request.toString());
-            Response<JsonObject> resp = service.UploadResultV2(request, this).execute();
+            Response<JsonObject> resp = service.UploadResultV2("Bearer " + token, request, this).execute();
             //Log.d("PAD UploadResponse", resp.body().toString());
             //Response<JsonObject> resp = service.UploadResult(parameters, this).execute();
             if (!resp.isSuccessful() /*|| resp.body().has("status") && resp.body().get("status").getAsString().equals("ko") */) {
