@@ -19,6 +19,7 @@ import retrofit2.http.FieldMap;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
+import retrofit2.http.Headers;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
 import retrofit2.http.Tag;
@@ -39,6 +40,7 @@ public interface WebService {
     @POST("/index.php?option=com_jbackend&view=request&module=querytojson&action=post&resource=upload")
     Call<JsonObject> UploadResult(@FieldMap Map<String, String> names, @Tag ProgressCallback progress);
 
+    @Headers({ "Content-Type: application/json;charset=UTF-8"})
     @POST("/api/v2/cards")
     Call<JsonObject> UploadResultV2(@Header("Authorization") String authorization, @Body UploadRequest request, @Tag ProgressCallback progress);
 
