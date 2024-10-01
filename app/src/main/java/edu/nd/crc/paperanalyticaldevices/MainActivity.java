@@ -1,13 +1,20 @@
 package edu.nd.crc.paperanalyticaldevices;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
 import android.provider.BaseColumns;
 import android.provider.Settings;
 import android.util.Log;
@@ -51,9 +58,16 @@ import com.google.firebase.analytics.FirebaseAnalytics;
 
 import org.opencv.android.OpenCVLoader;
 
+import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import android.app.DownloadManager;
 
 import javax.annotation.Nullable;
 
@@ -145,12 +159,100 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    // check DownloadManager completed the neural net file download here
+    private BroadcastReceiver onDownloadComplete = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            // Fetch the download id received with the broadcast
+            long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
+            // Check if the received broadcast is for the our enqueued download
+            if (id == tensorflowView.downloadId) {
+
+                Toast.makeText(MainActivity.this, "Download Completed", Toast.LENGTH_SHORT).show();
+                // Get the file name from DownloadManager
+                DownloadManager downloadManager = (DownloadManager) getApplication().getApplicationContext().getSystemService(Context.DOWNLOAD_SERVICE);
+
+                Cursor q = downloadManager.query(new DownloadManager.Query().setFilterById(id));
+                if(q == null){
+                    Log.d("PADS Download", "Cursor is null");
+                    downloadManager.remove(id);
+                    return;
+                }else{
+                    q.moveToFirst();
+                    Log.d("PADS Download", "Cursor is not null");
+                    Integer index = q.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI);
+                    if(index >= 0){
+                        String uriString = q.getString(index);
+                        Uri downloadedUri = Uri.parse(uriString);
+                        String uriPath = downloadedUri.getPath();
+                        Log.d("PADS Download", "Download Uri path " + uriPath);
+                        Log.d("PADS Download", "URI: " + uriString);
+                        //string BAD: file:///storage/emulated/0/Android/data/edu.nd.crc.paperanalyticaldevices/files/idPAD_small_1_6.tflite
+                        //path GOOD:  /storage/emulated/0/Android/data/edu.nd.crc.paperanalyticaldevices/files/idPAD_small_1_6-3.tflite
+                        File downloadedFile = new File(uriPath);
+                        File nnFolder = getApplicationContext().getDir("tflitemodels", Context.MODE_PRIVATE);
+
+                        if (!nnFolder.exists()) {
+                            nnFolder.mkdirs();
+                        }
+                        File newFile = new File(nnFolder, downloadedFile.getName());
+                        //Log.d("PADS Download", "Downloaded file " + downloadedFile.getAbsolutePath());
+                        if(downloadedFile.exists()){
+                            try {
+                                Log.d("PADS Download", "Download exists " + downloadedFile.getCanonicalPath());
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }else{
+                            Log.d("PADS Download", "Download does NOT exist " + downloadedFile.getPath());
+                        }
+                        //Log.d("PADS Download", "New File: " + newFile.getAbsolutePath());
+                        // Then we want to move the file from downloads to our internal folder
+                        try {
+                            FileInputStream in = new FileInputStream(uriPath);
+                            FileOutputStream out = new FileOutputStream(newFile.getPath());
+
+                            byte[] buffer = new byte[1024];
+                            int read;
+                            while ((read = in.read(buffer)) != -1) {
+                                out.write(buffer, 0, read);
+                            }
+                            in.close();
+                            in = null;
+                            // write the output file
+                            out.flush();
+                            out.close();
+                            out = null;
+                        } catch (FileNotFoundException e) {
+                            throw new RuntimeException(e);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                        if(newFile.exists()){
+                            Log.d("PADS Download", "New file exists " + newFile.getPath());
+                        }else{
+                            Log.d("PADS Download", "New file FAILED " + newFile.getPath());
+                        }
+                    }
+                    // make sure we're cosing resources, and removing the download so it doesn't start again
+                    q.close();
+                    downloadManager.remove(id);
+                    setSemaphore(true);  // clear the semaphore so that scanning can resume
+                }
+
+            }
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         FirebaseApp.initializeApp(this);
         FirebaseAnalytics mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
+
+        // DownloadManager complete
+        registerReceiver(onDownloadComplete,new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
 
         //initialize opencv
         if (!OpenCVLoader.initDebug()) {
@@ -633,5 +735,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        unregisterReceiver(onDownloadComplete);
     }
 }

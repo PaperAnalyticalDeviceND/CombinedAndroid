@@ -1,10 +1,15 @@
 package edu.nd.crc.paperanalyticaldevices;
 
+import static java.security.AccessController.getContext;
+
 import android.app.Activity;
 import android.app.Application;
+import android.app.DownloadManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -85,6 +90,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
 
     public Boolean usePls;
 
+    public static long downloadId;
     //private Map<String, String> keyValueMap;
 
     public PredictionModel(@NonNull Application application) {
@@ -411,7 +417,8 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                                 pls = PartialLeastSquares.from(getApplication().getApplicationContext());
                             }
                         }else{
-                            DownloadSpecifiedModel(sharedPreferences, selected);
+                            //DownloadSpecifiedModel(sharedPreferences, selected);
+                            DownloadManagerSpecifiedFile(sharedPreferences, selected);
                         }
 
                         break;
@@ -426,6 +433,57 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
             FirebaseCrashlytics.getInstance().recordException(e);
             e.printStackTrace();
         }
+    }
+
+    public void DownloadManagerSpecifiedFile(SharedPreferences sharedPreferences, String networkName){
+        Log.d("PADS Download", "DownloadManagerSpecifiedFile " + networkName);
+        ProjectsDbHelper dbHelper = new ProjectsDbHelper(getApplication());
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        ArrayList<String> networkValues = new ArrayList<>();
+
+        String selection = NetworksContract.NetworksEntry.COLUMN_NAME_WEIGHTSURL + " != ''";
+        String selectionOrder = NetworksContract.NetworksEntry.COLUMN_NAME_NETWORKNAME + " ASC";
+
+        try( Cursor netCursor = db.query(NetworksContract.NetworksEntry.TABLE_NAME,
+                null, selection, null, null, null, selectionOrder)){
+            while(netCursor.moveToNext()){
+                String model = netCursor.getString(netCursor.getColumnIndexOrThrow(NetworksContract.NetworksEntry.COLUMN_NAME_NETWORKNAME));
+                String url = netCursor.getString(netCursor.getColumnIndexOrThrow(NetworksContract.NetworksEntry.COLUMN_NAME_WEIGHTSURL));
+                String version = netCursor.getString(netCursor.getColumnIndexOrThrow(NetworksContract.NetworksEntry.COLUMN_NAME_VERSIONSTRING));
+                if(model.equals(networkName)){
+                    // do the download
+                    String filename = netCursor.getString(netCursor.getColumnIndexOrThrow(NetworksContract.NetworksEntry.COLUMN_NAME_FILENAME));
+                    MainActivity.setSemaphore(false);
+                    downloadId = DoDownload(url, filename);
+
+                    File nnFolder = getApplication().getApplicationContext().getDir("tflitemodels", Context.MODE_PRIVATE);
+                    File newFile = new File(nnFolder, filename);
+                    Log.d("PADs Download", "Storing filename " + newFile.getName());
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putString(networkName + "filename", newFile.getName());
+                    editor.putString(networkName + "version", version);
+                    editor.apply();
+                }
+            }
+        }
+    }
+
+    public long DoDownload(String url, String filename){
+//        File file = new File(getApplication().getApplicationContext()
+//                .getDir("tflitemodels", Context.MODE_PRIVATE).getPath(), filename);
+        File file = new File(getApplication().getApplicationContext().getExternalFilesDir(null), filename);
+        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url))
+                .setTitle(filename)
+                .setDescription("Downloading")
+                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                .setDestinationUri(Uri.fromFile(file));
+
+        DownloadManager downloadManager = (DownloadManager) getApplication().getApplicationContext().getSystemService(Context.DOWNLOAD_SERVICE);
+        Log.d("PADS Download", "Enqueue download");
+        long dId = downloadManager.enqueue(request);
+        Log.d("PADS Download", "DownloadID " + dId);
+        return dId;
     }
 
     public void DownloadSpecifiedModel(SharedPreferences sharedPreferences, String networkName){

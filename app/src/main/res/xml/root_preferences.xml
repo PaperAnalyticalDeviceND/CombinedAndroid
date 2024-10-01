@@ -33,9 +33,9 @@
             />
 
         <SwitchPreferenceCompat
+            app:defaultValue="false"
             app:key="pls"
-            app:title="@string/use_pls"
-            />
+            app:title="@string/use_pls" />
 
         <ListPreference
             app:defaultValue=""
@@ -62,6 +62,7 @@
             app:useSimpleSummaryProvider="true" />
 
         <SwitchPreferenceCompat
+            app:defaultValue="true"
             app:key="sync"
             app:title="@string/sync_title" />
 
