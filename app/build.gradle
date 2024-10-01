@@ -14,8 +14,8 @@ android {
         applicationId "edu.nd.crc.paperanalyticaldevices"
         minSdk 26
         targetSdk 34
-        versionCode 25
-        versionName "2.9"
+        versionCode 26
+        versionName "2.10"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
