@@ -208,8 +208,8 @@ public class PartialLeastSquares {
         String plsFilename = "pls_coefficients.csv";  // default to the included file
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
         String storedPLSModel = preferences.getString("plsmodel", "none");
-
-        if(storedPLSModel != "none"){
+        Log.d("PADS Download", "Stored PLS Model: " + storedPLSModel);
+        if( !storedPLSModel.toLowerCase().equals("none") && storedPLSModel.toLowerCase() != ""){
             plsFilename = preferences.getString(storedPLSModel + "filename", "none");
             Log.d("PLS", "Using stored PLS model: " + storedPLSModel + " with filename: " + plsFilename);
             File plsFile = new File(context.getDir("tflitemodels", Context.MODE_PRIVATE).getPath(), plsFilename);

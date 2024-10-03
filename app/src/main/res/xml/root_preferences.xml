@@ -32,10 +32,10 @@
             app:useSimpleSummaryProvider="true"
             />
 
-        <SwitchPreferenceCompat
-            app:defaultValue="false"
-            app:key="pls"
-            app:title="@string/use_pls" />
+<!--        <SwitchPreferenceCompat-->
+<!--            app:defaultValue="false"-->
+<!--            app:key="pls"-->
+<!--            app:title="@string/use_pls" />-->
 
         <ListPreference
             app:defaultValue=""

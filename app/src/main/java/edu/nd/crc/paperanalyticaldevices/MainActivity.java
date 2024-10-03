@@ -66,6 +66,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import android.app.DownloadManager;
 
@@ -165,8 +166,11 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             // Fetch the download id received with the broadcast
             long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
+
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+            ArrayList<String> ids = PredictionModel.getStoredDownloadIds(prefs);
             // Check if the received broadcast is for the our enqueued download
-            if (id == tensorflowView.downloadId) {
+            if (id == tensorflowView.downloadId || ids.contains(String.valueOf(id))) {
 
                 Toast.makeText(MainActivity.this, "Download Completed", Toast.LENGTH_SHORT).show();
                 // Get the file name from DownloadManager
@@ -237,6 +241,12 @@ public class MainActivity extends AppCompatActivity {
                     // make sure we're cosing resources, and removing the download so it doesn't start again
                     q.close();
                     downloadManager.remove(id);
+                    if(ids.contains(String.valueOf(id))){
+                        PredictionModel.removeDownloadId(prefs, id);
+                    }
+                    if(id == tensorflowView.downloadId){
+                        tensorflowView.setDownloadId(-1);
+                    }
                     setSemaphore(true);  // clear the semaphore so that scanning can resume
                 }
 
@@ -315,7 +325,11 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d("PADSMAINACTIVITY", "NeuralNet and Version: " + project + " " + neuralNetVersion);
         networkLabel = findViewById(R.id.neuralnet_name_view);
-        networkLabel.setText(project + " (" + neuralNetVersion + ")");
+        if(project.toLowerCase().equals("none")){
+            networkLabel.setText("None");
+        }else {
+            networkLabel.setText(project + " (" + neuralNetVersion + ")");
+        }
 
         projectLabel = findViewById(R.id.project_name_view);
         String projectName = prefs.getString("project", "");
@@ -648,7 +662,11 @@ public class MainActivity extends AppCompatActivity {
         String netVersion = prefs.getString(ProjectName + "version", "1.0");
 
         networkLabel = findViewById(R.id.neuralnet_name_view);
-        networkLabel.setText(ProjectName + " (" + netVersion + ")");
+        if(ProjectName.toLowerCase().equals("none")){
+            networkLabel.setText("None");
+        }else {
+            networkLabel.setText(ProjectName + " (" + netVersion + ")");
+        }
 
         projectLabel = findViewById(R.id.project_name_view);
         String project = prefs.getString("project", "");
