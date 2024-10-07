@@ -262,7 +262,7 @@ public class MainActivity extends AppCompatActivity {
         FirebaseAnalytics mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
 
         // DownloadManager complete
-        registerReceiver(onDownloadComplete,new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+        registerReceiver(onDownloadComplete,new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE), Context.RECEIVER_NOT_EXPORTED);
 
         //initialize opencv
         if (!OpenCVLoader.initDebug()) {

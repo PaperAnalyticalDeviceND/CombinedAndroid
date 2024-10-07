@@ -9,6 +9,7 @@ import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.ServiceInfo;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
 import android.util.Log;
@@ -55,7 +56,6 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
         notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private void createChannel() {
         NotificationChannel channel = new NotificationChannel(MainActivity.PROJECT, "Update", NotificationManager.IMPORTANCE_LOW);
         notificationManager.createNotificationChannel(channel);
@@ -64,9 +64,9 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
     @NonNull
     private ForegroundInfo createForegroundInfo(int current, int max) {
         PendingIntent intent = WorkManager.getInstance(getApplicationContext()).createCancelPendingIntent(getId());
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createChannel();
-        }
+        //}
 
         Notification notification = new NotificationCompat.Builder(getApplicationContext(), MainActivity.PROJECT)
                 .setOngoing(true)
@@ -75,8 +75,11 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .addAction(android.R.drawable.ic_delete, "Cancel", intent)
                 .build();
-
-        return new ForegroundInfo(serialVersionUID, notification);
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            return new ForegroundInfo(serialVersionUID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
+        }else{
+            return new ForegroundInfo(serialVersionUID, notification);
+        }
     }
 
     @NonNull
