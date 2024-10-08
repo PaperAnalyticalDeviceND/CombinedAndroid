@@ -7,6 +7,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -58,9 +59,9 @@ public class UploadWorker extends Worker implements ProgressCallback {
     @NonNull
     private ForegroundInfo createForegroundInfo(int current, int max) {
         PendingIntent intent = WorkManager.getInstance(getApplicationContext()).createCancelPendingIntent(getId());
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createChannel();
-        }
+        //}
 
         Notification notification = new NotificationCompat.Builder(getApplicationContext(), MainActivity.PROJECT)
                 .setOngoing(true)
@@ -70,7 +71,11 @@ public class UploadWorker extends Worker implements ProgressCallback {
                 .addAction(android.R.drawable.ic_delete, "Cancel", intent)
                 .build();
 
-        return new ForegroundInfo(serialVersionUID, notification);
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            return new ForegroundInfo(serialVersionUID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
+        }else {
+            return new ForegroundInfo(serialVersionUID, notification);
+        }
     }
 
     private void LogEvent(final Map<String, String> data) {

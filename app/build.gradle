@@ -12,10 +12,10 @@ android {
 
     defaultConfig {
         applicationId "edu.nd.crc.paperanalyticaldevices"
-        minSdk 26
+        minSdk 29
         targetSdk 34
-        versionCode 27
-        versionName "2.11"
+        versionCode 28
+        versionName "2.12"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
