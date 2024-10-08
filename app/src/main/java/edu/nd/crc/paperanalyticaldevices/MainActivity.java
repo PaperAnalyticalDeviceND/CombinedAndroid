@@ -184,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
                 }else{
                     q.moveToFirst();
                     Log.d("PADS Download", "Cursor is not null");
-                    Integer index = q.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI);
+                    int index = q.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI);
                     if(index >= 0){
                         String uriString = q.getString(index);
                         Uri downloadedUri = Uri.parse(uriString);
@@ -227,8 +227,6 @@ public class MainActivity extends AppCompatActivity {
                             out.flush();
                             out.close();
                             out = null;
-                        } catch (FileNotFoundException e) {
-                            throw new RuntimeException(e);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
@@ -288,9 +286,9 @@ public class MainActivity extends AppCompatActivity {
 
         boolean sync = prefs.getBoolean("sync", true);
         //default to true to make sure this runs on first start
-        if (sync) {
-            checkForUpdates(project);
-        }
+        //if (sync) {
+        checkForUpdates(project);
+        //}
 
         // setup remainder
         setContentView(R.layout.activity_main);
@@ -662,7 +660,7 @@ public class MainActivity extends AppCompatActivity {
         String netVersion = prefs.getString(ProjectName + "version", "1.0");
 
         networkLabel = findViewById(R.id.neuralnet_name_view);
-        if(ProjectName.toLowerCase().equals("none")){
+        if(ProjectName.equalsIgnoreCase("none")){
             networkLabel.setText("None");
         }else {
             networkLabel.setText(ProjectName + " (" + netVersion + ")");

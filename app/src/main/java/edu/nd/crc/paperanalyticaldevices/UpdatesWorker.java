@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Objects;
 
 import edu.nd.crc.paperanalyticaldevices.api.NetworkEntry;
 import edu.nd.crc.paperanalyticaldevices.api.NetworkV2;
@@ -174,7 +175,7 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
             for (String projectSet : getInputData().getStringArray("projectkeys")) {
-              if(projectSet != ""){
+              if(!Objects.equals(projectSet, "") && null != projectSet){
 
                 Semver currentVersion = new Semver(prefs.getString(projectSet + "version", "0.0"), Semver.SemverType.LOOSE);
 
