@@ -284,7 +284,7 @@ public class MainActivity extends AppCompatActivity {
         ProjectName = project;
         String neuralNetVersion = prefs.getString(project + "version", "1.0");
 
-        boolean sync = prefs.getBoolean("sync", true);
+        //boolean sync = prefs.getBoolean("sync", true);
         //default to true to make sure this runs on first start
         //if (sync) {
         checkForUpdates(project);

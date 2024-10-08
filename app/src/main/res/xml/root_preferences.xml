@@ -61,10 +61,10 @@
             app:title="Days to keep images"
             app:useSimpleSummaryProvider="true" />
 
-        <SwitchPreferenceCompat
-            app:defaultValue="true"
-            app:key="sync"
-            app:title="@string/sync_title" />
+<!--        <SwitchPreferenceCompat-->
+<!--            app:defaultValue="true"-->
+<!--            app:key="sync"-->
+<!--            app:title="@string/sync_title" />-->
 
         <!--SwitchPreferenceCompat
             app:dependency="sync"
