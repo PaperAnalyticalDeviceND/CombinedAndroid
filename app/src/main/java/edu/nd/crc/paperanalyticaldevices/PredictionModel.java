@@ -451,6 +451,24 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                 if(model.equals(networkName)){
                     // do the download
                     String filename = netCursor.getString(netCursor.getColumnIndexOrThrow(NetworksContract.NetworksEntry.COLUMN_NAME_FILENAME));
+
+                    // check existing downloads to make sure we don't start a duplicate
+                    DownloadManager downloadManager = (DownloadManager) getApplication().getApplicationContext().getSystemService(Context.DOWNLOAD_SERVICE);
+                    Cursor q = downloadManager.query(new DownloadManager.Query().setFilterByStatus(DownloadManager.STATUS_RUNNING));
+
+                    if(q == null){}else{
+                        while(q.moveToNext()){
+                            int index = q.getColumnIndex(DownloadManager.COLUMN_TITLE);
+                            if(index != -1){
+                                String title = q.getString(index);
+                                if(title.equals(filename)){
+                                    Log.d("PADs Download", "Download already in progress");
+                                    return;
+                                }
+                            }
+                        }
+                    }
+
                     MainActivity.setSemaphore(false);
                     downloadId = DoDownload(url, filename);
                     storeDownloadId(sharedPreferences, downloadId);
