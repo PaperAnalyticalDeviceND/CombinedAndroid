@@ -32,10 +32,10 @@
             app:useSimpleSummaryProvider="true"
             />
 
-        <SwitchPreferenceCompat
-            app:key="pls"
-            app:title="@string/use_pls"
-            />
+<!--        <SwitchPreferenceCompat-->
+<!--            app:defaultValue="false"-->
+<!--            app:key="pls"-->
+<!--            app:title="@string/use_pls" />-->
 
         <ListPreference
             app:defaultValue=""
@@ -61,9 +61,10 @@
             app:title="Days to keep images"
             app:useSimpleSummaryProvider="true" />
 
-        <SwitchPreferenceCompat
-            app:key="sync"
-            app:title="@string/sync_title" />
+<!--        <SwitchPreferenceCompat-->
+<!--            app:defaultValue="true"-->
+<!--            app:key="sync"-->
+<!--            app:title="@string/sync_title" />-->
 
         <!--SwitchPreferenceCompat
             app:dependency="sync"

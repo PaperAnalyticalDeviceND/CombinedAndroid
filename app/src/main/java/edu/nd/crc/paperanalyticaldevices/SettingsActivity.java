@@ -149,6 +149,10 @@ public class SettingsActivity extends AppCompatActivity {
 
             // loop through the networksArray and put anything containing "conc" in the concArray,
             // and anything without to the classifiersArray
+            classifierList.add("None");
+            classifierValList.add("none");
+            concList.add("None");
+            concValList.add("none");
 
             for(String net : networksArray){
                 if(net.contains("conc")){
@@ -183,6 +187,9 @@ public class SettingsActivity extends AppCompatActivity {
             String plsOrder = NetworksContract.NetworksEntry.COLUMN_NAME_NETWORKNAME + " ASC";
             String plsmodel;
             String plsVersion;
+
+            plsEntries.add("None");
+            plsValues.add("none");
 
             try( Cursor netCursor = db.query(NetworksContract.NetworksEntry.TABLE_NAME,
                     null, plsSelection, null, null, null, plsOrder)){

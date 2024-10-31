@@ -9,6 +9,7 @@ import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.ServiceInfo;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
 import android.util.Log;
@@ -33,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Objects;
 
 import edu.nd.crc.paperanalyticaldevices.api.NetworkEntry;
 import edu.nd.crc.paperanalyticaldevices.api.NetworkV2;
@@ -55,7 +57,6 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
         notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private void createChannel() {
         NotificationChannel channel = new NotificationChannel(MainActivity.PROJECT, "Update", NotificationManager.IMPORTANCE_LOW);
         notificationManager.createNotificationChannel(channel);
@@ -64,9 +65,9 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
     @NonNull
     private ForegroundInfo createForegroundInfo(int current, int max) {
         PendingIntent intent = WorkManager.getInstance(getApplicationContext()).createCancelPendingIntent(getId());
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createChannel();
-        }
+        //}
 
         Notification notification = new NotificationCompat.Builder(getApplicationContext(), MainActivity.PROJECT)
                 .setOngoing(true)
@@ -75,8 +76,11 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .addAction(android.R.drawable.ic_delete, "Cancel", intent)
                 .build();
-
-        return new ForegroundInfo(serialVersionUID, notification);
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            return new ForegroundInfo(serialVersionUID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
+        }else{
+            return new ForegroundInfo(serialVersionUID, notification);
+        }
     }
 
     @NonNull
@@ -171,7 +175,7 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
             for (String projectSet : getInputData().getStringArray("projectkeys")) {
-              if(projectSet != ""){
+              if(!Objects.equals(projectSet, "") && null != projectSet){
 
                 Semver currentVersion = new Semver(prefs.getString(projectSet + "version", "0.0"), Semver.SemverType.LOOSE);
 

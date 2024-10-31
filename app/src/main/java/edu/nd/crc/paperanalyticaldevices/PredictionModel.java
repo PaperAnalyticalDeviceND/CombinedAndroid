@@ -1,19 +1,17 @@
 package edu.nd.crc.paperanalyticaldevices;
 
-import android.app.Activity;
 import android.app.Application;
+import android.app.DownloadManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.util.Log;
-import android.view.View;
-import android.webkit.URLUtil;
-import android.widget.Button;
-import android.widget.ProgressBar;
+import com.google.gson.Gson;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -29,27 +27,17 @@ import androidx.work.WorkRequest;
 
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
+
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -85,6 +73,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
 
     public Boolean usePls;
 
+    public static long downloadId;
     //private Map<String, String> keyValueMap;
 
     public PredictionModel(@NonNull Application application) {
@@ -94,7 +83,14 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
         LoadModel(preferences, preferences.getString("neuralnet", ""));
         preferences.registerOnSharedPreferenceChangeListener(this);
 
-        usePls = preferences.getBoolean("pls", false);
+        //usePls = preferences.getBoolean("pls", false);
+        String storedPLSModel = preferences.getString("plsmodel", "none");
+        if(!storedPLSModel.toLowerCase().equals("none")){
+            usePls = true;
+        }else{
+            usePls = false;
+            pls = null;
+        }
 
         //keyValueMap = new HashMap<String, String>();
     }
@@ -305,9 +301,12 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                 networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(),
                         sharedPreferences.getString(network + "filename", "")));
 
-                Boolean usePls = sharedPreferences.getBoolean("pls", false);
-                if(usePls && pls == null){
+                //Boolean usePls = sharedPreferences.getBoolean("pls", false);
+                String storedPLSModel = sharedPreferences.getString("plsmodel", "none");
+                if(!storedPLSModel.toLowerCase().equals("none") /*&& pls == null*/){
                     pls = PartialLeastSquares.from(getApplication().getApplicationContext());
+                }else{
+                    pls = null;
                 }
             }else{
                 DownloadSpecifiedModel(sharedPreferences, network);
@@ -320,6 +319,9 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
 
     public void LoadPLS(SharedPreferences sharedPreferences, String plsModel){
         Log.d("PLS", "Load model " + plsModel);
+        if(plsModel.toLowerCase().equals("none")){
+            return;
+        }
         try{
             File plsFile = new File(getApplication().getApplicationContext()
                     .getDir("tflitemodels", Context.MODE_PRIVATE).getPath(),
@@ -347,53 +349,6 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
               //switch (sharedPreferences.getString("neuralnet", "")) {
               // leave the old values for backwards compatibility, but use new values in default case
                 switch (selected) {
-                    /*
-                    case "Veripad idPAD":
-                        //projectFolder = subId;
-                        File idpadFile = new File(getApplication().getApplicationContext()
-                                .getDir("tflitemodels", Context.MODE_PRIVATE).getPath(),
-                                sharedPreferences.getString(subId + "filename", idPadName));
-                        if(idpadFile.exists()) {
-                            MainActivity.setSemaphore(true);
-                            networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(),
-                                    sharedPreferences.getString(subId + "filename", idPadName)));
-                        }else{
-                            DownloadModels(sharedPreferences);
-                        }
-                        break;
-                    case "MSH Tanzania":
-                        //projectFolder = subMsh;
-                        File mshFile = new File(getApplication().getApplicationContext()
-                                .getDir("tflitemodels", Context.MODE_PRIVATE).getPath(),
-                                sharedPreferences.getString(subMsh + "filename", mshName));
-                        if(mshFile.exists()) {
-                            MainActivity.setSemaphore(true);
-                            networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(),
-                                    sharedPreferences.getString(subMsh + "filename", mshName)));
-                        }else{
-                            DownloadModels(sharedPreferences);
-                        }
-                        break;
-                    //default:
-                    case "FHI360-App":
-                        File fhiFile = new File(getApplication().getApplicationContext()
-                                .getDir("tflitemodels", Context.MODE_PRIVATE).getPath(),
-                                sharedPreferences.getString(subFhi + "filename", fhiName));
-                        if(fhiFile.exists()) {
-                            MainActivity.setSemaphore(true);
-                            networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(),
-                                    sharedPreferences.getString(subFhi + "filename", fhiName)));
-                            networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(),
-                                    sharedPreferences.getString(subFhiConc + "filename", fhiConcName)));
-                            if (pls == null) {
-                                pls = PartialLeastSquares.from(getApplication().getApplicationContext());
-                            }
-                        }else{
-                            DownloadModels(sharedPreferences);
-                        }
-                        //projectFolder = subFhi;
-                        break;
-                        */
                     case "":
                         break;
 
@@ -401,17 +356,23 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                         File networkFile = new File(getApplication().getApplicationContext()
                                 .getDir("tflitemodels", Context.MODE_PRIVATE).getPath(),
                                 sharedPreferences.getString(selected + "filename", "notafile"));
-                        if(networkFile.exists()){
+                        if(selected.toLowerCase() == "none"){
+                            MainActivity.setSemaphore(true);
+                        }else if(networkFile.exists()){
                             MainActivity.setSemaphore(true);
                             networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(),
                                     sharedPreferences.getString(selected + "filename", "")));
 
-                            Boolean usePls = sharedPreferences.getBoolean("pls", false);
-                            if(usePls && pls == null){
+                            //Boolean usePls = sharedPreferences.getBoolean("pls", false);
+                            String storedPLSModel = sharedPreferences.getString("plsmodel", "none");
+                            if( !storedPLSModel.toLowerCase().equals("none") && storedPLSModel.toLowerCase() != "" /*&& pls == null*/){
                                 pls = PartialLeastSquares.from(getApplication().getApplicationContext());
+                            }else{
+                                pls = null;
                             }
                         }else{
-                            DownloadSpecifiedModel(sharedPreferences, selected);
+                            //DownloadSpecifiedModel(sharedPreferences, selected);
+                            DownloadManagerSpecifiedFile(sharedPreferences, selected);
                         }
 
                         break;
@@ -428,29 +389,121 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
         }
     }
 
+    public void setDownloadId(long downloadId){
+        this.downloadId = downloadId;
+    }
+
+    public static ArrayList<String> getStoredDownloadIds(SharedPreferences sharedPreferences){
+        Gson gson = new Gson();
+        ArrayList<String> downloadIds = new ArrayList<>();
+        String downloadJson = sharedPreferences.getString("download_ids", "");
+        Log.d("PADS Download", "JSON ids " + downloadJson);
+        String[] downloadIdStrings = gson.fromJson(downloadJson, String[].class);
+        if(downloadIdStrings == null){
+            return downloadIds;
+        }
+        for(String id : downloadIdStrings){
+            downloadIds.add(id);
+        }
+
+        return downloadIds;
+    }
+
+    public static boolean storeDownloadId(SharedPreferences sharedPreferences, long downloadId){
+        ArrayList<String> downloadIds = getStoredDownloadIds(sharedPreferences);
+        downloadIds.add(String.valueOf(downloadId));
+        Gson gson = new Gson();
+        String downloadJson = gson.toJson(downloadIds);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("download_ids", downloadJson);
+        return editor.commit();
+    }
+
+    public static boolean removeDownloadId(SharedPreferences sharedPreferences, long downloadId){
+        ArrayList<String> downloadIds = getStoredDownloadIds(sharedPreferences);
+        if( !downloadIds.contains( String.valueOf(downloadId) ) ){
+            return true;
+        }
+        downloadIds.remove(String.valueOf(downloadId));
+        Gson gson = new Gson();
+        String downloadJson = gson.toJson(downloadIds);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("download_ids", downloadJson);
+        return editor.commit();
+    }
+
+    public void DownloadManagerSpecifiedFile(SharedPreferences sharedPreferences, String networkName){
+        Log.d("PADS Download", "DownloadManagerSpecifiedFile " + networkName);
+        ProjectsDbHelper dbHelper = new ProjectsDbHelper(getApplication());
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        ArrayList<String> networkValues = new ArrayList<>();
+
+        String selection = NetworksContract.NetworksEntry.COLUMN_NAME_WEIGHTSURL + " != ''";
+        String selectionOrder = NetworksContract.NetworksEntry.COLUMN_NAME_NETWORKNAME + " ASC";
+
+        try( Cursor netCursor = db.query(NetworksContract.NetworksEntry.TABLE_NAME,
+                null, selection, null, null, null, selectionOrder)){
+            while(netCursor.moveToNext()){
+                String model = netCursor.getString(netCursor.getColumnIndexOrThrow(NetworksContract.NetworksEntry.COLUMN_NAME_NETWORKNAME));
+                String url = netCursor.getString(netCursor.getColumnIndexOrThrow(NetworksContract.NetworksEntry.COLUMN_NAME_WEIGHTSURL));
+                String version = netCursor.getString(netCursor.getColumnIndexOrThrow(NetworksContract.NetworksEntry.COLUMN_NAME_VERSIONSTRING));
+                if(model.equals(networkName)){
+                    // do the download
+                    String filename = netCursor.getString(netCursor.getColumnIndexOrThrow(NetworksContract.NetworksEntry.COLUMN_NAME_FILENAME));
+
+                    // check existing downloads to make sure we don't start a duplicate
+                    DownloadManager downloadManager = (DownloadManager) getApplication().getApplicationContext().getSystemService(Context.DOWNLOAD_SERVICE);
+                    Cursor q = downloadManager.query(new DownloadManager.Query().setFilterByStatus(DownloadManager.STATUS_RUNNING));
+
+                    if(q == null){}else{
+                        while(q.moveToNext()){
+                            int index = q.getColumnIndex(DownloadManager.COLUMN_TITLE);
+                            if(index != -1){
+                                String title = q.getString(index);
+                                if(title.equals(filename)){
+                                    Log.d("PADs Download", "Download already in progress");
+                                    return;
+                                }
+                            }
+                        }
+                    }
+
+                    MainActivity.setSemaphore(false);
+                    downloadId = DoDownload(url, filename);
+                    storeDownloadId(sharedPreferences, downloadId);
+
+                    File nnFolder = getApplication().getApplicationContext().getDir("tflitemodels", Context.MODE_PRIVATE);
+                    File newFile = new File(nnFolder, filename);
+                    Log.d("PADs Download", "Storing filename " + newFile.getName());
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putString(networkName + "filename", newFile.getName());
+                    editor.putString(networkName + "version", version);
+                    editor.apply();
+                }
+            }
+        }
+    }
+
+    public long DoDownload(String url, String filename){
+//        File file = new File(getApplication().getApplicationContext()
+//                .getDir("tflitemodels", Context.MODE_PRIVATE).getPath(), filename);
+        File file = new File(getApplication().getApplicationContext().getExternalFilesDir(null), filename);
+        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url))
+                .setTitle(filename)
+                .setDescription("Downloading")
+                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                .setDestinationUri(Uri.fromFile(file));
+
+        DownloadManager downloadManager = (DownloadManager) getApplication().getApplicationContext().getSystemService(Context.DOWNLOAD_SERVICE);
+        Log.d("PADS Download", "Enqueue download");
+        long dId = downloadManager.enqueue(request);
+        Log.d("PADS Download", "DownloadID " + dId);
+        return dId;
+    }
+
     public void DownloadSpecifiedModel(SharedPreferences sharedPreferences, String networkName){
 
-        //String[] projectFolders;
-        /*
-        switch(networkName){
-            case "FHI360-App":
-
-                projectFolders = new String[]{subFhi, subFhiConc};
-                break;
-            case "Veripad idPAD":
-
-                projectFolders = new String[]{subId};
-                break;
-            case "MSH Tanzania":
-
-                projectFolders = new String[]{subMsh};
-                break;
-            default:
-                //12-06-21 allow running without neural net so all projects can be captured
-                //return;
-                projectFolders = new String[]{networkName};
-        }
-        */
         String[] projectFolders = new String[]{networkName};
 
         Constraints constraints = new Constraints.Builder()
