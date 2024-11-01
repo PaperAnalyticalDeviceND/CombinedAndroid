@@ -122,6 +122,8 @@ public class MainActivity extends AppCompatActivity {
 
     TextView networkLabel;
     TextView projectLabel;
+    TextView secondaryNetNameView;
+    TextView plsNameView;
 
     NumberPicker sDrugs;
     //NumberPicker sConc;
@@ -284,6 +286,8 @@ public class MainActivity extends AppCompatActivity {
         ProjectName = project;
         String neuralNetVersion = prefs.getString(project + "version", "1.0");
 
+        String secondaryNetName = prefs.getString("secondary", "");
+        String plsName = prefs.getString("plsmodel", "");
         //boolean sync = prefs.getBoolean("sync", true);
         //default to true to make sure this runs on first start
         //if (sync) {
@@ -332,6 +336,12 @@ public class MainActivity extends AppCompatActivity {
         projectLabel = findViewById(R.id.project_name_view);
         String projectName = prefs.getString("project", "");
         projectLabel.setText(projectName);
+
+        secondaryNetNameView = findViewById(R.id.secondary_network_name);
+        plsNameView = findViewById(R.id.pls_name);
+
+        secondaryNetNameView.setText(secondaryNetName);
+        plsNameView.setText(plsName);
 
         workerSemaphore = true;
 
@@ -669,6 +679,15 @@ public class MainActivity extends AppCompatActivity {
         projectLabel = findViewById(R.id.project_name_view);
         String project = prefs.getString("project", "");
         projectLabel.setText(project);
+
+        secondaryNetNameView = findViewById(R.id.secondary_network_name);
+        plsNameView = findViewById(R.id.pls_name);
+
+        String secondaryNetName = prefs.getString("secondary", "");
+        String plsName = prefs.getString("plsmodel", "");
+
+        secondaryNetNameView.setText(secondaryNetName);
+        plsNameView.setText(plsName);
 
         setDrugSpinnerItems();
 
