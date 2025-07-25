@@ -14,31 +14,48 @@ import okhttp3.OkHttpClient;
 import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.http.Body;
 import retrofit2.http.FieldMap;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
+import retrofit2.http.Header;
+import retrofit2.http.Headers;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
 import retrofit2.http.Tag;
 
 public interface WebService {
-    @GET("/index.php?option=com_jbackend&view=request&module=querytojson&action=get&resource=list&queryname=network_info")
-    Call<ResponseList<NetworkEntry>> GetNetworkInfo(@Query("api_key") String api_key);
+//    @GET("/index.php?option=com_jbackend&view=request&module=querytojson&action=get&resource=list&queryname=network_info")
+//    Call<ResponseList<NetworkEntry>> GetNetworkInfo(@Query("api_key") String api_key);
+//
+//    @GET("/index.php?option=com_jbackend&view=request&module=querytojson&action=get&resource=list&queryname=projects")
+//    Call<ResponseList<String[]>> GetProjects(@Query("api_key") String api_key);
+//
+//    @GET("/index.php?option=com_jbackend&view=request&module=querytojson&action=get&resource=list&queryname=networks")
+//    Call<ResponseList<String[]>> GetNetworkNames(@Query("api_key") String api_key);
 
-    @GET("/index.php?option=com_jbackend&view=request&module=querytojson&action=get&resource=list&queryname=projects")
-    Call<ResponseList<String[]>> GetProjects(@Query("api_key") String api_key);
 
-    @GET("/index.php?option=com_jbackend&view=request&module=querytojson&action=get&resource=list&queryname=networks")
-    Call<ResponseList<String[]>> GetNetworkNames(@Query("api_key") String api_key);
 
     @FormUrlEncoded
     @POST("/index.php?option=com_jbackend&view=request&module=querytojson&action=post&resource=upload")
     Call<JsonObject> UploadResult(@FieldMap Map<String, String> names, @Tag ProgressCallback progress);
 
+    @Headers({ "Content-Type: application/json;charset=UTF-8"})
+    @POST("/api/v2/cards")
+    Call<JsonObject> UploadResultV2(@Header("Authorization") String authorization, @Body UploadRequest request, @Tag ProgressCallback progress);
+
+    @GET("/api/v2/neural-networks")
+    Call<List<NetworkV2>> GetNeuralNetsV2();
+
+    @GET("/api/v2/projects")
+    Call<List<ProjectV2>> GetProjectsV2();
+
     static WebService instantiate(OkHttpClient client) {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Semver.class, new NetworkEntry.SemverDeserializer())
-                .registerTypeAdapter(TypeToken.getParameterized(List.class, String.class).getType(), new NetworkEntry.StringListDeserializer())
+                //.registerTypeAdapter(TypeToken.getParameterized(List.class, String.class).getType(), new NetworkEntry.StringListDeserializer())
+                .registerTypeAdapter(SampleNames.class, new SampleNames.SampleNamesDeserializer())
+                .registerTypeAdapter(TypeToken.getParameterized(List.class, String.class).getType(), new NetworkV2.StringListDeserializer())
                 .create();
 //http://pad-naxos.crc.nd.edu/
         //https://pad.crc.nd.edu/

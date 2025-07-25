@@ -9,6 +9,7 @@ import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.ServiceInfo;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
 import android.util.Log;
@@ -32,8 +33,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
+import java.util.Objects;
 
 import edu.nd.crc.paperanalyticaldevices.api.NetworkEntry;
+import edu.nd.crc.paperanalyticaldevices.api.NetworkV2;
+import edu.nd.crc.paperanalyticaldevices.api.ProjectV2;
 import edu.nd.crc.paperanalyticaldevices.api.ResponseList;
 import edu.nd.crc.paperanalyticaldevices.api.WebService;
 import edu.nd.crc.paperanalyticaldevices.api.utils.ProgressCallback;
@@ -52,7 +57,6 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
         notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     private void createChannel() {
         NotificationChannel channel = new NotificationChannel(MainActivity.PROJECT, "Update", NotificationManager.IMPORTANCE_LOW);
         notificationManager.createNotificationChannel(channel);
@@ -61,9 +65,9 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
     @NonNull
     private ForegroundInfo createForegroundInfo(int current, int max) {
         PendingIntent intent = WorkManager.getInstance(getApplicationContext()).createCancelPendingIntent(getId());
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createChannel();
-        }
+        //}
 
         Notification notification = new NotificationCompat.Builder(getApplicationContext(), MainActivity.PROJECT)
                 .setOngoing(true)
@@ -72,8 +76,11 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .addAction(android.R.drawable.ic_delete, "Cancel", intent)
                 .build();
-
-        return new ForegroundInfo(serialVersionUID, notification);
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            return new ForegroundInfo(serialVersionUID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
+        }else{
+            return new ForegroundInfo(serialVersionUID, notification);
+        }
     }
 
     @NonNull
@@ -87,10 +94,15 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
         try {
 
             // First get the project names and neural net names
-            Response<ResponseList<String[]>> projectsResp = service.GetProjects("5NWT4K7IS60WMLR3J2LV").execute();
+            //Response<ResponseList<String[]>> projectsResp = service.GetProjects("5NWT4K7IS60WMLR3J2LV").execute();
             //load projects into database
+            Response<List<ProjectV2>> projectsRespV2 = service.GetProjectsV2().execute();
+            List<ProjectV2> projectsResultV2 = projectsRespV2.body();
+//            for(ProjectV2 proj : projectsResultV2){
+//                Log.d("Project API V2 Result", proj.ProjectName);
+//            }
 
-            ResponseList<String[]> projectsResult = projectsResp.body();
+            //ResponseList<String[]> projectsResult = projectsResp.body();
 
             ProjectsDbHelper dbHelper = new ProjectsDbHelper(getApplicationContext());
 
@@ -100,13 +112,16 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
             dbHelper.clearNetworks(db);
             dbHelper.clearDrugs(db);
 
-            for(String[] p : projectsResult.Entries){
-                //Log.d("API Result", p[0]);
+            //for(String[] p : projectsResult.Entries){
+            for(ProjectV2 p : projectsResultV2){
+                //Log.d("API Result", p.ProjectName);
 
                 ContentValues dbValues = new ContentValues();
 
-                dbValues.put(ProjectContract.ProjectEntry.COLUMN_NAME_PROJECTID, p[0]);
-                dbValues.put(ProjectContract.ProjectEntry.COLUMN_NAME_PROJECTNAME, p[0]);
+//                dbValues.put(ProjectContract.ProjectEntry.COLUMN_NAME_PROJECTID, p[0]);
+//                dbValues.put(ProjectContract.ProjectEntry.COLUMN_NAME_PROJECTNAME, p[0]);
+                dbValues.put(ProjectContract.ProjectEntry.COLUMN_NAME_PROJECTID, p.Id);
+                dbValues.put(ProjectContract.ProjectEntry.COLUMN_NAME_PROJECTNAME, p.ProjectName);
                 db.insert(ProjectContract.ProjectEntry.TABLE_NAME, null, dbValues);
 
             }
@@ -116,15 +131,21 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
             //Response<ResponseList<String[]>> networksResp = service.GetNetworkNames("5NWT4K7IS60WMLR3J2LV").execute();
             //ResponseList<String[]> networksResult = networksResp.body();
 
-            Response<ResponseList<NetworkEntry>> resp = service.GetNetworkInfo("5NWT4K7IS60WMLR3J2LV").execute();
-            if (!resp.isSuccessful() || !resp.body().Status.equals("ok")) {
-                return Result.failure();
-            }
+            Response<List<NetworkV2>> netV2Resp = service.GetNeuralNetsV2().execute();
+            List<NetworkV2> netsV2 = netV2Resp.body();
+//            for( NetworkV2 n : netsV2){
+//                Log.d("Network API V2 Result", n.Name);
+//            }
 
-            ResponseList<NetworkEntry> result = resp.body();
+//            Response<ResponseList<NetworkEntry>> resp = service.GetNetworkInfo("5NWT4K7IS60WMLR3J2LV").execute();
+//            if (!resp.isSuccessful() || !resp.body().Status.equals("ok")) {
+//                return Result.failure();
+//            }
+//
+//            ResponseList<NetworkEntry> result = resp.body();
 
-            for (NetworkEntry network : result.Entries) {
-
+            //for (NetworkEntry network : result.Entries) {
+            for(NetworkV2 network : netsV2){
                 //write to the DB first
                 ContentValues dbValues = new ContentValues();
                 dbValues.put(NetworksContract.NetworksEntry.COLUMN_NAME_NETWORKID, network.Name);
@@ -134,7 +155,7 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
                 dbValues.put(NetworksContract.NetworksEntry.COLUMN_NAME_DESCRIPTION, network.Description);
                 dbValues.put(NetworksContract.NetworksEntry.COLUMN_NAME_DRUGS, network.Drugs.toString());
                 dbValues.put(NetworksContract.NetworksEntry.COLUMN_NAME_TYPE, network.Type);
-                Log.d("UPDATESWORKER", network.Drugs.toString());
+                //Log.d("UPDATESWORKER", network.Drugs.toString());
                 if(network.Weights != "" ){
                     String fileName = URLUtil.guessFileName(String.valueOf(network.Weights), null, null);
                     dbValues.put(NetworksContract.NetworksEntry.COLUMN_NAME_FILENAME, fileName);
@@ -154,12 +175,12 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
             for (String projectSet : getInputData().getStringArray("projectkeys")) {
-              if(projectSet != ""){
+              if(!Objects.equals(projectSet, "") && null != projectSet){
 
                 Semver currentVersion = new Semver(prefs.getString(projectSet + "version", "0.0"), Semver.SemverType.LOOSE);
 
-                for (NetworkEntry network : result.Entries) {
-
+                //for (NetworkEntry network : result.Entries) {
+                for(NetworkV2 network : netsV2){
                     if (!projectSet.equals(network.Name)) {
                         continue;
                     }

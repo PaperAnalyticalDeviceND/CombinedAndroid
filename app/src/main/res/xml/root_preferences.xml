@@ -31,9 +31,19 @@
             app:title="@string/secondary_network"
             app:useSimpleSummaryProvider="true"
             />
-        <SwitchPreferenceCompat
-            app:key="pls"
-            app:title="@string/use_pls"
+
+<!--        <SwitchPreferenceCompat-->
+<!--            app:defaultValue="false"-->
+<!--            app:key="pls"-->
+<!--            app:title="@string/use_pls" />-->
+
+        <ListPreference
+            app:defaultValue=""
+            app:entries="@array/pls_entries"
+            app:entryValues="@array/pls_values"
+            app:key="plsmodel"
+            app:title="@string/pls_model"
+            app:useSimpleSummaryProvider="true"
             />
 
     </PreferenceCategory>
@@ -51,9 +61,10 @@
             app:title="Days to keep images"
             app:useSimpleSummaryProvider="true" />
 
-        <SwitchPreferenceCompat
-            app:key="sync"
-            app:title="@string/sync_title" />
+<!--        <SwitchPreferenceCompat-->
+<!--            app:defaultValue="true"-->
+<!--            app:key="sync"-->
+<!--            app:title="@string/sync_title" />-->
 
         <!--SwitchPreferenceCompat
             app:dependency="sync"

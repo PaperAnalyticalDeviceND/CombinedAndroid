@@ -3,8 +3,11 @@ package edu.nd.crc.paperanalyticaldevices;
 import static org.opencv.imgproc.Imgproc.cvtColor;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.util.Log;
+
+import androidx.preference.PreferenceManager;
 
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.opencsv.CSVReader;
@@ -15,6 +18,8 @@ import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -200,11 +205,29 @@ public class PartialLeastSquares {
         List<String> labels = new ArrayList<>();
         List<List<Float>> coefficients = new ArrayList<>();
 
-        try (InputStreamReader reader = new InputStreamReader(context.getAssets().open("pls_coefficients.csv"), StandardCharsets.UTF_8)) {
-            CSVReader csv = new CSVReader(reader);
-            for( String[] record: csv){
-                labels.add(record[0]);
-                coefficients.add(Arrays.stream(record).skip(1).map(s -> Float.parseFloat(s)).collect(Collectors.toList()));
+        String plsFilename = "pls_coefficients.csv";  // default to the included file
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String storedPLSModel = preferences.getString("plsmodel", "none");
+        Log.d("PADS Download", "Stored PLS Model: " + storedPLSModel);
+        if( !storedPLSModel.toLowerCase().equals("none") && storedPLSModel.toLowerCase() != ""){
+            plsFilename = preferences.getString(storedPLSModel + "filename", "none");
+            Log.d("PLS", "Using stored PLS model: " + storedPLSModel + " with filename: " + plsFilename);
+            File plsFile = new File(context.getDir("tflitemodels", Context.MODE_PRIVATE).getPath(), plsFilename);
+            //try(FileInputStream input = new FileInputStream(plsFile)
+            try( InputStreamReader reader = new InputStreamReader(new FileInputStream(plsFile), StandardCharsets.UTF_8)) {
+                CSVReader csv = new CSVReader(reader);
+                for( String[] record: csv){
+                    labels.add(record[0]);
+                    coefficients.add(Arrays.stream(record).skip(1).map(s -> Float.parseFloat(s)).collect(Collectors.toList()));
+                }
+            }
+        }else{
+            try (InputStreamReader reader = new InputStreamReader(context.getAssets().open(plsFilename), StandardCharsets.UTF_8)) {
+                CSVReader csv = new CSVReader(reader);
+                for( String[] record: csv){
+                    labels.add(record[0]);
+                    coefficients.add(Arrays.stream(record).skip(1).map(s -> Float.parseFloat(s)).collect(Collectors.toList()));
+                }
             }
         }
 

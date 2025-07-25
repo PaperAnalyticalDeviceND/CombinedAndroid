@@ -73,6 +73,7 @@ public class SettingsActivity extends AppCompatActivity {
         ListPreference projectsList;
         ListPreference networkList;
         ListPreference secondaryNetworksList;
+        ListPreference plsList;
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -83,6 +84,7 @@ public class SettingsActivity extends AppCompatActivity {
             projectsList = (ListPreference) findPreference("project");
             networkList = (ListPreference) findPreference("neuralnet");
             secondaryNetworksList = (ListPreference) findPreference("secondary");
+            plsList = (ListPreference) findPreference("plsmodel");
             // make an array of all projects and pass to the setEntries method
 
             dbHelper = new ProjectsDbHelper(getContext());
@@ -90,6 +92,9 @@ public class SettingsActivity extends AppCompatActivity {
 
             ArrayList<String> projectEntries = new ArrayList<>();
             ArrayList<String> networkEntries = new ArrayList<>();
+            ArrayList<String> networkValues = new ArrayList<>();
+            ArrayList<String> plsEntries = new ArrayList<>();
+            ArrayList<String> plsValues = new ArrayList<>();
 
             String[] projection = {
                     BaseColumns._ID,
@@ -122,23 +127,87 @@ public class SettingsActivity extends AppCompatActivity {
             String netSortOrder = NetworksContract.NetworksEntry.COLUMN_NAME_NETWORKNAME + " ASC";
 
             String network;
+            String netVersion;
 
             try( Cursor netCursor = db.query(NetworksContract.NetworksEntry.TABLE_NAME,
                     null, netSelection, null, null, null, netSortOrder)){
                 while(netCursor.moveToNext()){
                     network = netCursor.getString(netCursor.getColumnIndexOrThrow(NetworksContract.NetworksEntry.COLUMN_NAME_NETWORKNAME));
-                    networkEntries.add(network);
+                    netVersion = netCursor.getString(netCursor.getColumnIndexOrThrow(NetworksContract.NetworksEntry.COLUMN_NAME_VERSIONSTRING));
+                    networkValues.add(network);
+                    networkEntries.add(network + " (" + netVersion + ")");
                     Log.d("DB_HELPER", network);
                 }
             }
 
             String[] networksArray = networkEntries.toArray(new String[networkEntries.size()]);
+            String[] networksValuesArray = networkValues.toArray(new String[networkValues.size()]);
+            ArrayList<String> concList = new ArrayList<>();
+            ArrayList<String> concValList = new ArrayList<>();
+            ArrayList<String> classifierList = new ArrayList<>();
+            ArrayList<String> classifierValList = new ArrayList<>();
+
+            // loop through the networksArray and put anything containing "conc" in the concArray,
+            // and anything without to the classifiersArray
+            classifierList.add("None");
+            classifierValList.add("none");
+            concList.add("None");
+            concValList.add("none");
+
+            for(String net : networksArray){
+                if(net.contains("conc")){
+                    concList.add(net);
+                } else {
+                    classifierList.add(net);
+                }
+            }
+
+            for(String val : networksValuesArray){
+                if(val.contains("conc")){
+                    concValList.add(val);
+                } else {
+                    classifierValList.add(val);
+                }
+            }
+
+            String[] concArray = concList.toArray(new String[concList.size()]);
+            String[] classifiersArray = classifierList.toArray(new String[classifierList.size()]);
+            String[] concValArray = concValList.toArray(new String[concValList.size()]);
+            String[] classifierValArray = classifierValList.toArray(new String[classifierValList.size()]);
 
             if(!networkEntries.isEmpty()){
-                networkList.setEntries(networksArray);
-                networkList.setEntryValues(networksArray);
-                secondaryNetworksList.setEntries(networksArray);
-                secondaryNetworksList.setEntryValues(networksArray);
+                networkList.setEntries(classifiersArray);
+                networkList.setEntryValues(classifierValArray);
+                secondaryNetworksList.setEntries(concArray);
+                secondaryNetworksList.setEntryValues(concValArray);
+            }
+
+            String plsSelection = NetworksContract.NetworksEntry.COLUMN_NAME_TYPE + " = 'pls' AND " +
+                    NetworksContract.NetworksEntry.COLUMN_NAME_WEIGHTSURL + " != ''";
+            String plsOrder = NetworksContract.NetworksEntry.COLUMN_NAME_NETWORKNAME + " ASC";
+            String plsmodel;
+            String plsVersion;
+
+            plsEntries.add("None");
+            plsValues.add("none");
+
+            try( Cursor netCursor = db.query(NetworksContract.NetworksEntry.TABLE_NAME,
+                    null, plsSelection, null, null, null, plsOrder)){
+                while(netCursor.moveToNext()){
+                    plsmodel = netCursor.getString(netCursor.getColumnIndexOrThrow(NetworksContract.NetworksEntry.COLUMN_NAME_NETWORKNAME));
+                    plsVersion = netCursor.getString(netCursor.getColumnIndexOrThrow(NetworksContract.NetworksEntry.COLUMN_NAME_VERSIONSTRING));
+                    plsEntries.add(plsmodel + " (" + plsVersion + ")");
+                    plsValues.add(plsmodel);
+                    Log.d("DB_HELPER", plsmodel);
+                }
+            }
+
+            String[] plsArray = plsEntries.toArray(new String[plsEntries.size()]);
+            String[] plsValArray = plsValues.toArray(new String[plsValues.size()]);
+
+            if(!plsEntries.isEmpty()){
+                plsList.setEntries(plsArray);
+                plsList.setEntryValues(plsValArray);
             }
 
         }

@@ -7,8 +7,10 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -26,6 +28,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
+import edu.nd.crc.paperanalyticaldevices.api.AuthService;
+import edu.nd.crc.paperanalyticaldevices.api.PadAuthRequest;
+import edu.nd.crc.paperanalyticaldevices.api.PadAuthResponse;
+import edu.nd.crc.paperanalyticaldevices.api.UploadRequest;
 import edu.nd.crc.paperanalyticaldevices.api.WebService;
 import edu.nd.crc.paperanalyticaldevices.api.utils.ProgressCallback;
 import edu.nd.crc.paperanalyticaldevices.api.utils.ProgressInterceptor;
@@ -53,9 +59,9 @@ public class UploadWorker extends Worker implements ProgressCallback {
     @NonNull
     private ForegroundInfo createForegroundInfo(int current, int max) {
         PendingIntent intent = WorkManager.getInstance(getApplicationContext()).createCancelPendingIntent(getId());
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createChannel();
-        }
+        //}
 
         Notification notification = new NotificationCompat.Builder(getApplicationContext(), MainActivity.PROJECT)
                 .setOngoing(true)
@@ -65,7 +71,11 @@ public class UploadWorker extends Worker implements ProgressCallback {
                 .addAction(android.R.drawable.ic_delete, "Cancel", intent)
                 .build();
 
-        return new ForegroundInfo(serialVersionUID, notification);
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            return new ForegroundInfo(serialVersionUID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
+        }else {
+            return new ForegroundInfo(serialVersionUID, notification);
+        }
     }
 
     private void LogEvent(final Map<String, String> data) {
@@ -87,6 +97,15 @@ public class UploadWorker extends Worker implements ProgressCallback {
                 .build();
 
         final WebService service = WebService.instantiate(client);
+
+        // FUTURE
+//        final AuthService authService = AuthService.instantiate(client);
+//
+//        final PadAuthRequest authRequest = new PadAuthRequest("UeJGHJGjevseLwEyo39LRsyi9064OIVu",
+//                "voEywl0Z86Niwt-nK8JGPheEx2S2ZVkKVonvugKaJHbkfPNoE0WtfJlOT_m538yw",
+//                "https://pad.crc.nd.edu/api/v2", "client_credentials");
+
+
         try {
             final Map<String, String> parameters = UploadData.asMap(getInputData(), getApplicationContext());
             if (parameters.containsValue(null)) {
@@ -94,13 +113,25 @@ public class UploadWorker extends Worker implements ProgressCallback {
             }
             LogEvent(parameters);
 
+            // FUTURE
+//            Response<PadAuthResponse> response = authService.getToken(authRequest).execute();
+//            String token = response.body().AccessToken;
+//            Log.d("PADS Token", token);
+//
+//            final UploadRequest request = UploadData.asRequest(getInputData(), getApplicationContext());
+//            Log.d("PAD UploadRequest", request.toString());
+//            Response<JsonObject> resp = service.UploadResultV2("Bearer " + token, request, this).execute();
+            //Log.d("PAD UploadResponse", resp.body().toString());
             Response<JsonObject> resp = service.UploadResult(parameters, this).execute();
-            if (!resp.isSuccessful() || resp.body().has("status") && resp.body().get("status").getAsString().equals("ko")) {
+            if (!resp.isSuccessful() || resp.body().has("status") && resp.body().get("status").getAsString().equals("ko") ) {
+                Log.d("PAD UploadResult", "Failed");
+                //Log.d("PAD UploadResponse", resp.code() + resp.message() + resp.errorBody().string());
                 return Result.failure();
             }
 
             //data.CleanupImages();
         } catch (Exception e) {
+            Log.d("PAD UploadResult", "Exception" + e.toString());
             FirebaseCrashlytics.getInstance().recordException(e);
             return Result.failure();
         }
