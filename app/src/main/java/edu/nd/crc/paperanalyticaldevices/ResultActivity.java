@@ -593,9 +593,14 @@ public class ResultActivity extends AppCompatActivity {
     }
 
     public String parseQR(String qr) {
-        if (qr.startsWith("padproject.nd.edu/?s=") || qr.startsWith("padproject.nd.edu/?t=")) {
-            return qr.substring(21);
+        if(null != qr){
+            if (qr.startsWith("padproject.nd.edu/?s=") || qr.startsWith("padproject.nd.edu/?t=")) {
+                return qr.substring(21);
+            }
+            return qr;
+        }else{
+            return "";
         }
-        return qr;
+
     }
 }
