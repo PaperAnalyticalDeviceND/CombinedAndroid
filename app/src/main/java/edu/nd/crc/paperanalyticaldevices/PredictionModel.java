@@ -136,6 +136,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                 }
 
                 if (networks.size() > 0 ) retVal.Labels = networks.get(0).Labels.toArray(new String[0]);
+                Log.d("PAD Prediction", "Labels: " + Arrays.toString(retVal.Labels));
 
                 StringBuilder output_string = new StringBuilder();
                 for( int i = 0; i < results.size(); i++ ){

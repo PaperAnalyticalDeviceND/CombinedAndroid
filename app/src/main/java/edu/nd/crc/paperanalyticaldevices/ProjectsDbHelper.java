@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class ProjectsDbHelper extends SQLiteOpenHelper {
 
-    public static final int DATABASE_VERSION = 1;
+    public static final int DATABASE_VERSION = 2;
     public static final String DATABASE_NAME = "Projects.db";
 
     private static final String SQL_CREATE_PROJECTS = "CREATE TABLE " + ProjectContract.ProjectEntry.TABLE_NAME +
@@ -26,8 +26,15 @@ public class ProjectsDbHelper extends SQLiteOpenHelper {
             " (" + DrugsContract.DrugsEntry._ID + " INTEGER PRIMARY KEY, " + DrugsContract.DrugsEntry.COLUMN_NAME_NETWORK + " TEXT, " +
             DrugsContract.DrugsEntry.COLUMN_NAME_DRUGID + " Text, " + DrugsContract.DrugsEntry.COLUMN_NAME_DRUGNAME + " TEXT)";
 
+    private static final String SQL_CREATE_DRUGS_PROJECT = "CREATE TABLE " + ProjectDrugsContract.ProjectDrugsEntry.TABLE_NAME +
+            " (" + ProjectDrugsContract.ProjectDrugsEntry._ID + " INTEGER PRIMARY KEY, " + ProjectDrugsContract.ProjectDrugsEntry.COLUMN_NAME_PROJECT + " TEXT, " +
+            ProjectDrugsContract.ProjectDrugsEntry.COLUMN_NAME_PROJECTID + " Text, " + ProjectDrugsContract.ProjectDrugsEntry.COLUMN_NAME_DRUGNAME + " TEXT)";
+
     private static final String SQL_DELETE_PROJECTS =
             "DROP TABLE IF EXISTS " + ProjectContract.ProjectEntry.TABLE_NAME;
+
+    private static final String SQL_DELETE_PROJECT_DRUGS =
+            "DROP TABLE IF EXISTS " + ProjectDrugsContract.ProjectDrugsEntry.TABLE_NAME;
 
     private static final String SQL_DELETE_PROJECT_ROWS = "DELETE FROM " + ProjectContract.ProjectEntry.TABLE_NAME;
 
@@ -38,6 +45,8 @@ public class ProjectsDbHelper extends SQLiteOpenHelper {
     private static final String SQL_DELETE_DRUGS = "DROP TABLE IF EXISTS " + DrugsContract.DrugsEntry.TABLE_NAME;
 
     private static final String SQL_DELETE_DRUGS_ROWS = "DELETE FROM " + DrugsContract.DrugsEntry.TABLE_NAME;
+
+    private static final String SQL_DELETE_PROJECT_DRUGS_ROWS = "DELETE FROM " + ProjectDrugsContract.ProjectDrugsEntry.TABLE_NAME;
 
     public ProjectsDbHelper(@NotNull Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -59,12 +68,18 @@ public class ProjectsDbHelper extends SQLiteOpenHelper {
         db.execSQL(SQL_DELETE_DRUGS_ROWS);
     }
 
+    public void clearProjectDrugs(@NotNull SQLiteDatabase db){
+
+        db.execSQL(SQL_DELETE_PROJECT_DRUGS_ROWS);
+    }
+
     @Override
     public void onCreate(@NotNull SQLiteDatabase db) {
 
         db.execSQL(SQL_CREATE_PROJECTS);
         db.execSQL(SQL_CREATE_NETWORKS);
         db.execSQL(SQL_CREATE_DRUGS);
+        db.execSQL(SQL_CREATE_DRUGS_PROJECT);
     }
 
     @Override
@@ -72,6 +87,9 @@ public class ProjectsDbHelper extends SQLiteOpenHelper {
         db.execSQL(SQL_DELETE_PROJECTS);
         db.execSQL(SQL_DELETE_NETWORKS);
         db.execSQL(SQL_DELETE_DRUGS);
+        if(newVersion > 2){
+            db.execSQL(SQL_DELETE_PROJECT_DRUGS);
+        }
         onCreate(db);
 
     }

@@ -10,7 +10,7 @@ public class DrugsContract {
 
 
     private static final String SQL_DELETE_ENTRIES =
-            "DROP TABLE IF EXISTS " + NetworksContract.NetworksEntry.TABLE_NAME;
+            "DROP TABLE IF EXISTS " + DrugsContract.DrugsEntry.TABLE_NAME;
 
     private DrugsContract(){
 

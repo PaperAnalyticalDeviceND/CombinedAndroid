@@ -3,12 +3,14 @@ package edu.nd.crc.paperanalyticaldevices;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.BaseColumns;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.Menu;
@@ -43,6 +45,7 @@ import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.TimeZone;
 import java.util.UUID;
@@ -85,6 +88,9 @@ public class ResultActivity extends AppCompatActivity {
 
     String tenantType = "legal_drugs";
 
+    ProjectsDbHelper dbHelper;
+    SQLiteDatabase db;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -93,6 +99,8 @@ public class ResultActivity extends AppCompatActivity {
         // Setup Preferences
         mPreferences = getSharedPreferences(MainActivity.PROJECT, MODE_PRIVATE);
         defaultPrefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        dbHelper = new ProjectsDbHelper(this);
+        db = dbHelper.getReadableDatabase();
 
         // Setup compatability toolbar
         // make sure the manifest specifies a NoAppBar theme or this will create an exception
@@ -163,12 +171,39 @@ public class ResultActivity extends AppCompatActivity {
         String tDrugs;
         ArrayAdapter<String> aDrugs;
         if (intent.hasExtra(MainActivity.EXTRA_LABEL_DRUGS) && intent.getStringArrayExtra(MainActivity.EXTRA_LABEL_DRUGS) != null) {
+            Log.d("PAD Result", "Received drug list from intent");
             String[] drugs = intent.getStringArrayExtra(MainActivity.EXTRA_LABEL_DRUGS);
+            Log.d("Drugs", String.join(", ", drugs));
             aDrugs = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, drugs);
             tDrugs = drugs[0];
         } else {
-            aDrugs = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, Defaults.Drugs);
-            tDrugs = Defaults.Drugs.get(0);
+
+            String project = defaultPrefs.getString("project", "");
+            ArrayList<String> drugEntries = new ArrayList<>();
+            String[] projection = {
+                    BaseColumns._ID,
+                    ProjectDrugsContract.ProjectDrugsEntry.COLUMN_NAME_DRUGNAME,
+            };
+            String selection = ProjectDrugsContract.ProjectDrugsEntry.COLUMN_NAME_PROJECT + " = ?";
+            String[] selectionArgs = {project};
+            String sortOrder = ProjectDrugsContract.ProjectDrugsEntry.COLUMN_NAME_DRUGNAME + " ASC";
+
+            String drugName;
+            try(Cursor cursor = db.query(ProjectDrugsContract.ProjectDrugsEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder)){
+                while(cursor.moveToNext()){
+                    drugName = cursor.getString(cursor.getColumnIndexOrThrow(ProjectDrugsContract.ProjectDrugsEntry.COLUMN_NAME_DRUGNAME));
+                    drugEntries.add(drugName);
+                }
+            }
+            if(drugEntries.isEmpty()) {
+                //Log.d("PAD Result", "Using default drug list");
+                aDrugs = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, Defaults.Drugs);
+                tDrugs = Defaults.Drugs.get(0);
+            }else{
+                //Log.d("PAD Result", "Using project-specific drug list " + drugEntries);
+                aDrugs = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, drugEntries);
+                tDrugs = drugEntries.get(0);
+            }
         }
 
         // expected drug
@@ -456,10 +491,7 @@ public class ResultActivity extends AppCompatActivity {
             vm.sendResult(this, tenantType, authToken, baseUrl, timestamp, newDate, taskId, taskNotes,
                     result, predictedDrug, String.valueOf(nnConcentration), rectifiedFileUri, originalFileUri, rectifiedFile, originalFile);
 
-            // correct parameters
-            /*sendArtifactResult(authToken, baseUrl, newDate, taskId, taskNotes, result,
-                    rectifiedFileUri,
-                    originalFileUri);*/
+
         }
 
         Toast.makeText(this, "Results added to upload queue", Toast.LENGTH_SHORT).show();
@@ -482,30 +514,13 @@ public class ResultActivity extends AppCompatActivity {
         return MultipartBody.Part.createFormData(name, file.getName(), requestFile);
     }
 
-    /*public RequestBody makeFileRequest(Uri fileUri, File file){
-
-        return RequestBody.create(MediaType.parse(getContentResolver().getType(fileUri)), file);
-    }
-
-    public RequestBody makeTextRequest(String text){
-        return RequestBody.create(MediaType.parse("text/plain"), text);
-    }*/
 
     public void sendArtifactResult(String authToken, String baseUrl, String testDate, Integer taskId, String taskNotes, String result,
                                     Uri rectFileUri, Uri rawFileUri){
 
 
         ArtifactsAPIService apiService = ArtifactsAPIService.Companion.getInstance("https://" + baseUrl);
-        /*
-        val dateField = prepareStringPart("test_date", testDate)
-                val taskNotesField = prepareStringPart("task_notes", taskNotes)
-                val resultField = prepareStringPart("result", result)
-                val rectFileField = prepareFilePart(context, "files", rectFile)
-                val rawFileField = prepareFilePart(context, "files", rawFile)
-                apiService.sendArtifactsResult(token = "Bearer $authToken", taskId = taskId,
-                    rectFile = rectFileField, rawFile = rawFileField, testDate = dateField,
-                    taskNotes = taskNotesField, result = resultField)
-         */
+
         //Map<String, RequestBody> map = new HashMap<>();
         File targetDir = new File(getApplication().getFilesDir(), timestamp);
         File rectifiedFile = new File(targetDir, "rectified.png");
@@ -516,36 +531,6 @@ public class ResultActivity extends AppCompatActivity {
         MultipartBody.Part rectFilePart = prepareFilePart("files", rectFileUri, rectifiedFile);
         MultipartBody.Part rawFilePart = prepareFilePart("files", rawFileUri, originalFile);
         // correct parameters
-        /*Call<ResponseBody> res = apiService.sendArtifactsResult("Bearer " + authToken,
-                taskId,
-                rectFilePart,
-                rawFilePart,
-                testDatePart,
-                taskNotesPart,
-                resultPart);
-        try {
-            ResponseBody body = res.execute().body();
-            Log.d("ARTIFACTS", body.toString());
-        }catch(IOException e){
-            e.printStackTrace();
-        }*/
-
-        /*RequestBody testDateRequest = makeTextRequest(testDate);
-        map.put("test_date", testDateRequest);
-        RequestBody taskNotesRequest = makeTextRequest(taskNotes);
-        map.put("task_notes", taskNotesRequest);
-        RequestBody resultRequest = makeTextRequest(result);
-        map.put("result", resultRequest);
-        File rect = new File(rectFile.getPath());
-        RequestBody rectFileRequest = makeFileRequest(rectFile, rect);
-        map.put("name=\"files\"; filename=\"" + rect.getName() + "\"", rectFileRequest);
-        File raw = new File(rawFile.getPath());
-        RequestBody rawRequest = makeFileRequest(rawFile, raw);
-        map.put("name=\"files\"; filename=\"" + raw.getName() + "\"", rawRequest);
-
-        ResponseBody res = apiService.sendArtifactsResult("Bearer " + authToken, taskId, map);
-        */
-        //Log.d("ARTIFACTS", res.toString());
 
     }
 

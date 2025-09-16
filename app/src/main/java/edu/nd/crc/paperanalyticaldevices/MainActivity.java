@@ -33,6 +33,7 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
@@ -66,6 +67,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import android.app.DownloadManager;
@@ -101,8 +103,8 @@ public class MainActivity extends AppCompatActivity {
     private String fhiConcName = "fhi360_conc_large_1_21.tflite";
     private String mshName = "model_small_1_10.tflite";
 
-    String ProjectName;
-
+    //String ProjectName;
+    String PrimaryClassifier;
     String neuralNetName;
     String secondaryNeuralNetName;
 
@@ -283,7 +285,7 @@ public class MainActivity extends AppCompatActivity {
         markerIndex = prefs.getInt("marker_type", 0);
 
         String project = prefs.getString("neuralnet", "");
-        ProjectName = project;
+        PrimaryClassifier = project;
         String neuralNetVersion = prefs.getString(project + "version", "1.0");
 
         String secondaryNetName = prefs.getString("secondary", "");
@@ -298,9 +300,13 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //put in a top toolbar with a menu dropdown
-        Toolbar myToolbar = findViewById(R.id.toolbar);
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(myToolbar);
-
+        ActionBar actionBar = getSupportActionBar();
+        if(actionBar != null) {
+            actionBar.setDisplayShowTitleEnabled(true);
+        }
+        myToolbar.showOverflowMenu();
         //get drug labels stored for primary neural net
 
         dbHelper = new ProjectsDbHelper(this);
@@ -403,27 +409,50 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setDrugSpinnerItems(){
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
         ArrayList<String> drugEntries = new ArrayList<>();
-        String[] projection = {
-                BaseColumns._ID,
-                DrugsContract.DrugsEntry.COLUMN_NAME_DRUGNAME,
-        };
 
-        String selection = DrugsContract.DrugsEntry.COLUMN_NAME_NETWORK + " = ?";
-        String[] selectionArgs = {ProjectName};
-        String sortOrder = DrugsContract.DrugsEntry.COLUMN_NAME_DRUGNAME + " ASC";
+        if(!Objects.equals(PrimaryClassifier.toLowerCase(), "none") && !PrimaryClassifier.isEmpty()) {
+            //get the drugs for the selected network
+            Log.d("PAD", "Getting drugs for " + PrimaryClassifier);
+            String[] projection = {
+                    BaseColumns._ID,
+                    DrugsContract.DrugsEntry.COLUMN_NAME_DRUGNAME,
+            };
 
-        String drugName;
-        try( Cursor cursor = db.query(DrugsContract.DrugsEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder)) {
-            while(cursor.moveToNext()){
+            String selection = DrugsContract.DrugsEntry.COLUMN_NAME_NETWORK + " = ?";
+            String[] selectionArgs = {PrimaryClassifier};
+            String sortOrder = DrugsContract.DrugsEntry.COLUMN_NAME_DRUGNAME + " ASC";
 
-                drugName = cursor.getString(cursor.getColumnIndexOrThrow(DrugsContract.DrugsEntry.COLUMN_NAME_DRUGNAME));
-                drugEntries.add(drugName);
+            String drugName;
+            try (Cursor cursor = db.query(DrugsContract.DrugsEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder)) {
+                while (cursor.moveToNext()) {
+
+                    drugName = cursor.getString(cursor.getColumnIndexOrThrow(DrugsContract.DrugsEntry.COLUMN_NAME_DRUGNAME));
+                    drugEntries.add(drugName);
+                }
+            }
+        }else{
+            String project = prefs.getString("project", "");
+            Log.d("PAD setSpinner Project", project);
+            String[] projection = {
+                    BaseColumns._ID,
+                    ProjectDrugsContract.ProjectDrugsEntry.COLUMN_NAME_DRUGNAME,
+            };
+            String selection = ProjectDrugsContract.ProjectDrugsEntry.COLUMN_NAME_PROJECT + " = ?";
+            String[] selectionArgs = {project};
+            String sortOrder = ProjectDrugsContract.ProjectDrugsEntry.COLUMN_NAME_DRUGNAME + " ASC";
+
+            String drugName;
+            try(Cursor cursor = db.query(ProjectDrugsContract.ProjectDrugsEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder)){
+                while(cursor.moveToNext()){
+                    drugName = cursor.getString(cursor.getColumnIndexOrThrow(ProjectDrugsContract.ProjectDrugsEntry.COLUMN_NAME_DRUGNAME));
+                    drugEntries.add(drugName);
+                }
             }
         }
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String statedDrug = prefs.getString("Drug", "unknown");
 
 
@@ -494,7 +523,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void checkForUpdates(String project) {
         String[] projectFolders;
-
+        Log.d("PAD Check Updates",  project);
         // check the currently selected project for updated NN files on app start
         //if (project.length() > 0) {
             //Keep this for backwards compatibility, but change to presenting the network names in the settings to
@@ -541,7 +570,8 @@ public class MainActivity extends AppCompatActivity {
         MenuInflater inflater = getMenuInflater();
         //inflater.inflate(R.menu.maintoolbarmenu, menu);
         inflater.inflate(R.menu.iconmenutoolbar, menu);
-        return true;
+        //return true;
+        return super.onCreateOptionsMenu(menu);
     }
 
     @Override
@@ -569,6 +599,9 @@ public class MainActivity extends AppCompatActivity {
                 Intent a = new Intent(this, AboutActivity.class);
                 startActivity(a);
                 return true;
+//            case R.id.menu_update:
+//                checkForUpdates("");
+//                return true;
             default:
                 // If we got here, the user's action was not recognized.
                 // Invoke the superclass to handle it.
@@ -666,14 +699,14 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        ProjectName = prefs.getString("neuralnet", "");
-        String netVersion = prefs.getString(ProjectName + "version", "1.0");
+        PrimaryClassifier = prefs.getString("neuralnet", "");
+        String netVersion = prefs.getString(PrimaryClassifier + "version", "1.0");
 
         networkLabel = findViewById(R.id.neuralnet_name_view);
-        if(ProjectName.equalsIgnoreCase("none")){
+        if(PrimaryClassifier.equalsIgnoreCase("none")){
             networkLabel.setText("None");
         }else {
-            networkLabel.setText(ProjectName + " (" + netVersion + ")");
+            networkLabel.setText(PrimaryClassifier + " (" + netVersion + ")");
         }
 
         projectLabel = findViewById(R.id.project_name_view);

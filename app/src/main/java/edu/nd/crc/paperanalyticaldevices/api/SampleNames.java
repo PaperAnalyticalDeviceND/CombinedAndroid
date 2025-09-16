@@ -29,12 +29,15 @@ public class SampleNames {
 
             Log.d("SampleNames", obj.toString());
             for(String key : obj.keySet()) {
-                Log.d("SampleNames keys", key);
+                //Log.d("SampleNames keys", key);
                 Log.d("SampleNames values", obj.get(key).toString());
-                sampleNames.SampleNames.add(obj.get(key).toString());
+                //sampleNames.SampleNames.add(obj.get(key).toString());
             }
             JsonArray returnArray = obj.get("sample_names").getAsJsonArray();
-
+            for(JsonElement element : returnArray) {
+                Log.d("SampleNames array element", element.getAsString());
+                sampleNames.SampleNames.add(element.getAsString());
+            }
             return sampleNames;
         }
     }

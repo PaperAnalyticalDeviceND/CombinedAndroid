@@ -111,6 +111,7 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
             dbHelper.clearProjects(db);
             dbHelper.clearNetworks(db);
             dbHelper.clearDrugs(db);
+            dbHelper.clearProjectDrugs(db);
 
             //for(String[] p : projectsResult.Entries){
             for(ProjectV2 p : projectsResultV2){
@@ -123,6 +124,18 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
                 dbValues.put(ProjectContract.ProjectEntry.COLUMN_NAME_PROJECTID, p.Id);
                 dbValues.put(ProjectContract.ProjectEntry.COLUMN_NAME_PROJECTNAME, p.ProjectName);
                 db.insert(ProjectContract.ProjectEntry.TABLE_NAME, null, dbValues);
+
+                if(p.SampleNames != null){
+                    for(String drugName : p.SampleNames.SampleNames){
+                        Log.d("UpdatesWorker store SampleName", drugName);
+                        ContentValues drugValues = new ContentValues();
+                        drugValues.put(ProjectDrugsContract.ProjectDrugsEntry.COLUMN_NAME_PROJECT, p.ProjectName);
+                        drugValues.put(ProjectDrugsContract.ProjectDrugsEntry.COLUMN_NAME_PROJECTID, p.Id);
+                        drugValues.put(ProjectDrugsContract.ProjectDrugsEntry.COLUMN_NAME_DRUGNAME, drugName);
+
+                        db.insert(ProjectDrugsContract.ProjectDrugsEntry.TABLE_NAME, null, drugValues);
+                    }
+                }
 
             }
 
