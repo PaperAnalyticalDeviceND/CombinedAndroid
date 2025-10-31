@@ -42,9 +42,9 @@ import com.google.zxing.Reader;
 import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
 
-import org.opencv.android.BaseLoaderCallback;
+//import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
-import org.opencv.android.LoaderCallbackInterface;
+//import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
@@ -83,17 +83,17 @@ public class ArucoCameraActivity extends Activity implements CameraBridgeViewBas
     public Mat mRgba, mRgbaTemp;
     List<Point> last_points = null;
     private JavaCam2ResView mOpenCvCameraView;
-    private final BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
-        @Override
-        public void onManagerConnected(int status) {
-            if (status == LoaderCallbackInterface.SUCCESS) {
-                Log.i("PADS", "OpenCV loaded successfully");
-                mOpenCvCameraView.enableView();
-            } else {
-                super.onManagerConnected(status);
-            }
-        }
-    };
+//    private final BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
+//        @Override
+//        public void onManagerConnected(int status) {
+//            if (status == LoaderCallbackInterface.SUCCESS) {
+//                Log.i("PADS", "OpenCV loaded successfully");
+//                mOpenCvCameraView.enableView();
+//            } else {
+//                super.onManagerConnected(status);
+//            }
+//        }
+//    };
     private Mat mTemplate;
     private String qrText = "";
     //saved contour results
@@ -360,13 +360,13 @@ public class ArucoCameraActivity extends Activity implements CameraBridgeViewBas
     @Override
     public void onResume() {
         super.onResume();
-        if (!OpenCVLoader.initDebug()) {
-            Log.d("PADs", "Internal OpenCV library not found. Using OpenCV Manager for initialization");
-            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION, this, mLoaderCallback);
-        } else {
-            Log.d("PADs", "OpenCV library found inside package. Using it!");
-            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
-        }
+//        if (!OpenCVLoader.initDebug()) {
+//            Log.d("PADs", "Internal OpenCV library not found. Using OpenCV Manager for initialization");
+//            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION, this, mLoaderCallback);
+//        } else {
+//            Log.d("PADs", "OpenCV library found inside package. Using it!");
+//            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+//        }
         mRgba = new Mat();
         mRgbaTemp = new Mat();
         Mat testMat = new Mat();

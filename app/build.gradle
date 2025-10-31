@@ -8,14 +8,14 @@ plugins {
 }
 
 android {
-    compileSdk 35
+    compileSdk 36
 
     defaultConfig {
         applicationId "edu.nd.crc.paperanalyticaldevices"
         minSdk 29
         targetSdk 35
-        versionCode 32
-        versionName "2.16"
+        versionCode 35
+        versionName "2.17"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -82,12 +82,16 @@ dependencies {
     implementation project(':opencv')
 
     // Import tflite dependencies
-    implementation 'org.tensorflow:tensorflow-lite:0.0.0-nightly-SNAPSHOT'
+    //implementation 'org.tensorflow:tensorflow-lite:2.17.0'
+    implementation 'com.google.ai.edge.litert:litert-api:1.4.0'
 
     // The GPU delegate library is optional. Depend on it as needed.
-    implementation 'org.tensorflow:tensorflow-lite-gpu:0.0.0-nightly-SNAPSHOT'
-    implementation 'org.tensorflow:tensorflow-lite-support:0.0.0-nightly-SNAPSHOT'
-    implementation 'org.tensorflow:tensorflow-lite-metadata:0.0.0-nightly-SNAPSHOT'
+    //implementation 'org.tensorflow:tensorflow-lite-gpu:2.17.0'
+    implementation 'com.google.ai.edge.litert:litert-gpu:1.4.0'
+    //implementation 'org.tensorflow:tensorflow-lite-support:0.5.0'
+    implementation 'com.google.ai.edge.litert:litert-support:1.4.0'
+    //implementation 'org.tensorflow:tensorflow-lite-metadata:0.2.0'
+    implementation 'com.google.ai.edge.litert:litert-metadata:1.4.0'
 
     def work_version = "2.8.1"
     implementation "androidx.work:work-runtime-ktx:$work_version"
