@@ -2,7 +2,15 @@ package edu.nd.crc.paperanalyticaldevices;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.preference.PreferenceManager;
+import androidx.work.Constraints;
+import androidx.work.Data;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
+import androidx.work.WorkRequest;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -11,6 +19,7 @@ import android.text.style.URLSpan;
 import android.view.View;
 import android.widget.NumberPicker;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class AboutActivity extends AppCompatActivity {
 
@@ -46,6 +55,32 @@ public class AboutActivity extends AppCompatActivity {
 
         String versionString = "PADReader Version: " + BuildConfig.VERSION_NAME;
         versionView.setText(versionString);
+    }
+
+    public void checkForUpdates(View view){
+        Toast.makeText(AboutActivity.this, "Downloading Projects", Toast.LENGTH_SHORT).show();
+        String[] nets;
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+        // these will be the exact names coming from the "networks" API
+        String neuralNetName = prefs.getString("neuralNet", "");
+        String secondaryNeuralNetName = prefs.getString("secondarynet", "");
+
+        nets = new String[]{neuralNetName, secondaryNeuralNetName};
+
+        Constraints constraints = new Constraints.Builder()
+//                .setRequiredNetworkType(NetworkType.UNMETERED)
+                .build();
+
+        WorkRequest myUpdateWork = new OneTimeWorkRequest.Builder(UpdatesWorker.class).setConstraints(constraints)
+                .addTag("neuralnet_updates").setInputData(new Data.Builder()
+                        .putStringArray("projectkeys", nets)
+                        .build()
+                )
+                .build();
+
+        WorkManager.getInstance(this).enqueue(myUpdateWork);
     }
 
     public void finish(View view) {
