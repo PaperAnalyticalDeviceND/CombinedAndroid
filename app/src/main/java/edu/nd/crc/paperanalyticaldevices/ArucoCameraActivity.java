@@ -247,13 +247,14 @@ public class ArucoCameraActivity extends Activity implements CameraBridgeViewBas
                 boolean rectified = ArucoDetection.RectifyImage(mRgba, cropped, src_points, dst_points);
 
                 if(rectified){
-                    Rect roi = new Rect(853, 457, 69, 69);
+//                    Rect roi = new Rect(853, 457, 69, 69);
+                    Rect roi = new Rect(36, 80, 185, 185);
                     //Imgproc.rectangle(mRgbaModified, new Point(942, 518), new Point(942 + 68, 518 + 68), new Scalar(255, 0, 0), 3);
                     Mat smallImg = new Mat(cropped, roi);
                     qrText = readQRCode(smallImg);
-                    if(qrText != ""){
+                    //if(qrText != ""){
                         showSaveDialog();
-                    }
+                    //}
                 }
             }
         } catch (Exception e) {

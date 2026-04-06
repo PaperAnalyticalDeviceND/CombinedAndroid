@@ -58,16 +58,33 @@ public class ArucoDetection {
         // which is actually the upper left corner in its correct orientation
         List<Point> destPoints = new ArrayList<Point>();
         List<Point> targetPoints = new ArrayList<Point>();
+        List<Integer> pointsMap = new ArrayList<Integer>();
         // the image
         /*targetPoints.add(new Point(1038, 670)); // marker 0
         targetPoints.add(new Point(186, 670)); // marker 1
         targetPoints.add(new Point(186, 145)); // marker 2
         targetPoints.add(new Point(1038, 145)); // marker 3*/
 
-        targetPoints.add(new Point(160, 58)); // marker 0
-        targetPoints.add(new Point(1010, 58)); // marker 1
-        targetPoints.add(new Point(1010, 586)); // marker 2
-        targetPoints.add(new Point(160, 586)); // marker 3
+        // coords for airgap pad 1
+//        targetPoints.add(new Point(160, 58)); // marker 0 - 4
+//        targetPoints.add(new Point(1010, 58)); // marker 1 - 3
+//        targetPoints.add(new Point(1010, 586)); // marker 2 - 8
+//        targetPoints.add(new Point(160, 586)); // marker 3 - 0
+
+        //coords for airgap pad 2
+        // (115, 173), (728, 173), (728, 659), (115, 659)
+        //srcData:
+        //         [504.0, 960.0, 514.0, 285.0, 1354.0, 945.0, 1347.0, 293.0]
+        //dstData: [584.0, 930.0, 584.0, 285.0, 1400.0, 930.0, 1400.0, 285.0]
+        targetPoints.add(new Point(508, 285)); // marker 0 - 4
+        targetPoints.add(new Point(1350, 285)); // marker 1 - 3
+        targetPoints.add(new Point(1350, 950)); // marker 2 - 8
+        targetPoints.add(new Point(508, 950)); // marker 3 - 0
+        // new markers go 4, 3, 8, 0
+        pointsMap.add(4);
+        pointsMap.add(3);
+        pointsMap.add(8);
+        pointsMap.add(0);
 
         // draw some squares as a rough guide
         for(int i=0;  i < 4; i++){
@@ -109,7 +126,7 @@ public class ArucoDetection {
 
             for(int i = 0; i < corners.size(); i++) {
                 int id = Double.valueOf(ids.get(i, 0)[0]).intValue();
-                //Log.d("ARUCO", "ID: " + id);
+                Log.d("ARUCO", "ID: " + id);
                 //Log.d("ARUCO", "ID: " + Double.intValue(ids.get(i, 0)[0]));
                 //Log.d("PADS", "ArucoDetection: GetArucoLocations: corners.get(" + i + ") = " + corners.get(i));
                 Mat corner = corners.get(i);
@@ -121,14 +138,14 @@ public class ArucoDetection {
                 /*Log.d("ARUCO", "Point2: " + p2);
                 Log.d("ARUCO", "Point3: " + p3);
                 Log.d("ARUCO", "Point4: " + p4);*/
-
+                int index = pointsMap.indexOf(id);
                 // here we map the correct markers to the correct destination points
                 src_points[i * 2] = (float) p1.x;
                 src_points[i * 2 + 1] = (float) p1.y;
-                dst_points[i * 2] = (float) targetPoints.get(id).x;
-                dst_points[i * 2 + 1] = (float) targetPoints.get(id).y;
-                target_points[i * 2] = (float) targetPoints.get(id).x;
-                target_points[i * 2 + 1] = (float) targetPoints.get(id).y;
+                dst_points[i * 2] = (float) targetPoints.get(index).x;
+                dst_points[i * 2 + 1] = (float) targetPoints.get(index).y;
+                target_points[i * 2] = (float) targetPoints.get(index).x;
+                target_points[i * 2 + 1] = (float) targetPoints.get(index).y;
             }
             Log.d("ARUCO", "Detect srcData: " + Arrays.toString(src_points));
             Log.d("ARUCO", "Detect dstData: " + Arrays.toString(dst_points));
@@ -169,8 +186,10 @@ public class ArucoDetection {
         // crop out the top and bottom so we just have the area inside the aruco markers
         /*Point upperLeft = new Point(54, 117);
         Point lowerRight = new Point(660, 1046);*/
-        Point upperLeft = new Point(155, 54);
-        Point lowerRight = new Point(1078, 656);
+//        Point upperLeft = new Point(155, 54);
+//        Point lowerRight = new Point(1078, 656);
+        Point upperLeft = new Point(347, 0);
+        Point lowerRight = new Point(1420, 1040);
         Rect cropRect = new Rect(upperLeft, lowerRight);
         Mat imageROI = new Mat(output, cropRect);
         imageROI.copyTo(output);
