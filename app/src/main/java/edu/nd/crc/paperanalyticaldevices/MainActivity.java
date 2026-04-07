@@ -358,10 +358,17 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(getApplicationContext(), ResultActivity.class);
                 intent.setData(result.RectifiedImage);
                 intent.putExtra(EXTRA_PREDICTED, result.Predicted);
-                if (result.QRCode.isPresent()) intent.putExtra(EXTRA_SAMPLEID, result.QRCode.get());
+                if (result.QRCode.isPresent()) {
+                    Log.d("MainActivity onChanged QR", result.QRCode.get());
+                    intent.putExtra(EXTRA_SAMPLEID, result.QRCode.get());
+                }else{
+                    Log.d("MainActivity onChanged QR", "NONE!!!!!!!!!!!!!!!!!!!!!!");
+                }
+
                 if (result.Timestamp.isPresent())
                     intent.putExtra(EXTRA_TIMESTAMP, result.Timestamp.get());
-                if (result.Labels.length > 0) intent.putExtra(EXTRA_LABEL_DRUGS, result.Labels);
+                if (result.Labels.length > 0)
+                    intent.putExtra(EXTRA_LABEL_DRUGS, result.Labels);
 
                 intent.putExtra(EXTRA_NN_CONC, result.Concentration);
                 Log.d("Concentration", String.valueOf(result.Concentration) );
@@ -413,6 +420,8 @@ public class MainActivity extends AppCompatActivity {
 
         ArrayList<String> drugEntries = new ArrayList<>();
 
+        // we'll check if there's a primary NN first to get the drug list from
+        // and if not then we'll use the project drugs list
         if(!Objects.equals(PrimaryClassifier.toLowerCase(), "none") && !PrimaryClassifier.isEmpty()) {
             //get the drugs for the selected network
             Log.d("PAD", "Getting drugs for " + PrimaryClassifier);
@@ -430,6 +439,7 @@ public class MainActivity extends AppCompatActivity {
                 while (cursor.moveToNext()) {
 
                     drugName = cursor.getString(cursor.getColumnIndexOrThrow(DrugsContract.DrugsEntry.COLUMN_NAME_DRUGNAME));
+                    Log.d("PAD NN Drug", drugName);
                     drugEntries.add(drugName);
                 }
             }
@@ -448,6 +458,7 @@ public class MainActivity extends AppCompatActivity {
             try(Cursor cursor = db.query(ProjectDrugsContract.ProjectDrugsEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder)){
                 while(cursor.moveToNext()){
                     drugName = cursor.getString(cursor.getColumnIndexOrThrow(ProjectDrugsContract.ProjectDrugsEntry.COLUMN_NAME_DRUGNAME));
+                    Log.d("PAD Project Drug", drugName);
                     drugEntries.add(drugName);
                 }
             }
@@ -767,7 +778,7 @@ public class MainActivity extends AppCompatActivity {
 
                         String proj = prefs.getString("neuralnet", "");
                         tensorflowView.LoadModel(prefs, proj);
-                        tensorflowView.predict(result.getData());
+                        tensorflowView.predict(result.getData(), "wax");
                     }
                 }
             });
@@ -778,11 +789,16 @@ public class MainActivity extends AppCompatActivity {
                 public void onActivityResult(ActivityResult result) {
                     Log.d("ARUCO", "onActivityResult: " + result.getResultCode());
                     if(result.getResultCode() == RESULT_OK){
-                        Intent intent = new Intent(getApplicationContext(), ResultActivity.class);
-                        intent.setData(result.getData().getData());
-                        intent.putExtra(EXTRA_SAMPLEID, result.getData().getStringExtra(EXTRA_SAMPLEID));
-                        intent.putExtra(EXTRA_TIMESTAMP, result.getData().getStringExtra(EXTRA_TIMESTAMP));
-                        startActivity(intent);
+//                        Intent intent = new Intent(getApplicationContext(), ResultActivity.class);
+//                        intent.setData(result.getData().getData());
+//                        intent.putExtra(EXTRA_SAMPLEID, result.getData().getStringExtra(EXTRA_SAMPLEID));
+//                        intent.putExtra(EXTRA_TIMESTAMP, result.getData().getStringExtra(EXTRA_TIMESTAMP));
+//                        startActivity(intent);
+                        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+
+                        String proj = prefs.getString("neuralnet", "");
+                        tensorflowView.LoadModel(prefs, proj);
+                        tensorflowView.predict(result.getData(), "airgap");
                     }
                 }
             });

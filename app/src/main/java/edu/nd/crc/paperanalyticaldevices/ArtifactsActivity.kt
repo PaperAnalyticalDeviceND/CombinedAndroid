@@ -142,7 +142,7 @@ class ArtifactsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
             if(concNetwork != null && concNetwork!!.network != "None"){
                 tensorflowView!!.LoadModelForArtifacts(defaultPrefs, concNetwork!!.network)
             }
-            tensorflowView!!.predict(intent)
+            tensorflowView!!.predict(intent, "wax")
             // The PredictionModel.Result observer will start the ResultActivity
             // POST endpoint + "/tasks/" + String(taskId) + "/test_automatic/"
             //The Artifacts API wants:

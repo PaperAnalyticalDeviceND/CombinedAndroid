@@ -71,6 +71,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Vector;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -247,11 +248,21 @@ public class ArucoCameraActivity extends Activity implements CameraBridgeViewBas
                 boolean rectified = ArucoDetection.RectifyImage(mRgba, cropped, src_points, dst_points);
 
                 if(rectified){
-                    Rect roi = new Rect(853, 457, 69, 69);
+//                    Rect roi = new Rect(853, 457, 69, 69);
+                    // these coords are found mostly through trial and error
+                    // here we crop down to just the QR code regions so there is less chance of confusing it
+                    Rect roi = new Rect(21, 6, 200, 200);
                     //Imgproc.rectangle(mRgbaModified, new Point(942, 518), new Point(942 + 68, 518 + 68), new Scalar(255, 0, 0), 3);
                     Mat smallImg = new Mat(cropped, roi);
                     qrText = readQRCode(smallImg);
-                    if(qrText != ""){
+                    if(!Objects.equals(qrText, "")){
+                        Log.d("ArucoCameraActivcity QR Code", qrText);
+                        // crop the cropped image again to take the upper square out of the detection area
+                        // (214, 0) (982, 768)  make it square
+//                        Rect finalRect = new Rect(214, 0, 768, 768);
+//                        cropped = new Mat(cropped, finalRect);
+//                          actually we want to do this only right before classification
+                        // equivalent to 636x490px -> 768x592
                         showSaveDialog();
                     }
                 }
@@ -435,8 +446,8 @@ public class ArucoCameraActivity extends Activity implements CameraBridgeViewBas
                         Date today = Calendar.getInstance().getTime();
 
                         String timestamp = String.format("%d", Calendar.getInstance().getTimeInMillis());
-                        File targetDir = new File(getApplication().getFilesDir(), timestamp);
-                        targetDir.mkdirs();
+                        //File targetDir = new File(getApplication().getFilesDir(), timestamp);
+                        //targetDir.mkdirs();
 
                         File imagePath = new File(getFilesDir(), "images");
                         File padImageDirectory = new File(imagePath + "/PAD/" + df.format(today));
@@ -446,22 +457,22 @@ public class ArucoCameraActivity extends Activity implements CameraBridgeViewBas
                         File cFile = new File(padImageDirectory, "rectified.png");
                         Imgproc.cvtColor(cropped, cropped, Imgproc.COLOR_BGRA2RGB);
                         Imgcodecs.imwrite(cFile.getPath(), cropped);
-                        File rFile = new File(targetDir,"rectified.png");
-                        Imgcodecs.imwrite(rFile.getPath(), cropped);
+//                        File rFile = new File(targetDir,"rectified.png");
+//                        Imgcodecs.imwrite(rFile.getPath(), cropped);
 
                         //save original image
                         File oFile = new File(padImageDirectory, "original.png");
                         Imgproc.cvtColor(mRgba, mRgba, Imgproc.COLOR_BGRA2RGB);
                         Imgcodecs.imwrite(oFile.getPath(), mRgba);
-                        File orFile = new File(targetDir,"original.png");
-                        Imgcodecs.imwrite(orFile.getPath(), mRgba);
+//                        File orFile = new File(targetDir,"original.png");
+//                        Imgcodecs.imwrite(orFile.getPath(), mRgba);
 
                         //gallery?
                         try {
                             MediaStore.Images.Media.insertImage(getContentResolver(), cFile.getPath(),
                                     df.format(today), "Rectified Image");
                             MediaStore.Images.Media.insertImage(getContentResolver(), oFile.getPath(),
-                                    df.format(today), "Origional Image");
+                                    df.format(today), "Original Image");
                         } catch (Exception e) {
                             FirebaseCrashlytics.getInstance().recordException(e);
                             Log.i("ContoursOut", "Cannot save to gallery" + e.toString());
@@ -472,11 +483,13 @@ public class ArucoCameraActivity extends Activity implements CameraBridgeViewBas
                             try {
                                 File target = new File(padImageDirectory, "compressed.zip");
                                 CompressOutputs(new File[]{cFile, oFile}, target);
-                                mResultIntent.setData(FileProvider.getUriForFile(this, "edu.nd.crc.paperanalyticaldevices.fileprovider", cFile));
+                                mResultIntent.setData(FileProvider.getUriForFile(this, "edu.nd.crc.paperanalyticaldevices.fileprovider", target));
                                 mResultIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                                mResultIntent.putExtra(MainActivity.EXTRA_SAMPLEID, qrText);
-
-                                mResultIntent.putExtra(MainActivity.EXTRA_TIMESTAMP, timestamp);
+                                Log.d("showSaveDialog", qrText);
+                                //mResultIntent.putExtra(MainActivity.EXTRA_SAMPLEID, qrText);
+                                mResultIntent.putExtra("qr", qrText);
+                                //mResultIntent.putExtra(MainActivity.EXTRA_TIMESTAMP, timestamp);
+                                mResultIntent.putExtra("timestamp", Calendar.getInstance().getTimeInMillis());
 
                                 finish();
                             } catch (Exception e) {
