@@ -75,7 +75,7 @@ public class ArucoDetection {
         // (115, 173), (728, 173), (728, 659), (115, 659)
         //srcData:
         //         [504.0, 960.0, 514.0, 285.0, 1354.0, 945.0, 1347.0, 293.0]
-        //dstData: [584.0, 930.0, 584.0, 285.0, 1400.0, 930.0, 1400.0, 285.0]
+        //dstData: [584.0, 930.0, 584.0, 285.0, 1400.0, 930.0, 1400.0, 285.0] // found by pasting the airgap2 pad over a preview frame image
         targetPoints.add(new Point(508, 285)); // marker 0 - 4
         targetPoints.add(new Point(1350, 285)); // marker 1 - 3
         targetPoints.add(new Point(1350, 950)); // marker 2 - 8
@@ -88,16 +88,27 @@ public class ArucoDetection {
 
         // draw some squares as a rough guide
         for(int i=0;  i < 4; i++){
-            Imgproc.rectangle(mRgbaModified, targetPoints.get(i), new Point(targetPoints.get(i).x - 80, targetPoints.get(i).y + 80), new Scalar(0, 0, 255), 5);
+            Imgproc.rectangle(mRgbaModified, targetPoints.get(i), new Point(targetPoints.get(i).x - 60, targetPoints.get(i).y + 60), new Scalar(0, 0, 255), 5);
         }
-        // draw some arrows to match up with the PAD
-        Imgproc.line(mRgbaModified, new Point(954, 202), new Point(1022, 202), new Scalar(0, 255, 255), 5); // body
-        Imgproc.line(mRgbaModified, new Point(990, 192), new Point(954, 202), new Scalar(0, 255, 255), 5); // head
-        Imgproc.line(mRgbaModified, new Point(990, 210), new Point(954, 202), new Scalar(0, 255, 255), 5);
+        // draw some arrows to match up with the PAD  - previous airgap pad, removed 4-6-26 MJC
+        //Imgproc.line(mRgbaModified, new Point(954, 202), new Point(1022, 202), new Scalar(0, 255, 255), 5); // body
+        //Imgproc.line(mRgbaModified, new Point(990, 192), new Point(954, 202), new Scalar(0, 255, 255), 5); // head
+        //Imgproc.line(mRgbaModified, new Point(990, 210), new Point(954, 202), new Scalar(0, 255, 255), 5);
 
-        Imgproc.line(mRgbaModified, new Point(90, 202), new Point(158, 202), new Scalar(0, 255, 255), 5); // body
-        Imgproc.line(mRgbaModified, new Point(128, 192), new Point(158, 202), new Scalar(0, 255, 255), 5); // head
-        Imgproc.line(mRgbaModified, new Point(128, 210), new Point(158, 202), new Scalar(0, 255, 255), 5);
+        //Imgproc.line(mRgbaModified, new Point(90, 202), new Point(158, 202), new Scalar(0, 255, 255), 5); // body
+        //Imgproc.line(mRgbaModified, new Point(128, 192), new Point(158, 202), new Scalar(0, 255, 255), 5); // head
+        //Imgproc.line(mRgbaModified, new Point(128, 210), new Point(158, 202), new Scalar(0, 255, 255), 5);
+
+        // new arrow points at (553, 332) and (1332, 326) added 4-6-26 MJC
+        // left arrow, pointing right
+        Imgproc.line(mRgbaModified, new Point(476, 392), new Point(553, 392), new Scalar(0, 255, 255), 5);
+        Imgproc.line(mRgbaModified, new Point(523, 382), new Point(553, 392), new Scalar(0, 255, 255), 5); // head
+        Imgproc.line(mRgbaModified, new Point(523, 402), new Point(553, 392), new Scalar(0, 255, 255), 5);
+
+        // right arrow, pointing left
+        Imgproc.line(mRgbaModified, new Point(1332, 386), new Point(1384, 386), new Scalar(0, 255, 255), 5);
+        Imgproc.line(mRgbaModified, new Point(1332, 386), new Point(1362, 376), new Scalar(0, 255, 255), 5); // head
+        Imgproc.line(mRgbaModified, new Point(1332, 386), new Point(1362, 396), new Scalar(0, 255, 255), 5);
 
         /*destPoints.add(new Point(1036, 604)); // marker 0
         destPoints.add(new Point(186, 604)); // marker 1
@@ -188,7 +199,7 @@ public class ArucoDetection {
         Point lowerRight = new Point(660, 1046);*/
 //        Point upperLeft = new Point(155, 54);
 //        Point lowerRight = new Point(1078, 656);
-        Point upperLeft = new Point(347, 0);
+        Point upperLeft = new Point(347, 66);
         Point lowerRight = new Point(1420, 1040);
         Rect cropRect = new Rect(upperLeft, lowerRight);
         Mat imageROI = new Mat(output, cropRect);

@@ -151,6 +151,8 @@ public class ResultActivity extends AppCompatActivity {
             qr = intent.getStringExtra(MainActivity.EXTRA_SAMPLEID);
             TextView vSample = findViewById(R.id.idText);
             vSample.setText("PAD ID: " + parseQR(qr));
+        }else{
+            Log.d("PADS Result", "No PAD ID!!!!!!!!!!!!!!!!!!!!!!!!!");
         }
 
         if (intent.hasExtra(MainActivity.EXTRA_TIMESTAMP)) {
@@ -213,6 +215,7 @@ public class ResultActivity extends AppCompatActivity {
         String statedDrug;
         if(intent.hasExtra(MainActivity.EXTRA_STATED_DRUG) && intent.getStringExtra(MainActivity.EXTRA_STATED_DRUG) != null){
             statedDrug = intent.getStringExtra(MainActivity.EXTRA_STATED_DRUG);
+            Log.d("Stated Drug", statedDrug);
             defaultPrefs.edit().putString("Drug", statedDrug).commit();
         }else{
             //sDrugs.setSelection(aDrugs.getPosition(mPreferences.getString("Drug", tDrugs)));
@@ -581,6 +584,9 @@ public class ResultActivity extends AppCompatActivity {
         if(null != qr){
             if (qr.startsWith("padproject.nd.edu/?s=") || qr.startsWith("padproject.nd.edu/?t=")) {
                 return qr.substring(21);
+            }
+            if(qr.startsWith("https://www.padproject.nd.edu/?t=")){
+                return qr.substring(33);
             }
             return qr;
         }else{

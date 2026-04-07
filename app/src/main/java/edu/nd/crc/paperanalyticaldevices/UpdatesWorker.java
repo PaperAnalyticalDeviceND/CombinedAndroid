@@ -166,7 +166,7 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
                 dbValues.put(NetworksContract.NetworksEntry.COLUMN_NAME_WEIGHTSURL, network.Weights);
                 dbValues.put(NetworksContract.NetworksEntry.COLUMN_NAME_VERSIONSTRING, String.valueOf(network.Version));
                 dbValues.put(NetworksContract.NetworksEntry.COLUMN_NAME_DESCRIPTION, network.Description);
-                dbValues.put(NetworksContract.NetworksEntry.COLUMN_NAME_DRUGS, network.Drugs.toString());
+                dbValues.put(NetworksContract.NetworksEntry.COLUMN_NAME_DRUGS, network.Labels.toString());
                 dbValues.put(NetworksContract.NetworksEntry.COLUMN_NAME_TYPE, network.Type);
                 //Log.d("UPDATESWORKER", network.Drugs.toString());
                 if(network.Weights != "" ){
@@ -175,7 +175,7 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
                 }
                 db.insert(NetworksContract.NetworksEntry.TABLE_NAME, null, dbValues);
 
-                for(String drugName : network.Drugs){
+                for(String drugName : network.Labels){
                     ContentValues drugValues = new ContentValues();
                     drugValues.put(DrugsContract.DrugsEntry.COLUMN_NAME_NETWORK, network.Name);
                     drugValues.put(DrugsContract.DrugsEntry.COLUMN_NAME_DRUGID, drugName);

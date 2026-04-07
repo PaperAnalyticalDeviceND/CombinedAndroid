@@ -514,7 +514,7 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
                             MediaStore.Images.Media.insertImage(getContentResolver(), cFile.getPath(),
                                     df.format(today), "Rectified Image");
                             MediaStore.Images.Media.insertImage(getContentResolver(), oFile.getPath(),
-                                    df.format(today), "Origional Image");
+                                    df.format(today), "Original Image");
                         } catch (Exception e) {
                             FirebaseCrashlytics.getInstance().recordException(e);
                             Log.i("ContoursOut", "Cannot save to gallery" + e.toString());

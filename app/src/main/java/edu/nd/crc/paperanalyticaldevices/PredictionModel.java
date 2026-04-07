@@ -103,7 +103,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
         networks.clear();
     }
 
-    public void predict(final Intent data) {
+    public void predict(final Intent data, final String padType) {
         Log.d("ARTIFACTS", "Predict");
         Uri resultStream = data.getData();
         if (resultStream != null) {
@@ -118,7 +118,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
 
                 File targetDir = new File(getApplication().getFilesDir(), timestamp);
                 targetDir.mkdirs();
-
+                Log.d("PredictionModel predict dir", targetDir.toString());
                 // Extract Files
                 UncompressOutputs(getApplication().getContentResolver().openInputStream(resultStream), targetDir);
 
@@ -127,7 +127,13 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
 
                 // crop input image
                 Bitmap bmRect = BitmapFactory.decodeFile(rectifiedFile.getPath());
+
                 Bitmap bm = Bitmap.createBitmap(bmRect, 71, 359, 636, 490);
+                if(padType.equals("airgap")){
+                    //Rect finalRect = new Rect(214, 0, 768, 592);
+                    // cropped = new Mat(cropped, finalRect);
+                    bm = Bitmap.createBitmap(bmRect, 214, 0, 768, 592);
+                }
 
                 // Predict
                 List<TensorflowNetwork.Result> results = new ArrayList<>(networks.size());
@@ -155,17 +161,14 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                             output_string.append(", ");
                         }
                     }
-                    if(i == 1){
+                    if(i == 1) {
                         output_string.append("%");
                         List<String> concList = new ArrayList<>(Arrays.asList(MainActivity.concentrations));
-                        if(concList.contains(results.get(i).Label)) {
+                        if (concList.contains(results.get(i).Label)) {
                             retVal.Concentration = Integer.valueOf(results.get(i).Label);
                         }
                     }
-
-
                 }
-
 
                 // calculate concentration from PLSR method
                 // get drug if available
@@ -215,7 +218,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
         final int BUFFER_SIZE = 16384;
         final int DEFAULT_MAX_ENTRIES = 1024;
         final int DEFAULT_MAX_SIZE = 1024 * 1024 * 64;
-
+        Log.d("PredictionModel", "UncompressOutputs");
         if (destDir.exists()) {
             if (destDir.list().length > 0) {
                 throw new IOException("Your destination directory is not empty!");
