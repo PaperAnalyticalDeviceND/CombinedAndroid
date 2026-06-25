@@ -113,10 +113,12 @@ public class MainActivity extends AppCompatActivity {
 
     private PredictionModel tensorflowView;
 
-    public static boolean workerSemaphore;
+    public static boolean workerSemaphore = true;
 
     public static void setSemaphore(boolean val){
+        Log.d("PADS", "Set semaphore" + val);
         workerSemaphore = val;
+        Log.d("PADS", "Semaphore result:" + workerSemaphore);
     }
 
     ProjectsDbHelper dbHelper;
@@ -165,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
     };
 
     // check DownloadManager completed the neural net file download here
-    private BroadcastReceiver onDownloadComplete = new BroadcastReceiver() {
+    private final BroadcastReceiver onDownloadComplete = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             // Fetch the download id received with the broadcast
@@ -174,7 +176,7 @@ public class MainActivity extends AppCompatActivity {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
             ArrayList<String> ids = PredictionModel.getStoredDownloadIds(prefs);
             // Check if the received broadcast is for the our enqueued download
-            if (id == tensorflowView.downloadId || ids.contains(String.valueOf(id))) {
+            if (id == PredictionModel.downloadId || ids.contains(String.valueOf(id))) {
 
                 Toast.makeText(MainActivity.this, "Download Completed", Toast.LENGTH_SHORT).show();
                 // Get the file name from DownloadManager
@@ -246,7 +248,7 @@ public class MainActivity extends AppCompatActivity {
                     if(ids.contains(String.valueOf(id))){
                         PredictionModel.removeDownloadId(prefs, id);
                     }
-                    if(id == tensorflowView.downloadId){
+                    if(id == PredictionModel.downloadId){
                         tensorflowView.setDownloadId(-1);
                     }
                     setSemaphore(true);  // clear the semaphore so that scanning can resume
@@ -653,6 +655,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void startImageCapture(View view){
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        ArrayList<String> ids = PredictionModel.getStoredDownloadIds(prefs);
+        Log.d("MainActivity", "Printing Download Ids");
+        for(String id: ids){
+            Log.d("MainActivity", "Download ID: " + id);
+        }
+        // only allow proceeding if all downloads are finished
+        if (ids.isEmpty()) {
+            setSemaphore(true);
+        }
         if(markerIndex == 0){
             startSquareFiducialCapture(view);
         }else{
@@ -688,7 +700,8 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
 */
-                // only allow proceeding if all downloads are finished
+
+                Log.d("PADS", "semaphore = " + workerSemaphore);
                 if(workerSemaphore) {
                     Log.d("GBR", "Trying to start Camera");
                     Intent intent = new Intent(this, Camera2Activity.class);

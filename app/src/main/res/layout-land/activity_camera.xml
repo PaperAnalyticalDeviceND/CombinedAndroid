@@ -34,12 +34,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:layout_marginRight="8dp"
+                android:layout_marginRight="36dp"
                 android:layout_marginBottom="8dp"
                 android:clickable="true"
                 android:onClick="goToSettings"
-                app:fabSize="mini"
                 android:rotation="270"
+                app:fabSize="mini"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintHorizontal_bias="0.985"
                 app:layout_constraintLeft_toLeftOf="parent"
@@ -53,7 +53,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:layout_marginRight="8dp"
+                android:layout_marginRight="36dp"
                 android:layout_marginBottom="8dp"
                 android:clickable="true"
                 android:onClick="goHome"
@@ -85,70 +85,71 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintVertical_bias="0.498"
                 app:srcCompat="@drawable/baseline_flashlight_on_24" /-->
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:rotation="270"
-            app:layout_constraintTop_toBottomOf="@id/floatingSettings"
-            app:layout_constraintBottom_toTopOf="@id/floatingBack"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.995"
-            app:layout_constraintStart_toStartOf="parent"
-            >
-            <TextView
-                android:id="@+id/threshold_text"
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Sensitivity Adjustment"
-                android:textColor="#FFFFFF"
-
+                android:layout_marginEnd="8dp"
+                android:rotation="270"
+                app:layout_constraintBottom_toTopOf="@id/floatingBack"
                 app:layout_constraintEnd_toEndOf="parent"
-
+                app:layout_constraintHorizontal_bias="0.995"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toTopOf="@id/slider"
-                />
-            <com.google.android.material.slider.Slider
-                android:id="@+id/slider"
-                android:layout_width="200dp"
-                android:layout_height="50dp"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/threshold_text"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                android:valueFrom="66"
-                android:valueTo="92"
+                app:layout_constraintTop_toBottomOf="@id/floatingSettings">
 
-                android:stepSize="2"
-                app:thumbColor="#000FFF"
-                app:tickColor="#00FF00"
-                app:trackColor="@color/teal_700"
-                />
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/minus_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/slider"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintStart_toStartOf="@id/slider"
-                android:clickable="true"
-                android:onClick="decreaseThreshold"
-                app:fabSize="mini"
-                app:srcCompat="@drawable/ic_baseline_remove_circle_outline_green_24"
-                />
+                <TextView
+                    android:id="@+id/threshold_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sensitivity Adjustment"
+                    android:textColor="#FFFFFF"
 
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/plus_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/slider"
-                app:layout_constraintRight_toRightOf="parent"
-                app:srcCompat="@drawable/ic_outline_add_circle_outline_blue_24"
-                android:clickable="true"
-                android:onClick="increaseThreshold"
-                app:fabSize="mini"
-                />
-            <!--SeekBar
+                    app:layout_constraintBottom_toTopOf="@id/slider"
+
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <com.google.android.material.slider.Slider
+                    android:id="@+id/slider"
+                    android:layout_width="200dp"
+                    android:layout_height="50dp"
+                    android:layout_marginBottom="36dp"
+                    android:stepSize="2"
+                    android:valueFrom="66"
+                    android:valueTo="92"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/threshold_text"
+                    app:thumbColor="#000FFF"
+                    app:tickColor="#00FF00"
+                    app:trackColor="@color/teal_700" />
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/minus_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:onClick="decreaseThreshold"
+                    app:fabSize="mini"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintStart_toStartOf="@id/slider"
+                    app:layout_constraintTop_toBottomOf="@id/slider"
+                    app:srcCompat="@drawable/ic_baseline_remove_circle_outline_green_24" />
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/plus_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:onClick="increaseThreshold"
+                    app:fabSize="mini"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/slider"
+                    app:srcCompat="@drawable/ic_outline_add_circle_outline_blue_24" />
+                <!--SeekBar
                 android:id="@+id/threshold_seek_bar"
                 android:progressDrawable="@drawable/seekbar_layer"
                 android:thumb="@drawable/seekbar_thumb"
@@ -160,7 +161,7 @@
                 app:layout_constraintTop_toBottomOf="@id/threshold_text"
                 app:layout_constraintBottom_toBottomOf="parent"
                 /-->
-        </androidx.constraintlayout.widget.ConstraintLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
     </FrameLayout>
 
