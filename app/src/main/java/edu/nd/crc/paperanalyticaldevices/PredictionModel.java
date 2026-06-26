@@ -132,7 +132,11 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                 if(padType.equals("airgap")){
                     //Rect finalRect = new Rect(214, 0, 768, 592);
                     // cropped = new Mat(cropped, finalRect);
-                    bm = Bitmap.createBitmap(bmRect, 214, 0, 768, 592);
+//                    bm = Bitmap.createBitmap(bmRect, 214, 0, 768, 592);
+                    // with the QA code on the bottom left
+                    //bm = Bitmap.createBitmap(bmRect, 0, 88, 592, 768);
+                    // after rotating 90 degrees clockwise
+                    bm = Bitmap.createBitmap(bmRect, 210, 0, 685, 527);
                 }
 
                 // Predict
