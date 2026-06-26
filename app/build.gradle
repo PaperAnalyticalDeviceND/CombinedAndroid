@@ -8,14 +8,14 @@ plugins {
 }
 
 android {
-    compileSdk 36
+    compileSdk 37
 
     defaultConfig {
         applicationId "edu.nd.crc.paperanalyticaldevices"
         minSdk 29
-        targetSdk 35
-        versionCode 38
-        versionName "2.20"
+        targetSdk 36
+        versionCode 39
+        versionName "2.21"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

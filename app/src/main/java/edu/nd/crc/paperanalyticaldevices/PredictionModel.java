@@ -305,13 +305,14 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                     .getDir("tflitemodels", Context.MODE_PRIVATE).getPath(),
                     sharedPreferences.getString(network + "filename", "notafile"));
             if(networkFile.exists()){
+                Log.d("PredictionModel", "LoadMOdelForArtifacts set semaphore true");
                 MainActivity.setSemaphore(true);
                 networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(),
                         sharedPreferences.getString(network + "filename", "")));
 
                 //Boolean usePls = sharedPreferences.getBoolean("pls", false);
                 String storedPLSModel = sharedPreferences.getString("plsmodel", "none");
-                if(!storedPLSModel.toLowerCase().equals("none") /*&& pls == null*/){
+                if(!storedPLSModel.equalsIgnoreCase("none") /*&& pls == null*/){
                     pls = PartialLeastSquares.from(getApplication().getApplicationContext());
                 }else{
                     pls = null;
@@ -335,6 +336,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                     .getDir("tflitemodels", Context.MODE_PRIVATE).getPath(),
                     sharedPreferences.getString(plsModel + "filename", "notafile"));
             if(plsFile.exists()){
+                Log.d("PredictionModel", "LoadPLS set semaphore true");
                 MainActivity.setSemaphore(true);
                 pls = PartialLeastSquares.from(getApplication().getApplicationContext());
             }else{
@@ -347,6 +349,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
     }
 
     public void LoadModel(SharedPreferences sharedPreferences, String project){
+        Log.d("PredictionModel", "LoadModel:" + project);
         networks.clear();
         try {
             String projectFolder;
@@ -354,6 +357,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
             String[] selectedNetworks = new String[]{sharedPreferences.getString("neuralnet", ""),
                     sharedPreferences.getString("secondary", "")};
             for(String selected : selectedNetworks){
+                Log.d("PredictionModel", "selected " + selected);
               //switch (sharedPreferences.getString("neuralnet", "")) {
               // leave the old values for backwards compatibility, but use new values in default case
                 switch (selected) {
@@ -364,16 +368,18 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                         File networkFile = new File(getApplication().getApplicationContext()
                                 .getDir("tflitemodels", Context.MODE_PRIVATE).getPath(),
                                 sharedPreferences.getString(selected + "filename", "notafile"));
-                        if(selected.toLowerCase() == "none"){
+                        if(selected.equalsIgnoreCase("none")){
+                            Log.d("PredictionModel", "LoadModel set semaphore true None neural net");
                             MainActivity.setSemaphore(true);
                         }else if(networkFile.exists()){
+                            Log.d("PredictionModel", "LoadModel set semaphore true Existing neural net");
                             MainActivity.setSemaphore(true);
                             networks.add(TensorflowNetwork.from(getApplication().getApplicationContext(),
                                     sharedPreferences.getString(selected + "filename", "")));
 
                             //Boolean usePls = sharedPreferences.getBoolean("pls", false);
                             String storedPLSModel = sharedPreferences.getString("plsmodel", "none");
-                            if( !storedPLSModel.toLowerCase().equals("none") && storedPLSModel.toLowerCase() != "" /*&& pls == null*/){
+                            if( !storedPLSModel.equalsIgnoreCase("none") && !storedPLSModel.equalsIgnoreCase("") /*&& pls == null*/){
                                 pls = PartialLeastSquares.from(getApplication().getApplicationContext());
                             }else{
                                 pls = null;
@@ -476,7 +482,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                             }
                         }
                     }
-
+                    Log.d("PredictionModel", "DownloadManagerSpecifiedFile setting semaphore false");
                     MainActivity.setSemaphore(false);
                     downloadId = DoDownload(url, filename);
                     storeDownloadId(sharedPreferences, downloadId);
@@ -528,6 +534,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
         Log.d("PredictionModel", "Queueing neuralnet_download worker. " + networkName);
         WorkManager.getInstance(this.getApplication().getApplicationContext()).enqueue(myUploadWork);
         //bit of a workaround, locks out the camera until the background download worker is finished
+        Log.d("PredictionModel", "DownloadSpecifiedModel set semaphore false");
         MainActivity.setSemaphore(false);
 
     }
@@ -570,6 +577,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
         Log.d("PredictionModel", "Queueing neuralnet_download worker.");
         WorkManager.getInstance(this.getApplication().getApplicationContext()).enqueue(myUploadWork);
         //bit of a workaround, locks out the camera until the background download worker is finished
+        Log.d("PredictionModel", "Not used - DownloadModels set semaphore false");
         MainActivity.setSemaphore(false);
     }
 
