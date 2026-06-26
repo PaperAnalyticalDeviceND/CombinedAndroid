@@ -100,7 +100,7 @@ public class ArucoDetection {
         }
 
         // draw an outline of the QR code
-        Imgproc.rectangle(mRgbaModified, new Point(458, 798), new Point(616, 955), new Scalar(0, 255, 5), 5);
+        Imgproc.rectangle(mRgbaModified, new Point(458, 798), new Point(616, 955), new Scalar(0, 25, 250), 2);
 
         // draw some arrows to match up with the PAD  - previous airgap pad, removed 4-6-26 MJC
         //Imgproc.line(mRgbaModified, new Point(954, 202), new Point(1022, 202), new Scalar(0, 255, 255), 5); // body
