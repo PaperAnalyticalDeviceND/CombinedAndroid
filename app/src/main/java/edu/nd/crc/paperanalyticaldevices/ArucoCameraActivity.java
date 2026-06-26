@@ -227,7 +227,7 @@ public class ArucoCameraActivity extends Activity implements CameraBridgeViewBas
                     double sqrt_norm = sqrt(norm) / ratio;
 
                     //test if moving too quickley
-                    if (sqrt_norm > 10) {
+                    if (sqrt_norm > 100) {
                         moving = true;
                     }
                     Log.i("ARUCO", String.format("norm diff %f", sqrt(norm)));
@@ -251,7 +251,9 @@ public class ArucoCameraActivity extends Activity implements CameraBridgeViewBas
 //                    Rect roi = new Rect(853, 457, 69, 69);
                     // these coords are found mostly through trial and error
                     // here we crop down to just the QR code regions so there is less chance of confusing it
-                    Rect roi = new Rect(21, 6, 200, 200);
+//                    Rect roi = new Rect(21, 6, 200, 200);
+//                    Rect roi = new Rect(448, 778, 200, 200);
+                    Rect roi = new Rect(0, 738, 256, 256);
                     //Imgproc.rectangle(mRgbaModified, new Point(942, 518), new Point(942 + 68, 518 + 68), new Scalar(255, 0, 0), 3);
                     Mat smallImg = new Mat(cropped, roi);
                     qrText = readQRCode(smallImg);
@@ -454,11 +456,20 @@ public class ArucoCameraActivity extends Activity implements CameraBridgeViewBas
                         padImageDirectory.mkdirs();
 
                         //save rectified image
+                        Core.transpose(cropped, cropped);
+                        Core.flip(cropped, cropped, 1);
                         File cFile = new File(padImageDirectory, "rectified.png");
                         Imgproc.cvtColor(cropped, cropped, Imgproc.COLOR_BGRA2RGB);
                         Imgcodecs.imwrite(cFile.getPath(), cropped);
 //                        File rFile = new File(targetDir,"rectified.png");
 //                        Imgcodecs.imwrite(rFile.getPath(), cropped);
+                        /*  // DEBUG stuff
+                        Point upperLeft = new Point(210, 0);
+                        Point lowerRight = new Point(895, 527);
+                        Rect cropRect = new Rect(upperLeft, lowerRight);
+                        Mat imageROI = new Mat(cropped, cropRect);
+                        File pFile = new File(padImageDirectory, "cropped.png");
+                        Imgcodecs.imwrite(pFile.getPath(), imageROI);*/
 
                         //save original image
                         File oFile = new File(padImageDirectory, "original.png");
