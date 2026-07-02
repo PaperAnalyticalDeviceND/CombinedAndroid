@@ -104,7 +104,7 @@
         <activity
             android:name=".Camera2Activity"
             android:exported="false"
-            android:screenOrientation="landscape"
+
             android:theme="@style/Theme.PaperAnalyticalDevices.Material.NoActionBar" >
             <property android:name="android.window.PROPERTY_COMPAT_ALLOW_RESTRICTED_RESIZABILITY" android:value="true" />
         </activity>
