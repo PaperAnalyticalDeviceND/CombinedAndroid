@@ -310,6 +310,10 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
         if (mOpenCvCameraView != null) {
             mOpenCvCameraView.disableView();
         }
+        mRgba.release();
+        mRgbaTemp.release();
+        mTemplate.release();
+        cropped.release();
     }
 
     @Override
@@ -409,11 +413,13 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
                 //smaller image?
                 Rect roi = new Rect(0, 0, 720 / 2, 1220 / 2);
                 Mat smallImg = new Mat(work, roi);
+                work.release(); // garbage collection
 
                 //grab QR code
                 String qr_data;
                 try {
                     qr_data = readQRCode(smallImg);
+                    smallImg.release(); // garbage collection
                     if (qr_data.startsWith("padproject.nd.edu/?s=")) {
                         pad_version = 10;
                         pad_index = 0;
@@ -456,7 +462,7 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
             Log.d("PADS", "Fudicial Location find exception:" + e.toString());
             e.printStackTrace();
         }
-
+        
         return mRgbaModified;
     }
 
