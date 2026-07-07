@@ -86,6 +86,7 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
     @NonNull
     @Override
     public Result doWork() {
+        Log.d("UpdatesWorker", "doWork");
         final OkHttpClient client = new OkHttpClient.Builder()
                 .addNetworkInterceptor(new ProgressInterceptor())
                 .build();
@@ -188,6 +189,7 @@ public class UpdatesWorker extends Worker implements ProgressCallback {
 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
             for (String projectSet : getInputData().getStringArray("projectkeys")) {
+                Log.d("UpdatesWorker","Project: " + projectSet);
               if(!Objects.equals(projectSet, "") && null != projectSet){
 
                 Semver currentVersion = new Semver(prefs.getString(projectSet + "version", "0.0"), Semver.SemverType.LOOSE);

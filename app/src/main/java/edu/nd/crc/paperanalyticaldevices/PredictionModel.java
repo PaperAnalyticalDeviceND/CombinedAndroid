@@ -292,6 +292,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
         }
         // MJC 9-16-24  Download selected PLS files
         if(key.equals("plsmodel")){
+            Log.d("PredictionModel", "PLS preference changed");
             // load pls function goes here
             String plsModel = sharedPreferences.getString("plsmodel", "");
             LoadPLS(sharedPreferences, plsModel);
@@ -524,7 +525,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                 .setRequiredNetworkType(NetworkType.UNMETERED)
                 .build();
 
-        WorkRequest myUploadWork = new OneTimeWorkRequest.Builder(UpdatesWorker.class).setConstraints(constraints)
+        WorkRequest myUploadWork = new OneTimeWorkRequest.Builder(UpdatesWorker.class)//.setConstraints(constraints)
                 .addTag("neuralnet_download").setInputData(new Data.Builder()
                         .putStringArray("projectkeys", projectFolders)
                         .build()
@@ -532,7 +533,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                 .build();
 
         Log.d("PredictionModel", "Queueing neuralnet_download worker. " + networkName);
-        WorkManager.getInstance(this.getApplication().getApplicationContext()).enqueue(myUploadWork);
+        WorkManager.getInstance(getApplication().getApplicationContext()).enqueue(myUploadWork);
         //bit of a workaround, locks out the camera until the background download worker is finished
         Log.d("PredictionModel", "DownloadSpecifiedModel set semaphore false");
         MainActivity.setSemaphore(false);
