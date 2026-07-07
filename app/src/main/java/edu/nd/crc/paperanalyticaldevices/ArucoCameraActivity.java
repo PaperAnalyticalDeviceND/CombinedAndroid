@@ -185,22 +185,41 @@ public class ArucoCameraActivity extends Activity implements CameraBridgeViewBas
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
 
         Mat mRgbaModified = inputFrame.rgba();
+        //Log.d("ARUCO", "width: " + mRgbaModified.size().width + " height: " + mRgbaModified.size().height);
+        // frame is 2336 x 1080 (landscape)
+        // portrait is like (w720xh960) 960x720
 
         //waiting on dialog?
         if (ad != null) return mRgbaModified;
 
         mRgbaModified.copyTo(mRgbaTemp);
 
+        boolean portrait = true;
         //Mat work = new Mat();
         Mat work = inputFrame.gray();
         float ratio;
-        ratio = (float) mRgbaModified.size().height / (float) IMAGE_WIDTH;
+        //ratio = (float) mRgbaModified.size().height / (float) IMAGE_WIDTH;
+
+        if (mRgbaModified.size().height > mRgbaModified.size().width) {
+            Imgproc.resize(inputFrame.gray(), work, new Size(IMAGE_WIDTH, (mRgbaModified.size().height * IMAGE_WIDTH) / mRgbaModified.size().width), 0, 0, Imgproc.INTER_LINEAR);
+            // 720 x 960
+            ratio = (float) mRgbaModified.size().width / (float) IMAGE_WIDTH; // 720 / 720 = 1.0
+        } else {
+            portrait = false;
+            Imgproc.resize(inputFrame.gray(), work, new Size((mRgbaModified.size().width * IMAGE_WIDTH) / mRgbaModified.size().height, IMAGE_WIDTH), 0, 0, Imgproc.INTER_LINEAR);
+            // 1557 x 720
+            Core.transpose(work, work);
+            Core.flip(work, work, 1); // 720 x 1557 ?
+            ratio = (float) mRgbaModified.size().height / (float) IMAGE_WIDTH;  // 1080 / 720 = 1.5
+        }
+
         //create source points
         //List<Point> src_points = new Vector<>();
         float[] src_points = new float[8];
         float[] dst_points = new float[8];
         try{
-            boolean arucosAcquired = ArucoDetection.GetArucoLocations(mRgbaModified, work, src_points, dst_points);
+            boolean arucosAcquired = ArucoDetection.GetArucoLocations(mRgbaModified, work, src_points, dst_points, portrait);
+            work.release();
             // if this comes back true then call RectifyImage, trigger save dialog
             Log.d("ARUCO", "srcData: " + Arrays.toString(src_points));
             Log.d("ARUCO", "dstData: " + Arrays.toString(dst_points));
@@ -246,7 +265,7 @@ public class ArucoCameraActivity extends Activity implements CameraBridgeViewBas
 
                 mRgbaTemp.copyTo(mRgba);
                 boolean rectified = ArucoDetection.RectifyImage(mRgba, cropped, src_points, dst_points);
-
+                Log.d("ARUCO", "Size post transform w=" + cropped.size().width + " h=" + cropped.size().height);
                 if(rectified){
 //                    Rect roi = new Rect(853, 457, 69, 69);
                     // these coords are found mostly through trial and error
@@ -257,6 +276,7 @@ public class ArucoCameraActivity extends Activity implements CameraBridgeViewBas
                     //Imgproc.rectangle(mRgbaModified, new Point(942, 518), new Point(942 + 68, 518 + 68), new Scalar(255, 0, 0), 3);
                     Mat smallImg = new Mat(cropped, roi);
                     qrText = readQRCode(smallImg);
+                    smallImg.release();
                     if(!Objects.equals(qrText, "")){
                         Log.d("ArucoCameraActivcity QR Code", qrText);
                         // crop the cropped image again to take the upper square out of the detection area
@@ -357,6 +377,10 @@ public class ArucoCameraActivity extends Activity implements CameraBridgeViewBas
         if (mOpenCvCameraView != null) {
             mOpenCvCameraView.disableView();
         }
+        mRgba.release();
+        mRgbaTemp.release();
+        mTemplate.release();
+        cropped.release();
     }
 
     @Override

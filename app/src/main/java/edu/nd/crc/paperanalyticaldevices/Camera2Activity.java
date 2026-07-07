@@ -462,7 +462,7 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
             Log.d("PADS", "Fudicial Location find exception:" + e.toString());
             e.printStackTrace();
         }
-        
+
         return mRgbaModified;
     }
 

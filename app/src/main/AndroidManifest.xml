@@ -37,7 +37,7 @@
 
         <activity
             android:name=".ArucoCameraActivity"
-            android:screenOrientation="landscape"
+
             android:exported="false"
             android:theme="@style/Theme.PaperAnalyticalDevices.Material.NoActionBar"
             >
