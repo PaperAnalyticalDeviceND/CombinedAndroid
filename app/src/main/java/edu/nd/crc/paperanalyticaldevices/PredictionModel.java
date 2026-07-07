@@ -341,7 +341,8 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                 MainActivity.setSemaphore(true);
                 pls = PartialLeastSquares.from(getApplication().getApplicationContext());
             }else{
-                DownloadSpecifiedModel(sharedPreferences, plsModel);
+                //DownloadSpecifiedModel(sharedPreferences, plsModel);
+                DownloadManagerSpecifiedFile(sharedPreferences, plsModel);
             }
         }catch(IOException e){
             FirebaseCrashlytics.getInstance().recordException(e);
