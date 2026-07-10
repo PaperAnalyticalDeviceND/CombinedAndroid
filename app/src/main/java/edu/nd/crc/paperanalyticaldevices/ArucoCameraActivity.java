@@ -80,7 +80,7 @@ import java.util.zip.ZipOutputStream;
 public class ArucoCameraActivity extends Activity implements CameraBridgeViewBase.CvCameraViewListener2 {
 
     private static final int CAMERA_PERMISSION_REQUEST_CODE = 200;
-    private static final int IMAGE_WIDTH = 720;
+    private static final int IMAGE_WIDTH = 1030;  // original aruco pad 1030w x 951h
     public Mat mRgba, mRgbaTemp;
     List<Point> last_points = null;
     private JavaCam2ResView mOpenCvCameraView;
@@ -203,14 +203,14 @@ public class ArucoCameraActivity extends Activity implements CameraBridgeViewBas
         if (mRgbaModified.size().height > mRgbaModified.size().width) {
             Imgproc.resize(inputFrame.gray(), work, new Size(IMAGE_WIDTH, (mRgbaModified.size().height * IMAGE_WIDTH) / mRgbaModified.size().width), 0, 0, Imgproc.INTER_LINEAR);
             // 720 x 960
-            ratio = (float) mRgbaModified.size().width / (float) IMAGE_WIDTH; // 720 / 720 = 1.0
+            ratio = (float) mRgbaModified.size().width / (float) IMAGE_WIDTH; // 720 / 1030
         } else {
             portrait = false;
             Imgproc.resize(inputFrame.gray(), work, new Size((mRgbaModified.size().width * IMAGE_WIDTH) / mRgbaModified.size().height, IMAGE_WIDTH), 0, 0, Imgproc.INTER_LINEAR);
-            // 1557 x 720
+
             Core.transpose(work, work);
-            Core.flip(work, work, 1); // 720 x 1557 ?
-            ratio = (float) mRgbaModified.size().height / (float) IMAGE_WIDTH;  // 1080 / 720 = 1.5
+            Core.flip(work, work, 1);
+            ratio = (float) mRgbaModified.size().height / (float) IMAGE_WIDTH;  // 1080 / 1030 = 1.05
         }
 
         //create source points

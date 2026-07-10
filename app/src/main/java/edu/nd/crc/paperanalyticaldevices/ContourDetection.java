@@ -62,6 +62,7 @@ public class ContourDetection {
 
         double horiz_line = 730.0 / 2.0;
         double scale_ratio = min(work.size().height / 1220, 1.0) * .95;
+        Log.d("PADS", "Scale_ratio: " + scale_ratio);
         if (scale_ratio > .85) {
             scale_ratio = 0.85;
         }

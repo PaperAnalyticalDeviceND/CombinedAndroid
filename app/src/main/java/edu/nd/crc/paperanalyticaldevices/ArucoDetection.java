@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Vector;
 public class ArucoDetection {
 
-    private static final double IMAGE_WIDTH = 720.0;
+    private static final double IMAGE_WIDTH = 1030.0;
 
     public static boolean GetArucoLocations(Mat mRgbaModified, Mat work, float[] src_points, float[] dst_points, boolean portrait){
 //public static boolean GetArucoLocations(Mat mRgbaModified, Mat work, List<Point> src_points)
@@ -68,8 +68,8 @@ public class ArucoDetection {
             //Log.d("ContourDetection", String.format("Landscape ratio %f", ratio)); // ratio = 1.5
         }
 
-        double horiz_line = 730.0 / 2.0; // 365
-        double scale_ratio = min(work.size().height / 1220, 1.0) * .95; // portrait ~= 0.75
+        double horiz_line = 1030 / 2.0; // 515
+        double scale_ratio = min(work.size().height / 951, 1.0) * .95; // portrait ~= 0.75
         if (scale_ratio > .85) {
             scale_ratio = 0.85;
         }
@@ -110,7 +110,8 @@ public class ArucoDetection {
         // [684, 68]  -> [1012, 684] scaled -> [674, 455]
         // [1300, 68] -> [1012, 1300] scaled -> [674, 866]
         // [1300, 844] -> [236, 1300] scaled -> [157, 866]
-        List<Integer> f_locs = Arrays.asList(157, 455, 674, 455, 674, 866, 157, 866); // scaled down portrait coords
+        //List<Integer> f_locs = Arrays.asList(157, 455, 674, 455, 674, 866, 157, 866); // scaled down portrait coords
+        List<Integer> f_locs = Arrays.asList(153, 228, 962, 228, 153, 869, 962, 869);
         for (int i = 0; i < 4; i++) {
             int x = (int) ((f_locs.get(i * 2) - horiz_line) * scale_ratio + horiz_line - 10); //based on 730 width artwork
             int y = (int) (f_locs.get(i * 2 + 1) * scale_ratio + scale_offset);
@@ -118,7 +119,7 @@ public class ArucoDetection {
             // portrait: (199, 337), (585, 337), (585, 644), (199, 644)
 
             //Point pnt = new Point(x , y );
-            Point pnt = new Point(y * ratio, (720 - x) * ratio);
+            Point pnt = new Point(y * ratio, (1030 - x) * ratio);
 
 
             if(portrait){
@@ -165,13 +166,18 @@ public class ArucoDetection {
         // unscaled landscape coords [458, 798], [616, 955]
         //Imgproc.rectangle(mRgbaModified, new Point(458, 798), new Point(616, 955), new Scalar(0, 25, 250), 2);
 
-        int qr_x1 = (int) ((186 - horiz_line) * scale_ratio + horiz_line - 10);
-        int qr_y1 = (int) (304 * scale_ratio + scale_offset);
-        int qr_x2 = (int) ((77 - horiz_line) * scale_ratio + horiz_line - 10);
-        int qr_y2 = (int) (413 * scale_ratio + scale_offset);
+//        int qr_x1 = (int) ((186 - horiz_line) * scale_ratio + horiz_line - 10);
+//        int qr_y1 = (int) (304 * scale_ratio + scale_offset);
+//        int qr_x2 = (int) ((77 - horiz_line) * scale_ratio + horiz_line - 10);
+//        int qr_y2 = (int) (413 * scale_ratio + scale_offset);
 
-        Point qr_pnt1 = new Point(qr_y1 * ratio, (720 - qr_x1) * ratio);
-        Point qr_pnt2 = new Point(qr_y2 * ratio, (720 - qr_x2) * ratio);
+        int qr_x1 = (int) ((201 - horiz_line) * scale_ratio + horiz_line - 10);
+        int qr_y1 = (int) (35 * scale_ratio + scale_offset);
+        int qr_x2 = (int) ((36 - horiz_line) * scale_ratio + horiz_line - 10);
+        int qr_y2 = (int) (204 * scale_ratio + scale_offset);
+
+        Point qr_pnt1 = new Point(qr_y1 * ratio, (1030 - qr_x1) * ratio);
+        Point qr_pnt2 = new Point(qr_y2 * ratio, (1030 - qr_x2) * ratio);
 
         if(portrait){
             qr_pnt1 = new Point(qr_x1 * ratio, qr_y1 * ratio);

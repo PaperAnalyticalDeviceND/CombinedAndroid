@@ -355,7 +355,8 @@ public class Camera2Activity extends Activity implements CvCameraViewListener2 {
             Imgproc.resize(inputFrame.gray(), work, new Size((mRgbaModified.size().width * IMAGE_WIDTH) / mRgbaModified.size().height, IMAGE_WIDTH), 0, 0, Imgproc.INTER_LINEAR);
             Core.transpose(work, work);
             Core.flip(work, work, 1);
-            ratio = (float) mRgbaModified.size().height / (float) IMAGE_WIDTH;
+            //Log.d("PADS", "Work size: " + work.size().height + "h x " + work.size().width + "w"); // = 1557h x 720w
+            ratio = (float) mRgbaModified.size().height / (float) IMAGE_WIDTH;  //  = 1080/720 = 1.5
         }
 
         //create source points
