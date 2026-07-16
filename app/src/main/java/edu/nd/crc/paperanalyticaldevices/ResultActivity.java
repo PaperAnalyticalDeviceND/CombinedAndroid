@@ -588,6 +588,9 @@ public class ResultActivity extends AppCompatActivity {
             if(qr.startsWith("https://www.padproject.nd.edu/?t=")){
                 return qr.substring(33);
             }
+            if(qr.startsWith("https://padproject.nd.edu/?t=")){
+                return qr.substring(29);
+            }
             return qr;
         }else{
             return "";

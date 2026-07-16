@@ -33,7 +33,7 @@ public class ArucoDetection {
 
     private static final double IMAGE_WIDTH = 1030.0;
 
-    public static boolean GetArucoLocations(Mat mRgbaModified, Mat work, float[] src_points, float[] dst_points, boolean portrait){
+    public static boolean GetArucoLocations(Mat mRgbaModified, Mat work, float[] src_points, float[] dst_points, boolean portrait, Mat pointsOrder){
 //public static boolean GetArucoLocations(Mat mRgbaModified, Mat work, List<Point> src_points)
         Dictionary dictionary= Objdetect.getPredefinedDictionary(Objdetect.DICT_4X4_50);
         DetectorParameters parameters = new DetectorParameters();
@@ -47,7 +47,7 @@ public class ArucoDetection {
             ratio = (float) mRgbaModified.size().height / (float) IMAGE_WIDTH;
         }*/
         Log.d("ARUCO", "Size: w=" + work.size().width + " h=" + work.size().height);
-        // work landscape = w720.0 x h1557.0
+        // work landscape = w1030 x h2227.0
         // work portrait w720.0 x h960.0
 
         if (portrait) {
@@ -74,8 +74,10 @@ public class ArucoDetection {
             scale_ratio = 0.85;
         }
 //        double scale_offset = ((work.size().height - (1163 * scale_ratio)) / 2) - (64 * scale_ratio); // -4 ?
-        double scale_offset = ((work.size().height - (890 * scale_ratio)) / 2) - (307 * scale_ratio);
-        //Log.d("ARUCO", "Scale ratio: " + scale_ratio + " Offset: " + scale_offset);
+        //double scale_offset = ((work.size().height - (890 * scale_ratio)) / 2) - (307 * scale_ratio);
+        double scale_offset = ((work.size().height - (892 * scale_ratio)) / 2) - (56 * scale_ratio);
+        //double scale_offset = 460;
+        Log.d("ARUCO", "Scale ratio: " + scale_ratio + " Offset: " + scale_offset);
 
         // All the coordinates of the markers, upper right corner looking at it horizontally with text at the right,
         // which is actually the upper left corner in its correct orientation
@@ -111,9 +113,11 @@ public class ArucoDetection {
         // [1300, 68] -> [1012, 1300] scaled -> [674, 866]
         // [1300, 844] -> [236, 1300] scaled -> [157, 866]
         //List<Integer> f_locs = Arrays.asList(157, 455, 674, 455, 674, 866, 157, 866); // scaled down portrait coords
-        List<Integer> f_locs = Arrays.asList(153, 228, 962, 228, 153, 869, 962, 869);
+        // maybe just do transform with markers 4 and 8 (opposite corners)
+        // 4 = (153, 228), 8 = (962, 869)
+        List<Integer> f_locs = Arrays.asList(153, 228, 962, 228, 962, 869, 153, 869);
         for (int i = 0; i < 4; i++) {
-            int x = (int) ((f_locs.get(i * 2) - horiz_line) * scale_ratio + horiz_line - 10); //based on 730 width artwork
+            int x = (int) ((f_locs.get(i * 2) - horiz_line) * scale_ratio + horiz_line - 10); //based on 1030 width artwork
             int y = (int) (f_locs.get(i * 2 + 1) * scale_ratio + scale_offset);
             Log.d("ARUCO", "X: " + x + " Y: " + y);
             // portrait: (199, 337), (585, 337), (585, 644), (199, 644)
@@ -152,7 +156,7 @@ public class ArucoDetection {
         // draw some squares as a rough guide
         for(int i=0;  i < 4; i++){
             Log.d("ARUCO", "Drawing: x=" + guideSquares.get(i).x + " y=" + guideSquares.get(i).y);
-            Imgproc.rectangle(mRgbaModified, guideSquares.get(i), new Point(guideSquares.get(i).x - 30, guideSquares.get(i).y - 30), new Scalar(0, 0, 255), 3);
+            Imgproc.rectangle(mRgbaModified, guideSquares.get(i), new Point(guideSquares.get(i).x + 30, guideSquares.get(i).y - 30), new Scalar(0, 0, 255), 3);
 //            Imgproc.rectangle(mRgbaModified, targetPoints.get(i), new Point(targetPoints.get(i).x - 30, targetPoints.get(i).y - 30), new Scalar(0, 0, 255), 3);
             //Imgproc.rectangle(mRgbaModified, targetPoints.get(i), new Point(targetPoints.get(i).x - 60, targetPoints.get(i).y + 60), new Scalar(0, 0, 255), 5);
         }
@@ -165,11 +169,6 @@ public class ArucoDetection {
         // unscaled portrait coords [278, 458], [119, 618]
         // unscaled landscape coords [458, 798], [616, 955]
         //Imgproc.rectangle(mRgbaModified, new Point(458, 798), new Point(616, 955), new Scalar(0, 25, 250), 2);
-
-//        int qr_x1 = (int) ((186 - horiz_line) * scale_ratio + horiz_line - 10);
-//        int qr_y1 = (int) (304 * scale_ratio + scale_offset);
-//        int qr_x2 = (int) ((77 - horiz_line) * scale_ratio + horiz_line - 10);
-//        int qr_y2 = (int) (413 * scale_ratio + scale_offset);
 
         int qr_x1 = (int) ((201 - horiz_line) * scale_ratio + horiz_line - 10);
         int qr_y1 = (int) (35 * scale_ratio + scale_offset);
@@ -199,17 +198,6 @@ public class ArucoDetection {
         //Imgproc.line(mRgbaModified, new Point(128, 192), new Point(158, 202), new Scalar(0, 255, 255), 5); // head
         //Imgproc.line(mRgbaModified, new Point(128, 210), new Point(158, 202), new Scalar(0, 255, 255), 5);
 
-        // new arrow points at (553, 332) and (1332, 326) added 4-6-26 MJC
-        // left arrow, pointing right
-        //Imgproc.line(mRgbaModified, new Point(476, 392), new Point(553, 392), new Scalar(0, 255, 255), 5);
-        //Imgproc.line(mRgbaModified, new Point(523, 382), new Point(553, 392), new Scalar(0, 255, 255), 5); // head
-        //Imgproc.line(mRgbaModified, new Point(523, 402), new Point(553, 392), new Scalar(0, 255, 255), 5);
-
-        // right arrow, pointing left
-        //Imgproc.line(mRgbaModified, new Point(1332, 386), new Point(1384, 386), new Scalar(0, 255, 255), 5);
-        //Imgproc.line(mRgbaModified, new Point(1332, 386), new Point(1362, 376), new Scalar(0, 255, 255), 5); // head
-        //Imgproc.line(mRgbaModified, new Point(1332, 386), new Point(1362, 396), new Scalar(0, 255, 255), 5);
-
         // rotated 90ccw
         // bottom arrow starts 730, 800
         /*  // 6-6-26 MJC, changed to scaled points below
@@ -222,25 +210,19 @@ public class ArucoDetection {
         Imgproc.line(mRgbaModified, new Point(724, 84), new Point(744, 54), new Scalar(0, 255, 255), 5);
         */
 
-        // portrait 730x1220 artwork
-        // arrow points Left: 180, 487
-        //              Right: 656, 483
         // each arrow is made of three lines, defined by pairs of points
-        //  Left ( [180, 487], [160, 487] ), ( [180, 487], [160, 474] ), ( [180, 487], [160, 494] )
-        // Right ( [656, 483], [676, 483] ), ( [656, 483], [676, 474] ), ( [656, 483], [676, 494] )
-        int l_tip_x = (int) ((180 - horiz_line) * scale_ratio + horiz_line - 10);
-        int l_tip_y = (int) (487 * scale_ratio + scale_offset);
-        int r_tip_x = (int) ((656 - horiz_line) * scale_ratio + horiz_line - 10);
-        int r_tip_y = (int) (483 * scale_ratio + scale_offset);
-//        List<Integer> l_tip_point = Arrays.asList(180, 487);
-//        List<Integer> r_tip_point = Arrays.asList(656, 483);
+        int l_tip_x = (int) ((198 - horiz_line) * scale_ratio + horiz_line - 10);
+        int l_tip_y = (int) (319 * scale_ratio + scale_offset);
+        int r_tip_x = (int) ((943 - horiz_line) * scale_ratio + horiz_line - 10);
+        int r_tip_y = (int) (313 * scale_ratio + scale_offset);
+
         List<Integer> l_tip_point = Arrays.asList(l_tip_x, l_tip_y);
         List<Integer> r_tip_point = Arrays.asList(r_tip_x, r_tip_y);
-        List<Integer> l_line_points = Arrays.asList(160, 487, 160, 474, 160, 494);
-        List<Integer> r_line_points = Arrays.asList(676, 483, 676, 474, 676, 494);
+        List<Integer> l_line_points = Arrays.asList(165, 296, 165, 319, 165, 328);
+        List<Integer> r_line_points = Arrays.asList(971, 301, 971, 313, 971, 325);
 
-        Point l_tip = new Point(l_tip_point.get(1) * ratio, (720 - l_tip_point.get(0)) * ratio);
-        Point r_tip = new Point(r_tip_point.get(1) * ratio, (720 - r_tip_point.get(0)) * ratio);
+        Point l_tip = new Point(l_tip_point.get(1) * ratio, (1030 - l_tip_point.get(0)) * ratio);
+        Point r_tip = new Point(r_tip_point.get(1) * ratio, (1030 - r_tip_point.get(0)) * ratio);
         if (portrait) {
             l_tip = new Point(l_tip_point.get(0) * ratio, l_tip_point.get(1) * ratio);
             r_tip = new Point(r_tip_point.get(0) * ratio, r_tip_point.get(1) * ratio);
@@ -253,8 +235,8 @@ public class ArucoDetection {
             int r_x = (int) ((r_line_points.get(i * 2) - horiz_line) * scale_ratio + horiz_line - 10);
             int r_y = (int) (r_line_points.get(i * 2 + 1) * scale_ratio + scale_offset);
 
-            Point l_pnt = new Point(l_y * ratio, (720 - l_x) * ratio);
-            Point r_pnt = new Point(r_y * ratio, (720 - r_x) * ratio);
+            Point l_pnt = new Point(l_y * ratio, (1030 - l_x) * ratio);
+            Point r_pnt = new Point(r_y * ratio, (1030 - r_x) * ratio);
 
             if(portrait){
                 l_pnt = new Point(l_x * ratio, l_y * ratio);
@@ -265,15 +247,17 @@ public class ArucoDetection {
             Imgproc.line(mRgbaModified, r_tip, r_pnt, new Scalar(0, 255, 255), 3);
         }
 
-        /*destPoints.add(new Point(1036, 604)); // marker 0
-        destPoints.add(new Point(186, 604)); // marker 1
-        destPoints.add(new Point(186, 78)); // marker 2
-        destPoints.add(new Point(1036, 78)); // marker 3*/
-        // transport to vertical
-        /*destPoints.add(new Point(60, 1040)); // marker 0
-        destPoints.add(new Point(60, 187)); // marker 1
-        destPoints.add(new Point(588, 187)); // marker 2
-        destPoints.add(new Point(588, 1040)); // marker 3*/
+        //List<Integer> crop_coords = Arrays.asList(18, 18, 1012, 937);
+        int ul_crop_x = (int) ((0 - horiz_line) * scale_ratio + horiz_line - 10);  // (18-515)*0.75 + 515 -10 = 133
+        int ul_crop_y = (int) (0 * scale_ratio + scale_offset); // = 18 * 0.75 + 229.825 = 242
+        int lr_crop_x = (int) ((1030 - horiz_line) * scale_ratio + horiz_line - 10);
+        int lr_crop_y = (int) (951 * scale_ratio + scale_offset);
+
+        Point ul_crop = new Point(ul_crop_y * ratio, (1030 - ul_crop_x) * ratio);
+        Point lr_crop = new Point(lr_crop_y * ratio, (1030 - lr_crop_x) * ratio);
+
+        //Imgproc.rectangle(mRgbaModified, qr_pnt1, qr_pnt2, new Scalar(0, 25, 250), 2);
+        Imgproc.rectangle(mRgbaModified, ul_crop, lr_crop, new Scalar(0, 25, 250), 2);
 
         List<Mat> corners = new ArrayList<Mat>();
         //List<Mat> rejectedImgPoints = new ArrayList<Mat>();
@@ -284,39 +268,29 @@ public class ArucoDetection {
 
         detector.detectMarkers(work, corners, ids);
         //detector.detectMarkers(mRgbaModified, corners, ids);
+        ids.copyTo(pointsOrder);  // output the ids order for later use in cropping the rectified image
 
         Log.d("PADS", "ArucoDetection: GetArucoLocations: corners.size() = " + corners.size());
         Log.d("PADS", "ArucoDetection: GetArucoLocations: ids = " + ids);
 
-        //Portrait:
-        //srcData: [163.0, 624.0, 550.0, 619.0, 164.0, 321.0, 541.0, 320.0]
-        //dstData: [199.0, 644.0, 585.0, 644.0, 199.0, 337.0, 585.0, 337.0]
-
-        //Landscape: 3, 4, 0, 8
-        //srcData: [586.0, 608.0, 177.0, 613.0, 183.0, 936.0, 587.0, 931.0]
-        //dstData: [925.5, 924.0, 267.0, 924.0, 267.0, 1447.5, 925.5, 1447.5]
-
         if(corners.size() > 3) {
-
+            Scalar color = new Scalar(0, 255, 0, 255);
             for(int i = 0; i < corners.size(); i++) {
                 int id = Double.valueOf(ids.get(i, 0)[0]).intValue();
                 Log.d("ARUCO", "ID: " + id);
                 //Log.d("ARUCO", "ID: " + Double.intValue(ids.get(i, 0)[0]));
                 //Log.d("PADS", "ArucoDetection: GetArucoLocations: corners.get(" + i + ") = " + corners.get(i));
                 Mat corner = corners.get(i);
-                if(!portrait){
-                    Core.transpose(corner, corner);
-                    Core.flip(corner, corner, 1);
-                    corners.set(i, corner);
-                }
+//                if(!portrait){
+//                    Core.transpose(corner, corner);
+//                    Core.flip(corner, corner, 1);
+//                    corners.set(i, corner);
+//                }
                 Point p1 = new Point(corner.get(0,0)[0], corner.get(0,0)[1]);
                 /*Point p2 = new Point(corner.get(0,1)[0], corner.get(0,1)[1]);
                 Point p3 = new Point(corner.get(0,2)[0], corner.get(0,2)[1]);
                 Point p4 = new Point(corner.get(0,3)[0], corner.get(0,3)[1]);*/
-                //Log.d("ARUCO", "Point1: " + p1);
-                /*Log.d("ARUCO", "Point2: " + p2);
-                Log.d("ARUCO", "Point3: " + p3);
-                Log.d("ARUCO", "Point4: " + p4);*/
+
                 int index = pointsMap.indexOf(id);
                 // here we map the correct markers to the correct destination points
                 src_points[i * 2] = (float) p1.x;
@@ -325,17 +299,26 @@ public class ArucoDetection {
                 dst_points[i * 2 + 1] = (float) targetPoints.get(index).y;
                 target_points[i * 2] = (float) targetPoints.get(index).x;
                 target_points[i * 2 + 1] = (float) targetPoints.get(index).y;
+
+                Point comDisplay;
+                if (portrait) {
+                    comDisplay = new Point(p1.x * ratio, p1.y * ratio);
+                } else {
+                    comDisplay = new Point((p1.y) * ratio, (1030 - p1.x) * ratio);
+                }
+                Imgproc.circle(mRgbaModified, comDisplay, 10, color, 2, 8, 0);
             }
             Log.d("ARUCO", "Detect srcData: " + Arrays.toString(src_points));
             Log.d("ARUCO", "Detect dstData: " + Arrays.toString(dst_points));
             Imgproc.cvtColor(mRgbaModified, mRgbaModified, Imgproc.COLOR_RGBA2RGB);
 
             // we need to scale the detected corners back to preview size before drawing them
-            Objdetect.drawDetectedMarkers(mRgbaModified, corners, ids, new Scalar(255, 0, 0));
+            //Objdetect.drawDetectedMarkers(mRgbaModified, corners, ids, new Scalar(255, 0, 0));
 
             for(int j = 0; j < src_points.length; j++){
                 float diff = abs(src_points[j] - target_points[j]);
                 if(diff > 150.0){
+                    Log.d("ARUCO", "Diff: " + diff);
                     return false;
                 }
             }
@@ -355,35 +338,88 @@ public class ArucoDetection {
         Log.d("Rectify", "Height: " + input.size().height + " Width: " + input.size().width);
         //MatOfPoint2f src = new MatOfPoint2f(sourcePoints);
         //MatOfPoint2f dst = new MatOfPoint2f(destinationpoints);
-
+        double ratio = input.size().height / IMAGE_WIDTH;  // use to calculate the crop corners
         //Mat transform = Imgproc.getAffineTransform(src, dst);
         Mat transform = Imgproc.getPerspectiveTransform(sourcePoints, destinationpoints);
-        Log.d("ARUCO", "tranform: " + transform.dump());
-        //Imgproc.warpAffine(input, input, transform, input.size());
+        Log.d("Rectify", "tranform: " + transform.dump());
+        //Imgproc.warpAffine(input, output, transform, input.size());
         Imgproc.warpPerspective(input, output, transform, input.size()); // keep it landscape
+        // should detect the markers again after transform so we can use them as a reference for cropping
+        Dictionary dictionary= Objdetect.getPredefinedDictionary(Objdetect.DICT_4X4_50);
+        DetectorParameters parameters = new DetectorParameters();
+        ArucoDetector detector = new ArucoDetector(dictionary, parameters);
+        List<Mat> corners = new ArrayList<Mat>();
+        Mat ids = new Mat();
+        detector.detectMarkers(output, corners, ids);
+        Log.d("ARUCO Rectify", "Corners: " + corners.size());
+        // (153, 228) id 4, top left ->                           landscape (228, 877)
+        // (962, 870) id 8, bottom right, portrait orientation -> landscape (870, 70)
+        // use these coords (scaled) to find the edges and crop
+        // "top" edge is x-228, "left" edge is y + (1030-877)
+        // "right edge is y-70, "bottom" edge is x + (951-870)
+        Point ul = null;
+        Point lr = null;
+        Point ul_crop_corner = null;
+        Point lr_crop_corner = null;
+        if(corners.size() > 3) {
+            for(int i = 0; i < corners.size(); i++) {
+                int id = Double.valueOf(ids.get(i, 0)[0]).intValue();
+                if(id == 4){
+                    Log.d("Rectify", "ID: " + id);
+                    Mat corner = corners.get(i);
+                    ul = new Point(corner.get(0,0)[0], corner.get(0,0)[1]);
+                    //ul_crop_corner = new Point(ul.x - (ratio * 228), ul.y + (ratio * 153));
+                    Log.d("Rectify", "Detected UL: " + ul.x + " " + ul.y);
+                }
+                if(id == 8){
+                    Log.d("Rectify", "ID: " + id);
+                    Mat corner = corners.get(i);
+                    lr = new Point(corner.get(0,0)[0], corner.get(0,0)[1]);
+                    //lr_crop_corner = new Point(lr.x + (ratio * 81), lr.y - (ratio * 68));
+                    Log.d("Rectify", "Detected LR: " + lr.x + " " + lr.y);
+                }
+            }
+        }else{
+            return false;
+        }
+
+        // looking at the original in landscape
+        float x_dist = (float) abs(lr.x - ul.x); // 871 - 228 = 643
+        float y_dist = (float) abs(ul.y - lr.y); // 962 - 153 = 809
+        // find the percentage of area needed to pad around the markers to the distance between the marker
+        float ul_x_ratio = (float) 228/643;
+        float ul_y_ratio = (float) 153/808;
+        float lr_x_ratio = (float) 81/643;
+        float lr_y_ratio = (float) 68/808;
+
+        ul_crop_corner = new Point(ul.x - (ul_x_ratio * x_dist), ul.y + (ul_y_ratio * y_dist));
+        Log.d("Rectify", "UL: " + ul_crop_corner.x + " " + ul_crop_corner.y);
+        lr_crop_corner = new Point(lr.x + (lr_x_ratio * x_dist), lr.y - (lr_y_ratio * y_dist));
+        Log.d("Rectify", "LR: " + lr_crop_corner.x + " " + lr_crop_corner.y);
+
         //Imgproc.warpPerspective(input, output, transform, new Size(input.size().height, input.size().width)); // switch to portrait
 
         // crop out the top and bottom so we just have the area inside the aruco markers
-        /*Point upperLeft = new Point(54, 117);
-        Point lowerRight = new Point(660, 1046);*/
-//        Point upperLeft = new Point(155, 54);
-//        Point lowerRight = new Point(1078, 656);
-//        Point upperLeft = new Point(347, 66);
-//        Point lowerRight = new Point(1420, 1040);
-//        Point upperLeft = new Point(429, 0);
-//        Point lowerRight = new Point(1338, 994);
-//        Point upperLeft = new Point(464, 0);
-//        Point lowerRight = new Point(1373, 994);
-        Point upperLeft = new Point(70, 286);
-        Point lowerRight = new Point(730, 900);
 
-        // 6-6-26 cropping square from 730x1220 portrait
-        // (70, 286), (730, 900) approx
-        Rect cropRect = new Rect(upperLeft, lowerRight);
-        //Mat imageROI = new Mat(output, cropRect);  //Exception, portrait mode
-        //error: (-215:Assertion failed) 0 <= _colRange.start && _colRange.start <= _colRange.end && _colRange.end <= m.cols in function 'Mat'
-        //imageROI.copyTo(output);
+        //Point upperLeft = new Point(464, 0);
+        //Point lowerRight = new Point(1373, 994);
 
+        //Point upperLeft = new Point(70, 286);
+        //Point lowerRight = new Point(730, 900);
+
+        //Rect cropRect = new Rect(upperLeft, lowerRight);
+        Log.d("Rectify", "About to crop");
+        if(ul_crop_corner != null && lr_crop_corner != null) {
+            Rect cropRect = new Rect(ul_crop_corner, lr_crop_corner);
+            Mat imageROI = new Mat(output, cropRect);  //Exception, portrait mode
+            //error: (-215:Assertion failed) 0 <= _colRange.start && _colRange.start <= _colRange.end && _colRange.end <= m.cols in function 'Mat'
+            imageROI.copyTo(output);
+            Log.d("Rectify", "********** CROPPED!!!");
+            Imgproc.resize(output, output, new Size((output.size().width * IMAGE_WIDTH) / output.size().height, IMAGE_WIDTH), 0, 0, Imgproc.INTER_LINEAR);
+
+        }else{
+            return false;
+        }
         /*for (int i = 0; i < 7; i++) {
             double px = 664 - (82 * i);
             Imgproc.line(output, new Point(px, 1), new Point(px, 601), new Scalar(0, 255, 0), 2);

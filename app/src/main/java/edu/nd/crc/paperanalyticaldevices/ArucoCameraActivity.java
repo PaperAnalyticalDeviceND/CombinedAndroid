@@ -3,6 +3,7 @@ package edu.nd.crc.paperanalyticaldevices;
 //import androidx.appcompat.app.AppCompatActivity;
 import static android.Manifest.permission.CAMERA;
 
+import static com.google.common.primitives.Doubles.min;
 import static java.lang.Math.sqrt;
 
 import android.Manifest;
@@ -212,14 +213,15 @@ public class ArucoCameraActivity extends Activity implements CameraBridgeViewBas
             Core.flip(work, work, 1);
             ratio = (float) mRgbaModified.size().height / (float) IMAGE_WIDTH;  // 1080 / 1030 = 1.05
         }
-
+        Log.d("ARUCO", "Ratio: " + ratio);
         //create source points
         //List<Point> src_points = new Vector<>();
         float[] src_points = new float[8];
         float[] dst_points = new float[8];
+        Mat pointsOrder = new Mat();
         try{
-            boolean arucosAcquired = ArucoDetection.GetArucoLocations(mRgbaModified, work, src_points, dst_points, portrait);
-            work.release();
+            boolean arucosAcquired = ArucoDetection.GetArucoLocations(mRgbaModified, work, src_points, dst_points, portrait, pointsOrder);
+
             // if this comes back true then call RectifyImage, trigger save dialog
             Log.d("ARUCO", "srcData: " + Arrays.toString(src_points));
             Log.d("ARUCO", "dstData: " + Arrays.toString(dst_points));
@@ -262,23 +264,56 @@ public class ArucoCameraActivity extends Activity implements CameraBridgeViewBas
                 //return if appears to be moving
                 if (moving) return mRgbaModified;
 
+                double horiz_line = 1030 / 2.0; // 515
+                Log.d("ARUCO", "Horizontal line: " + horiz_line);
+                double scale_ratio = min(work.size().height / 951, 1.0) * .95; // portrait ~= 0.75
+                if (scale_ratio > .85) {
+                    scale_ratio = 0.85;
+                }
+                Log.d("ARUCO", "Ratio: " + ratio);
+                Log.d("ARUCO", "Scale ratio: " + scale_ratio);
+
+                double scale_offset = ((work.size().height - (892 * scale_ratio)) / 2) - (56 * scale_ratio);
+                //double scale_offset = 460;
+                Log.d("ARUCO", "scale_offset: " + scale_offset);
+                work.release();
+                // 470 = ((x - horiz_line) * scale_ratio + horiz_line - 10) = ((x - 515) * 0.75 + 515 - 10)
+                // the PAD is effectively centered in the camera preview
+                // the actual crop points we want are close to (32, 668), (1006, 1548) vertical orientation
+                // landscape =                  (690, 998), (1550, 24)
+                // calculated landscape = Crop: (759,1049), (1606, 52)
+                int ul_crop_x = (int) ((0 - horiz_line) * scale_ratio + horiz_line - 10);  // 370
+                int ul_crop_y = (int) (0 * scale_ratio + scale_offset); // 313
+                int lr_crop_x = (int) ((1030 - horiz_line) * scale_ratio + horiz_line - 10);
+                int lr_crop_y = (int) (951 * scale_ratio + scale_offset);
+                // transpose the points from portrait to landscape
+                Point ul_crop = new Point(ul_crop_y * ratio + 40, (1030 - ul_crop_x) * ratio + 40);
+                Point lr_crop = new Point(lr_crop_y * ratio + 40, (1030 - lr_crop_x) * ratio - 40);
+                Log.d("ARUCO", "Box: (" + ul_crop.x + "," + ul_crop.y + "), ("  + lr_crop.x + ", " + lr_crop.y + ")");
+                /*
+                Horizontal line: 515.0
+                Scale ratio: 0.85
+                scale_offset: 686
+                 */
 
                 mRgbaTemp.copyTo(mRgba);
                 boolean rectified = ArucoDetection.RectifyImage(mRgba, cropped, src_points, dst_points);
-                Log.d("ARUCO", "Size post transform w=" + cropped.size().width + " h=" + cropped.size().height);
+                Log.d("ARUCOCAmera", "Size post transform w=" + cropped.size().width + " h=" + cropped.size().height);
+                //Size post transform w=846.0 h=917.0
+                // the image is rotated in the saveDialog function
                 if(rectified){
-//                    Rect roi = new Rect(853, 457, 69, 69);
-                    // these coords are found mostly through trial and error
-                    // here we crop down to just the QR code regions so there is less chance of confusing it
-//                    Rect roi = new Rect(21, 6, 200, 200);
-//                    Rect roi = new Rect(448, 778, 200, 200);
-                    Rect roi = new Rect(0, 738, 256, 256);
+
                     //Imgproc.rectangle(mRgbaModified, new Point(942, 518), new Point(942 + 68, 518 + 68), new Scalar(255, 0, 0), 3);
-                    Mat smallImg = new Mat(cropped, roi);
-                    qrText = readQRCode(smallImg);
-                    smallImg.release();
+
+                    //Rect roi = new Rect(0, 738, 256, 256);
+//                    Mat smallImg = new Mat(cropped, roi);
+//                    qrText = readQRCode(smallImg);
+//                    smallImg.release();
+                    qrText = readQRCode(cropped); // this should be good enough to pick up the QR code anywhere in the image
+                    // so forget cropping it again just for this
+
                     if(!Objects.equals(qrText, "")){
-                        Log.d("ArucoCameraActivcity QR Code", qrText);
+                        Log.d("ArucoCameraActivity QR Code", qrText);
                         // crop the cropped image again to take the upper square out of the detection area
                         // (214, 0) (982, 768)  make it square
 //                        Rect finalRect = new Rect(214, 0, 768, 768);
