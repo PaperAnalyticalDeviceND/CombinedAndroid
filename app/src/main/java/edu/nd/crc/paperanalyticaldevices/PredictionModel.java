@@ -140,7 +140,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                     // after rotating 90 degrees clockwise
 //                    bm = Bitmap.createBitmap(bmRect, 210, 0, 685, 527);
 //                    bm = Bitmap.createBitmap(bmRect, 183, 0, 731, 563);
-                    bm = Bitmap.createBitmap(bmRect, 224, 0, 708, 545);
+                    bm = Bitmap.createBitmap(bmRect, 230, 5, 696, 536);
                     // x224 w708, h545
                 }else{
                     bm = Bitmap.createBitmap(bmRect, 71, 359, 636, 490);

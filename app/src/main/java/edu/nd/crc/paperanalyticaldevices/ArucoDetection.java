@@ -108,14 +108,12 @@ public class ArucoDetection {
 //        targetPoints.add(new Point(508, 950)); // marker 3 - 0 - 1300, 844
         //List<Integer> f_locs = Arrays.asList(684, 844, 684, 68, 1300, 68, 1300, 844);
         // flip landscape to portrait:  x = (height - y) * ratio, y = (x) * ratio
-        // [684, 844] -> [236, 684] scaled -> [157, 455]
-        // [684, 68]  -> [1012, 684] scaled -> [674, 455]
-        // [1300, 68] -> [1012, 1300] scaled -> [674, 866]
-        // [1300, 844] -> [236, 1300] scaled -> [157, 866]
+
         //List<Integer> f_locs = Arrays.asList(157, 455, 674, 455, 674, 866, 157, 866); // scaled down portrait coords
-        // maybe just do transform with markers 4 and 8 (opposite corners)
-        // 4 = (153, 228), 8 = (962, 869)
-        List<Integer> f_locs = Arrays.asList(153, 228, 962, 228, 962, 869, 153, 869);
+
+        //List<Integer> f_locs = Arrays.asList(153, 228, 962, 228, 962, 869, 153, 869); // src and dest must stay in this order for transform to work right
+        // but in landscap it would be 3, 8, 0, 4
+        List<Integer> f_locs = Arrays.asList(962, 228, 962, 869, 153, 869, 153, 228);
         for (int i = 0; i < 4; i++) {
             int x = (int) ((f_locs.get(i * 2) - horiz_line) * scale_ratio + horiz_line - 10); //based on 1030 width artwork
             int y = (int) (f_locs.get(i * 2 + 1) * scale_ratio + scale_offset);
@@ -130,10 +128,10 @@ public class ArucoDetection {
                 //pnt = new Point((720 - y), x);
                 pnt = new Point(x * ratio, y * ratio);  // this is always the destination point
             }
-            guideSquares.add(pnt);
+            guideSquares.add(pnt);  // for the fullsize preview image (landscape)
 
             Point pnt2 = new Point(x * ratio, y * ratio);
-            targetPoints.add(pnt2);
+            targetPoints.add(pnt2); // portrait targets to match against the corners
         }
 //        targetPoints.add(new Point(684, 844)); // marker 0 - 4
 //        targetPoints.add(new Point(684, 68)); // marker 1 - 3 -
@@ -148,10 +146,15 @@ public class ArucoDetection {
         // [684.0, 844.0] -> [236, 684] aruco 4
         // [1300.0, 844.0] -> [236, 1300] aruco 0
         // new markers go 4, 3, 8, 0
-        pointsMap.add(4);
+//        pointsMap.add(4);
+//        pointsMap.add(3);
+//        pointsMap.add(8);
+//        pointsMap.add(0);
+        // the perspective transform might need points in this specific order (landscape)
         pointsMap.add(3);
         pointsMap.add(8);
         pointsMap.add(0);
+        pointsMap.add(4);
 
         // draw some squares as a rough guide
         for(int i=0;  i < 4; i++){
@@ -273,6 +276,9 @@ public class ArucoDetection {
         Log.d("PADS", "ArucoDetection: GetArucoLocations: corners.size() = " + corners.size());
         Log.d("PADS", "ArucoDetection: GetArucoLocations: ids = " + ids);
 
+        float[] work_src_points = new float[8];
+        float[] work_dst_points = new float[8];
+
         if(corners.size() > 3) {
             Scalar color = new Scalar(0, 255, 0, 255);
             for(int i = 0; i < corners.size(); i++) {
@@ -293,12 +299,18 @@ public class ArucoDetection {
 
                 int index = pointsMap.indexOf(id);
                 // here we map the correct markers to the correct destination points
-                src_points[i * 2] = (float) p1.x;
-                src_points[i * 2 + 1] = (float) p1.y;
-                dst_points[i * 2] = (float) targetPoints.get(index).x;
-                dst_points[i * 2 + 1] = (float) targetPoints.get(index).y;
-                target_points[i * 2] = (float) targetPoints.get(index).x;
-                target_points[i * 2 + 1] = (float) targetPoints.get(index).y;
+                work_src_points[index * 2] = (float) p1.x;
+                work_src_points[index * 2 + 1] = (float) p1.y;
+                work_dst_points[index * 2] = (float) targetPoints.get(index).x;
+                work_dst_points[index * 2 + 1] = (float) targetPoints.get(index).y;
+
+                src_points[index * 2] = (float) p1.y * ratio;
+                src_points[index * 2 + 1] = (float) (IMAGE_WIDTH - p1.x) * ratio;
+                dst_points[index * 2] = (float) guideSquares.get(index).x;
+                dst_points[index * 2 + 1] = (float) guideSquares.get(index).y;
+
+                target_points[index * 2] = (float) targetPoints.get(index).x;
+                target_points[index * 2 + 1] = (float) targetPoints.get(index).y;
 
                 Point comDisplay;
                 if (portrait) {
@@ -315,8 +327,8 @@ public class ArucoDetection {
             // we need to scale the detected corners back to preview size before drawing them
             //Objdetect.drawDetectedMarkers(mRgbaModified, corners, ids, new Scalar(255, 0, 0));
 
-            for(int j = 0; j < src_points.length; j++){
-                float diff = abs(src_points[j] - target_points[j]);
+            for(int j = 0; j < work_src_points.length; j++){
+                float diff = abs(work_src_points[j] - target_points[j]);
                 if(diff > 150.0){
                     Log.d("ARUCO", "Diff: " + diff);
                     return false;
@@ -335,6 +347,8 @@ public class ArucoDetection {
         Mat sourcePoints = new Mat(4, 2, CvType.CV_32F);
         destinationpoints.put(0, 0, dest_points);
         sourcePoints.put(0, 0, src_points);
+        //destinationpoints.put(0, 0, Arrays.copyOfRange(dest_points, 0, 3));
+        //sourcePoints.put(0, 0, Arrays.copyOfRange(src_points, 0, 3));
         Log.d("Rectify", "Height: " + input.size().height + " Width: " + input.size().width);
         //MatOfPoint2f src = new MatOfPoint2f(sourcePoints);
         //MatOfPoint2f dst = new MatOfPoint2f(destinationpoints);
