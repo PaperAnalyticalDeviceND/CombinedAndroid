@@ -167,49 +167,6 @@
 
             </LinearLayout>
         </LinearLayout>
-
-        <TextView
-            android:id="@+id/drugView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="0"
-            android:paddingLeft="8dp"
-
-            android:text="@string/stored_drug_string"
-            tools:layout_editor_absoluteX="136dp"
-            tools:layout_editor_absoluteY="85dp" />
-
-        <Spinner
-            android:id="@+id/drugSpinner"
-            android:layout_width="match_parent"
-            android:layout_height="37dp"
-            android:dropDownHeight="wrap_content"
-            android:background="#FFFFFF"
-            android:layout_marginBottom="10sp"
-            tools:layout_editor_absoluteX="132dp"
-            tools:layout_editor_absoluteY="111dp" />
-
-        <TextView
-            android:id="@+id/brandView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="0"
-            android:paddingLeft="8dp"
-
-            android:text="@string/brand_string"
-            tools:layout_editor_absoluteX="136dp"
-            tools:layout_editor_absoluteY="85dp" />
-
-        <Spinner
-            android:id="@+id/brandSpinner"
-            android:layout_width="match_parent"
-            android:layout_height="37dp"
-            android:dropDownHeight="wrap_content"
-            android:background="#FFFFFF"
-            android:layout_marginBottom="10sp"
-            tools:layout_editor_absoluteX="132dp"
-            tools:layout_editor_absoluteY="111dp" />
-
         <TextView
             android:id="@+id/batchView"
             android:layout_width="match_parent"
@@ -218,8 +175,7 @@
             android:paddingLeft="8dp"
 
             android:text="@string/batch_string"
-            tools:layout_editor_absoluteX="136dp"
-            tools:layout_editor_absoluteY="85dp" />
+            />
 
         <!--Spinner
             android:id="@+id/batchSpinner"
@@ -233,11 +189,10 @@
             android:layout_width="match_parent"
             android:layout_height="37dp"
             android:paddingLeft="8dp"
-            android:text="@color/switchThumbActive"
+
             android:background="#FFFFFF"
             android:layout_marginBottom="10sp"
-            tools:layout_editor_absoluteX="132dp"
-            tools:layout_editor_absoluteY="111dp" />
+            />
 
         <Switch
             android:id="@+id/oktoconsumetoggleswitch"
@@ -255,6 +210,45 @@
             android:thumb="@drawable/pill_toggle_thumb"
             android:thumbTextPadding="10dp"
             android:track="@drawable/pill_toggle_track" />
+        <TextView
+            android:id="@+id/drugView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:paddingLeft="8dp"
+
+            android:text="@string/stored_drug_string"
+            />
+
+        <Spinner
+            android:id="@+id/drugSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="37dp"
+            android:dropDownHeight="wrap_content"
+            android:background="#FFFFFF"
+            android:layout_marginBottom="10sp"
+            />
+
+        <TextView
+            android:id="@+id/brandView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:paddingLeft="8dp"
+
+            android:text="@string/brand_string"
+            />
+
+        <Spinner
+            android:id="@+id/brandSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="37dp"
+            android:dropDownHeight="wrap_content"
+            android:background="#FFFFFF"
+            android:layout_marginBottom="10sp"
+            />
+
+
 
         <TextView
             android:id="@+id/textView"

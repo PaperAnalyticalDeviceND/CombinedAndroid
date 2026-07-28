@@ -302,7 +302,7 @@
         android:padding="10dp"
         android:textColor="#000FFF"
         android:textSize="24dp"
-        app:icon="@drawable/outline_photo_camera_24"
+        app:icon="@drawable/baseline_photo_camera_24"
         style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
         app:iconTint="#000FFF"
         app:layout_constraintBottom_toBottomOf="parent"
