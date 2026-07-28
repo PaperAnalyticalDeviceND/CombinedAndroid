@@ -36,7 +36,7 @@ public class TensorflowNetwork {
 
         // Setup Inputs
         Tensor input = mInterpretor.getInputTensor(0);
-
+        Log.d("Tensorflow", "Input tensor size:" + input.shape()[2] + " " + input.shape()[1]);
         TensorImage = new TensorImage(input.dataType());
         mImageProcessor = new ImageProcessor.Builder()
                 .add(new ResizeOp(input.shape()[2], input.shape()[1], ResizeOp.ResizeMethod.BILINEAR))

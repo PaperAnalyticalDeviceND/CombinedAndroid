@@ -76,6 +76,8 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
     public static long downloadId;
     //private Map<String, String> keyValueMap;
 
+    private Bitmap bm;
+
     public PredictionModel(@NonNull Application application) {
         super(application);
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(application.getApplicationContext());
@@ -128,7 +130,7 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                 // crop input image
                 Bitmap bmRect = BitmapFactory.decodeFile(rectifiedFile.getPath());
 
-                Bitmap bm = Bitmap.createBitmap(bmRect, 71, 359, 636, 490);
+//                bm = Bitmap.createBitmap(bmRect, 71, 359, 636, 490);
                 if(padType.equals("airgap")){
                     //Rect finalRect = new Rect(214, 0, 768, 592);
                     // cropped = new Mat(cropped, finalRect);
@@ -136,7 +138,12 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                     // with the QA code on the bottom left
                     //bm = Bitmap.createBitmap(bmRect, 0, 88, 592, 768);
                     // after rotating 90 degrees clockwise
-                    bm = Bitmap.createBitmap(bmRect, 210, 0, 685, 527);
+//                    bm = Bitmap.createBitmap(bmRect, 210, 0, 685, 527);
+//                    bm = Bitmap.createBitmap(bmRect, 183, 0, 731, 563);
+                    bm = Bitmap.createBitmap(bmRect, 230, 5, 696, 536);
+                    // x224 w708, h545
+                }else{
+                    bm = Bitmap.createBitmap(bmRect, 71, 359, 636, 490);
                 }
 
                 // Predict
