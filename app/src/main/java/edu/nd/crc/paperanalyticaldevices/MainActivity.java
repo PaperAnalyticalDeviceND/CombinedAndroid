@@ -566,7 +566,7 @@ public class MainActivity extends AppCompatActivity {
                     .setRequiredNetworkType(NetworkType.UNMETERED)
                     .build();
 
-            WorkRequest myUploadWork = new OneTimeWorkRequest.Builder(UpdatesWorker.class).setConstraints(constraints)
+            WorkRequest myUploadWork = new OneTimeWorkRequest.Builder(UpdatesWorker.class)//.setConstraints(constraints)
                     .addTag("neuralnet_updates").setInputData(new Data.Builder()
                             .putStringArray("projectkeys", projectFolders)
                             .build()
