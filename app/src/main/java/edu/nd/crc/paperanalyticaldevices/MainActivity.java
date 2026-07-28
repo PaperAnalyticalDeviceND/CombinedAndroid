@@ -175,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
             ArrayList<String> ids = PredictionModel.getStoredDownloadIds(prefs);
-            // Check if the received broadcast is for the our enqueued download
+            // Check if the received broadcast is for the enqueued download
             if (id == PredictionModel.downloadId || ids.contains(String.valueOf(id))) {
 
                 Toast.makeText(MainActivity.this, "Download Completed", Toast.LENGTH_SHORT).show();
