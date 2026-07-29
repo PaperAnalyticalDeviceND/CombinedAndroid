@@ -53,6 +53,7 @@
     <string name="neural_net_label">Classifier:</string>
     <string name="category">Category</string>
     <string name="title_activity_queue">Upload Queue</string>
+    <string name="button_label_queue">Queue</string>
     <string name="donetext">Done</string>
     <string name="no_model_set">Please select a neural network on the Settings page.</string>
     <string name="no_project_set">Please select a project on the Settings page.</string>

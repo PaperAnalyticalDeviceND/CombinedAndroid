@@ -303,13 +303,13 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //put in a top toolbar with a menu dropdown
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(myToolbar);
-        ActionBar actionBar = getSupportActionBar();
-        if(actionBar != null) {
-            actionBar.setDisplayShowTitleEnabled(true);
-        }
-        myToolbar.showOverflowMenu();
+//        Toolbar myToolbar = (Toolbar) findViewById(R.id.toolbar);
+//        setSupportActionBar(myToolbar);
+//        ActionBar actionBar = getSupportActionBar();
+//        if(actionBar != null) {
+//            actionBar.setDisplayShowTitleEnabled(true);
+//        }
+//        myToolbar.showOverflowMenu();
         //get drug labels stored for primary neural net
 
         dbHelper = new ProjectsDbHelper(this);
@@ -416,6 +416,21 @@ public class MainActivity extends AppCompatActivity {
             notificationPermissionRequest.launch(new String[]{Manifest.permission.POST_NOTIFICATIONS});
         }
 
+    }
+
+    public void goToSettings(View view) {
+        Intent i = new Intent(this, SettingsActivity.class);
+        startActivity(i);
+    }
+
+    public void goToQueue(View view){
+        Intent iq2 = new Intent(this, UploadQueueActivity.class);
+        startActivity(iq2);
+    }
+
+    public void goToAbout(View view){
+        Intent a = new Intent(this, AboutActivity.class);
+        startActivity(a);
     }
 
     private void setDrugSpinnerItems(){
