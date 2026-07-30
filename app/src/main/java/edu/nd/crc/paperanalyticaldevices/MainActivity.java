@@ -51,6 +51,7 @@ import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
 
+import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.slider.LabelFormatter;
 import com.google.android.material.slider.Slider;
 import com.google.android.material.slider.Slider.OnSliderTouchListener;
@@ -164,6 +165,26 @@ public class MainActivity extends AppCompatActivity {
             Log.d("Marker Index", String.valueOf(markerIndex));
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
             prefs.edit().putInt("marker_type", markerIndex).apply();
+        }
+    };
+
+    private final MaterialButtonToggleGroup.OnButtonCheckedListener concentrationButtonListener = new MaterialButtonToggleGroup.OnButtonCheckedListener() {
+        @Override
+        public void onButtonChecked(MaterialButtonToggleGroup group, int checkedId, boolean isChecked)
+        {
+            if (isChecked) {
+
+                if(checkedId == R.id.conc_100){
+                    concIndex = 0;
+                }else if(checkedId == R.id.conc_80){
+                    concIndex = 1;
+                }else if(checkedId == R.id.conc_50){
+                    concIndex = 2;
+                }else if(checkedId == R.id.conc_20){
+                    concIndex = 3;
+                }
+                Log.d("PADS", "Button Checked " + concIndex);
+            }
         }
     };
 
@@ -316,10 +337,12 @@ public class MainActivity extends AppCompatActivity {
         db = dbHelper.getReadableDatabase();
         setDrugSpinnerItems();
 
-        Slider sConc = findViewById(R.id.concDrugSpinner);
-        Slider markerSlider = findViewById(R.id.markerType);
-        markerSlider.addOnSliderTouchListener(markerTouchListener);
-        markerSlider.setValue(markerIndex);
+        MaterialButtonToggleGroup sConc = findViewById(R.id.concDrugSpinner);
+        //Slider sConc = findViewById(R.id.concDrugSpinner);
+
+//        Slider markerSlider = findViewById(R.id.markerType);
+//        markerSlider.addOnSliderTouchListener(markerTouchListener);
+//        markerSlider.setValue(markerIndex);
 
         LabelFormatter formatter = new LabelFormatter() {
             @NonNull
@@ -331,8 +354,9 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-        sConc.setLabelFormatter(formatter);
-        sConc.addOnSliderTouchListener(touchListener);
+        //sConc.setLabelFormatter(formatter);
+        //sConc.addOnSliderTouchListener(touchListener);
+        sConc.addOnButtonCheckedListener(concentrationButtonListener);
 
         Log.d("PADSMAINACTIVITY", "NeuralNet and Version: " + project + " " + neuralNetVersion);
         networkLabel = findViewById(R.id.neuralnet_name_view);

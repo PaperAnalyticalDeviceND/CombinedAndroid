@@ -299,22 +299,60 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/concDrugView"
         / -->
-    <com.google.android.material.slider.Slider
+<!--    <com.google.android.material.slider.Slider-->
+<!--        android:id="@+id/concDrugSpinner"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_weight="1"-->
+<!--        android:layout_marginLeft="36dp"-->
+<!--        android:layout_marginStart="36dp"-->
+<!--        android:layout_marginEnd="36dp"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/concDrugView"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        android:valueFrom="0"-->
+<!--        android:valueTo="3"-->
+<!--        android:stepSize="1"-->
+<!--        app:labelBehavior="visible"/>-->
+
+    <com.google.android.material.button.MaterialButtonToggleGroup
         android:id="@+id/concDrugSpinner"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:layout_marginLeft="36dp"
-        android:layout_marginStart="36dp"
-        android:layout_marginEnd="36dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/concDrugView"
         app:layout_constraintEnd_toEndOf="parent"
-        android:valueFrom="0"
-        android:valueTo="3"
-        android:stepSize="1"
-        app:labelBehavior="visible"/>
-
+        app:singleSelection="true"
+        app:checkedButton="@id/conc_100"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <Button
+            style="?attr/materialButtonOutlinedStyle"
+            android:id="@+id/conc_100"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="100%"
+            />
+        <Button
+            style="?attr/materialButtonOutlinedStyle"
+            android:id="@+id/conc_80"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="80%"
+            />
+        <Button
+            style="?attr/materialButtonOutlinedStyle"
+            android:id="@+id/conc_50"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="50%"
+            />
+        <Button
+            style="?attr/materialButtonOutlinedStyle"
+            android:id="@+id/conc_20"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="20%"
+            />
+    </com.google.android.material.button.MaterialButtonToggleGroup>
     <TextView
         android:id="@+id/markerTypeLabel"
         android:layout_width="wrap_content"
@@ -370,6 +408,37 @@
         app:layout_constraintStart_toEndOf="@id/fiducial"
         app:layout_constraintTop_toBottomOf="@+id/markerTypeLabel" />
 
+<!--    <com.google.android.material.button.MaterialButtonToggleGroup-->
+<!--        android:id="@+id/markerType"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/markerTypeLabel"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:singleSelection="true"-->
+<!--        app:checkedButton="@id/fiducial"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content">-->
+<!--        <com.google.android.material.button.MaterialButton-->
+<!--            style="@style/Widget.App.Button.OutlinedButton.IconOnly"-->
+<!--            android:id="@+id/fiducial"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            app:iconGravity="start"-->
+<!--            android:text=""-->
+<!--            app:iconPadding="0dp"-->
+<!--            app:icon="@drawable/ic_fiducial_square"-->
+<!--            />-->
+<!--        <Button-->
+<!--            style="@style/Widget.App.Button.OutlinedButton.IconOnly"-->
+<!--            android:id="@+id/aruco"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            app:iconGravity="start"-->
+<!--            android:text=""-->
+<!--            app:iconPadding="0dp"-->
+<!--            app:icon="@drawable/ic_aruco_marker_id4"-->
+<!--            />-->
+
+<!--    </com.google.android.material.button.MaterialButtonToggleGroup>-->
     <Button
         android:id="@+id/button3"
         android:layout_width="wrap_content"
