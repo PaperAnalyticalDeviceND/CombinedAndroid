@@ -371,24 +371,25 @@
 
     <ImageView
         android:id="@+id/fiducial"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@id/markerType"
         app:layout_constraintTop_toBottomOf="@id/concDrugSpinner"
         app:layout_constraintBottom_toTopOf="@id/button3"
-        app:srcCompat="@mipmap/fiducial"
+        app:srcCompat="@drawable/ic_fiducial_square"
+
         />
 
     <ImageView
         android:id="@+id/aruco"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
         app:layout_constraintStart_toEndOf="@id/markerType"
         app:layout_constraintBottom_toTopOf="@id/button3"
         app:layout_constraintTop_toBottomOf="@id/concDrugSpinner"
         app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@mipmap/aruco1"
+        app:srcCompat="@drawable/ic_aruco_marker_id4"
         />
 
     <com.google.android.material.slider.Slider
