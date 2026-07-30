@@ -53,7 +53,7 @@ public class AboutActivity extends AppCompatActivity {
 
         TextView versionView = findViewById(R.id.version_textview);
 
-        String versionString = "PADReader Version: " + BuildConfig.VERSION_NAME;
+        String versionString = "PADReader Version: " + BuildConfig.VERSION_NAME + " Build: " + BuildConfig.VERSION_CODE;
         versionView.setText(versionString);
     }
 

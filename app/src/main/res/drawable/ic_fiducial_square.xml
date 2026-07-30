@@ -1,0 +1,27 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp"
+    android:height="100dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+
+    <!-- Outer white quiet zone background -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M0,0h100v100H0Z"/>
+
+    <!-- Outer black square ring -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M10,10h80v80H10Z"/>
+
+    <!-- Inner white square ring -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M22.5,22.5h55v55H22.5Z"/>
+
+    <!-- Center black marker background -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M35,35h30v30H35Z"/>
+
+</vector>

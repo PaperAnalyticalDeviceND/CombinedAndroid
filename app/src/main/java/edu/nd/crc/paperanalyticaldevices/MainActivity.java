@@ -35,6 +35,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -50,6 +51,7 @@ import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
 
+import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.slider.LabelFormatter;
 import com.google.android.material.slider.Slider;
 import com.google.android.material.slider.Slider.OnSliderTouchListener;
@@ -166,6 +168,26 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    private final MaterialButtonToggleGroup.OnButtonCheckedListener concentrationButtonListener = new MaterialButtonToggleGroup.OnButtonCheckedListener() {
+        @Override
+        public void onButtonChecked(MaterialButtonToggleGroup group, int checkedId, boolean isChecked)
+        {
+            if (isChecked) {
+
+                if(checkedId == R.id.conc_100){
+                    concIndex = 0;
+                }else if(checkedId == R.id.conc_80){
+                    concIndex = 1;
+                }else if(checkedId == R.id.conc_50){
+                    concIndex = 2;
+                }else if(checkedId == R.id.conc_20){
+                    concIndex = 3;
+                }
+                Log.d("PADS", "Button Checked " + concIndex);
+            }
+        }
+    };
+
     // check DownloadManager completed the neural net file download here
     private final BroadcastReceiver onDownloadComplete = new BroadcastReceiver() {
         @Override
@@ -264,7 +286,7 @@ public class MainActivity extends AppCompatActivity {
 
         FirebaseApp.initializeApp(this);
         FirebaseAnalytics mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
-
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         // DownloadManager complete
         registerReceiver(onDownloadComplete,new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE), Context.RECEIVER_EXPORTED);
 
@@ -302,20 +324,22 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //put in a top toolbar with a menu dropdown
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(myToolbar);
-        ActionBar actionBar = getSupportActionBar();
-        if(actionBar != null) {
-            actionBar.setDisplayShowTitleEnabled(true);
-        }
-        myToolbar.showOverflowMenu();
+//        Toolbar myToolbar = (Toolbar) findViewById(R.id.toolbar);
+//        setSupportActionBar(myToolbar);
+//        ActionBar actionBar = getSupportActionBar();
+//        if(actionBar != null) {
+//            actionBar.setDisplayShowTitleEnabled(true);
+//        }
+//        myToolbar.showOverflowMenu();
         //get drug labels stored for primary neural net
 
         dbHelper = new ProjectsDbHelper(this);
         db = dbHelper.getReadableDatabase();
         setDrugSpinnerItems();
 
-        Slider sConc = findViewById(R.id.concDrugSpinner);
+        MaterialButtonToggleGroup sConc = findViewById(R.id.concDrugSpinner);
+        //Slider sConc = findViewById(R.id.concDrugSpinner);
+
         Slider markerSlider = findViewById(R.id.markerType);
         markerSlider.addOnSliderTouchListener(markerTouchListener);
         markerSlider.setValue(markerIndex);
@@ -330,8 +354,9 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-        sConc.setLabelFormatter(formatter);
-        sConc.addOnSliderTouchListener(touchListener);
+        //sConc.setLabelFormatter(formatter);
+        //sConc.addOnSliderTouchListener(touchListener);
+        sConc.addOnButtonCheckedListener(concentrationButtonListener);
 
         Log.d("PADSMAINACTIVITY", "NeuralNet and Version: " + project + " " + neuralNetVersion);
         networkLabel = findViewById(R.id.neuralnet_name_view);
@@ -415,6 +440,21 @@ public class MainActivity extends AppCompatActivity {
             notificationPermissionRequest.launch(new String[]{Manifest.permission.POST_NOTIFICATIONS});
         }
 
+    }
+
+    public void goToSettings(View view) {
+        Intent i = new Intent(this, SettingsActivity.class);
+        startActivity(i);
+    }
+
+    public void goToQueue(View view){
+        Intent iq2 = new Intent(this, UploadQueueActivity.class);
+        startActivity(iq2);
+    }
+
+    public void goToAbout(View view){
+        Intent a = new Intent(this, AboutActivity.class);
+        startActivity(a);
     }
 
     private void setDrugSpinnerItems(){

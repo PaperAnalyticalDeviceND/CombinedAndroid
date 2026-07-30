@@ -104,8 +104,8 @@ public class ResultActivity extends AppCompatActivity {
 
         // Setup compatability toolbar
         // make sure the manifest specifies a NoAppBar theme or this will create an exception
-        Toolbar myToolbar = findViewById(R.id.my_toolbar);
-        setSupportActionBar(myToolbar);
+        //Toolbar myToolbar = findViewById(R.id.my_toolbar);
+        //setSupportActionBar(myToolbar);
 
         Switch okToConsumeSwitch = findViewById(R.id.oktoconsumetoggleswitch);
         //set up toggle switch "Suspected unsafe?"
@@ -352,7 +352,7 @@ public class ResultActivity extends AppCompatActivity {
 
     public void saveData(View view) {
         Log.i("GB", "Button pushed");
-
+        int build = BuildConfig.VERSION_CODE;
         HashMap<String, Object> hashMap = new HashMap<>();
 
         hashMap.put("Notes version", notesVersion);
@@ -363,7 +363,7 @@ public class ResultActivity extends AppCompatActivity {
         hashMap.put("PLS used", plsUsed);
         hashMap.put("Notes", getNotes());
         hashMap.put("App type", "Android");
-        hashMap.put("Build", buildNumber);
+        hashMap.put("Build", build);
 
         String compressedNotes = "Predicted drug = ";
         compressedNotes += getBatch();

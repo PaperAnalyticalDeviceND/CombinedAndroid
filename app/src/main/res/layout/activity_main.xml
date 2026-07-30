@@ -58,7 +58,84 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/appName" /-->
+    <LinearLayout
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center_horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/titlebar"
+        >
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
 
+            android:id="@+id/button_queue"
+            android:text="@string/button_label_queue"
+            app:icon="@drawable/ic_queue_24"
+            android:textColor="#000FFF"
+            android:textSize="12sp"
+            style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+            app:iconTint="#000FFF"
+            android:onClick="goToQueue"
+            />
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:iconGravity="textEnd"
+            android:id="@+id/button_settings"
+            android:text="@string/appsettings"
+            app:icon="@drawable/ic_baseline_settings_24"
+            android:textColor="#000FFF"
+            android:textSize="12sp"
+            style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+            app:iconTint="#000FFF"
+            android:onClick="goToSettings"
+            />
+
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/titlebar"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+
+        >
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="4"
+            android:layout_gravity="center"
+            android:layout_marginStart="20dp"
+            android:text="@string/app_name"
+            android:textSize="18sp"
+            app:drawableStartCompat="@drawable/ic_analyze_pads"
+            android:drawableTint="#00FF00"
+            android:drawablePadding="8dp"
+            />
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#000FFF"
+            android:textSize="12sp"
+            app:iconTint="#000FFF"
+            android:layout_weight="0"
+            style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+            app:icon="@drawable/outline_info_24"
+            android:onClick="goToAbout"
+            />
+
+    </LinearLayout>
     <TextView
         android:id="@+id/project_label"
         android:layout_width="wrap_content"
@@ -67,7 +144,7 @@
         android:layout_marginTop="8dp"
         android:text="@string/project"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar" />
+        app:layout_constraintTop_toBottomOf="@id/titlebar" />
 
     <TextView
         android:id="@+id/network_label"
@@ -129,7 +206,7 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar" />
+        app:layout_constraintTop_toBottomOf="@id/titlebar" />
 
     <TextView
         android:id="@+id/neuralnet_name_view"
@@ -222,22 +299,60 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/concDrugView"
         / -->
-    <com.google.android.material.slider.Slider
+<!--    <com.google.android.material.slider.Slider-->
+<!--        android:id="@+id/concDrugSpinner"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_weight="1"-->
+<!--        android:layout_marginLeft="36dp"-->
+<!--        android:layout_marginStart="36dp"-->
+<!--        android:layout_marginEnd="36dp"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/concDrugView"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        android:valueFrom="0"-->
+<!--        android:valueTo="3"-->
+<!--        android:stepSize="1"-->
+<!--        app:labelBehavior="visible"/>-->
+
+    <com.google.android.material.button.MaterialButtonToggleGroup
         android:id="@+id/concDrugSpinner"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:layout_marginLeft="36dp"
-        android:layout_marginStart="36dp"
-        android:layout_marginEnd="36dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/concDrugView"
         app:layout_constraintEnd_toEndOf="parent"
-        android:valueFrom="0"
-        android:valueTo="3"
-        android:stepSize="1"
-        app:labelBehavior="visible"/>
-
+        app:singleSelection="true"
+        app:checkedButton="@id/conc_100"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <Button
+            style="?attr/materialButtonOutlinedStyle"
+            android:id="@+id/conc_100"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="100%"
+            />
+        <Button
+            style="?attr/materialButtonOutlinedStyle"
+            android:id="@+id/conc_80"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="80%"
+            />
+        <Button
+            style="?attr/materialButtonOutlinedStyle"
+            android:id="@+id/conc_50"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="50%"
+            />
+        <Button
+            style="?attr/materialButtonOutlinedStyle"
+            android:id="@+id/conc_20"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="20%"
+            />
+    </com.google.android.material.button.MaterialButtonToggleGroup>
     <TextView
         android:id="@+id/markerTypeLabel"
         android:layout_width="wrap_content"
@@ -293,6 +408,37 @@
         app:layout_constraintStart_toEndOf="@id/fiducial"
         app:layout_constraintTop_toBottomOf="@+id/markerTypeLabel" />
 
+<!--    <com.google.android.material.button.MaterialButtonToggleGroup-->
+<!--        android:id="@+id/markerType"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/markerTypeLabel"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:singleSelection="true"-->
+<!--        app:checkedButton="@id/fiducial"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content">-->
+<!--        <com.google.android.material.button.MaterialButton-->
+<!--            style="@style/Widget.App.Button.OutlinedButton.IconOnly"-->
+<!--            android:id="@+id/fiducial"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            app:iconGravity="start"-->
+<!--            android:text=""-->
+<!--            app:iconPadding="0dp"-->
+<!--            app:icon="@drawable/ic_fiducial_square"-->
+<!--            />-->
+<!--        <Button-->
+<!--            style="@style/Widget.App.Button.OutlinedButton.IconOnly"-->
+<!--            android:id="@+id/aruco"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            app:iconGravity="start"-->
+<!--            android:text=""-->
+<!--            app:iconPadding="0dp"-->
+<!--            app:icon="@drawable/ic_aruco_marker_id4"-->
+<!--            />-->
+
+<!--    </com.google.android.material.button.MaterialButtonToggleGroup>-->
     <Button
         android:id="@+id/button3"
         android:layout_width="wrap_content"
@@ -302,7 +448,7 @@
         android:padding="10dp"
         android:textColor="#000FFF"
         android:textSize="24dp"
-        app:icon="@drawable/outline_photo_camera_24"
+        app:icon="@drawable/baseline_photo_camera_24"
         style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
         app:iconTint="#000FFF"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -328,20 +474,20 @@
         app:layout_constraintTop_toBottomOf="@+id/concDrugSpinner"
         />-->
 
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:elevation="16dp"
-        android:minHeight="?attr/actionBarSize"
-        android:theme="?attr/actionBarTheme"
-        app:layout_constraintBottom_toTopOf="@id/project_label"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+<!--    <androidx.appcompat.widget.Toolbar-->
+<!--        android:id="@+id/toolbar"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:elevation="16dp"-->
+<!--        android:minHeight="?attr/actionBarSize"-->
+<!--        android:theme="?attr/actionBarTheme"-->
+<!--        app:layout_constraintBottom_toTopOf="@id/project_label"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent"-->
 
-        app:navigationIcon="@drawable/ic_analyze_pads"
-        app:popupTheme="@style/MyToolbarStyle" />
+<!--        app:navigationIcon="@drawable/ic_analyze_pads"-->
+<!--        app:popupTheme="@style/MyToolbarStyle" />-->
 
 
 
