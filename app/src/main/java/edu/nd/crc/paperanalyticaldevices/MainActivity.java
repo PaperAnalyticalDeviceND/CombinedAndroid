@@ -340,9 +340,9 @@ public class MainActivity extends AppCompatActivity {
         MaterialButtonToggleGroup sConc = findViewById(R.id.concDrugSpinner);
         //Slider sConc = findViewById(R.id.concDrugSpinner);
 
-//        Slider markerSlider = findViewById(R.id.markerType);
-//        markerSlider.addOnSliderTouchListener(markerTouchListener);
-//        markerSlider.setValue(markerIndex);
+        Slider markerSlider = findViewById(R.id.markerType);
+        markerSlider.addOnSliderTouchListener(markerTouchListener);
+        markerSlider.setValue(markerIndex);
 
         LabelFormatter formatter = new LabelFormatter() {
             @NonNull
