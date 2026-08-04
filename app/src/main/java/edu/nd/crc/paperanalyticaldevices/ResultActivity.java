@@ -132,8 +132,8 @@ public class ResultActivity extends AppCompatActivity {
 
         String sPredicted = "";
         //check exists first to avoid exception when passing it to the array adapter
-        if (intent.hasExtra(MainActivity.EXTRA_PREDICTED)) {
-            sPredicted = intent.getStringExtra(MainActivity.EXTRA_PREDICTED);
+        if (intent.hasExtra(MainActivity.EXTRA_PREDICTED_DRUG)) {
+            sPredicted = intent.getStringExtra(MainActivity.EXTRA_PREDICTED_DRUG);
         }
         String sPredictedConcentration = "";
         if(intent.hasExtra(MainActivity.EXTRA_NN_CONC)){
