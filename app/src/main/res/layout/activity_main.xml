@@ -117,6 +117,7 @@
             android:layout_weight="4"
             android:layout_gravity="center"
             android:layout_marginStart="20dp"
+            android:textStyle="bold"
             android:text="@string/app_name"
             android:textSize="18sp"
             app:drawableStartCompat="@drawable/ic_analyze_pads"
@@ -142,6 +143,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
+        android:textStyle="bold"
         android:text="@string/project"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/titlebar" />
@@ -152,6 +154,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
+        android:textStyle="bold"
         android:text="@string/neural_net_label"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/project_label"
@@ -163,7 +166,8 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
-        android:text="Conc. Classifier:"
+        android:textStyle="bold"
+        android:text="@string/concentration_classifier_label"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/network_label"
         />
@@ -174,7 +178,8 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
-        android:text="PLS File:"
+        android:textStyle="bold"
+        android:text="@string/pls_classifier_label"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/secondary_network_label"
         />
@@ -227,13 +232,15 @@
         android:layout_marginBottom="5dp"
         android:layout_weight="0"
 
+        android:textStyle="bold"
         android:paddingLeft="10dp"
         android:paddingTop="10dp"
-        android:text="@string/stored_drug_string"
+        android:text="@string/stated_drug_title"
         app:layout_constraintBottom_toTopOf="@+id/statedDrugSpinner"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/pls_label" />
+        app:layout_constraintTop_toBottomOf="@+id/pls_label"
+        />
 
     <!--Spinner
         android:id="@+id/statedDrugSpinner"
@@ -268,6 +275,7 @@
         android:layout_marginEnd="16dp"
         android:layout_weight="0"
 
+        android:textStyle="bold"
         android:paddingLeft="10dp"
         android:paddingTop="10dp"
         android:text="@string/brand_string"
@@ -363,7 +371,8 @@
         android:layout_weight="0"
         android:paddingLeft="10dp"
         android:paddingTop="10dp"
-        android:text="Marker Type"
+        android:textStyle="bold"
+        android:text="@string/marker_type_label"
         app:layout_constraintBottom_toTopOf="@id/markerType"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

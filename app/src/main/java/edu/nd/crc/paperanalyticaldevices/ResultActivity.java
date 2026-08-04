@@ -37,6 +37,8 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
 
+//import com.google.android.material.materialswitch.MaterialSwitch;
+
 import org.json.JSONObject;
 
 import java.io.File;
@@ -107,6 +109,7 @@ public class ResultActivity extends AppCompatActivity {
         //Toolbar myToolbar = findViewById(R.id.my_toolbar);
         //setSupportActionBar(myToolbar);
 
+        //MaterialSwitch okToConsumeSwitch = findViewById(R.id.oktoconsumetoggleswitch);
         Switch okToConsumeSwitch = findViewById(R.id.oktoconsumetoggleswitch);
         //set up toggle switch "Suspected unsafe?"
         //send this value to the API in the Notes

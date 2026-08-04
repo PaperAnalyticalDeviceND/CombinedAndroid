@@ -120,58 +120,107 @@
             android:textStyle="bold"
             android:text="@string/batch_string" />
 
-        <TextView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingStart="8dp"
-            android:text="@string/drug_found"/>
-        <TextView
-            android:id="@+id/predicteddrugtext"
-            android:layout_width="match_parent"
-            android:layout_height="37dp"
-            android:layout_marginBottom="10sp"
-            android:textStyle="bold"
             android:background="#FFFFFF"
-            android:paddingStart="8dp" />
-
-        <TextView
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingStart="8dp"
+                android:background="#FFFFFF"
+                android:text="@string/drug_found"/>
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"/>
+            <TextView
+                android:id="@+id/predicteddrugtext"
+                android:layout_width="wrap_content"
+                android:layout_height="37dp"
+                android:layout_marginBottom="10sp"
+                android:textStyle="bold"
+                android:background="#FFFFFF"
+                android:paddingEnd="8dp" />
+        </LinearLayout>
+        <com.google.android.material.divider.MaterialDivider
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingStart="8dp"
-
-            android:text="@string/drug_concentration"
-            />
-        <TextView
-            android:layout_width="match_parent"
-            android:id="@+id/nn_concentration_textview"
-            android:background="#FFFFFF"
-            android:layout_height="37dp"
-            android:paddingStart="8dp"
-            android:textStyle="bold"
-            android:layout_marginBottom="10sp"
-            />
-        <TextView
+            app:dividerThickness="1dp"
+            app:dividerInsetStart="16dp"
+            app:dividerInsetEnd="16dp"/>
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingStart="8dp"
-            android:text="@string/pls_concentration"/>
-        <TextView
-            android:id="@+id/pls_concentration_textview"
-            android:layout_width="match_parent"
             android:background="#FFFFFF"
-            android:layout_height="37dp"
-            android:layout_marginBottom="10sp"
-            android:paddingStart="8dp"
-            android:textStyle="bold"
-            />
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingStart="8dp"
+                android:background="#FFFFFF"
+                android:text="@string/drug_concentration"
+                />
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:id="@+id/nn_concentration_textview"
+                android:background="#FFFFFF"
+                android:layout_height="37dp"
+                android:paddingEnd="8dp"
+                android:textStyle="bold"
+                android:layout_marginBottom="10sp"
+                />
+        </LinearLayout>
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:dividerThickness="1dp"
+            app:dividerInsetStart="16dp"
+            app:dividerInsetEnd="16dp"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#FFFFFF"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingStart="8dp"
+                android:background="#FFFFFF"
+                android:text="@string/pls_concentration"/>
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"/>
+            <TextView
+                android:id="@+id/pls_concentration_textview"
+                android:layout_width="wrap_content"
+                android:background="#FFFFFF"
+                android:layout_height="37dp"
+                android:layout_marginBottom="10sp"
+                android:paddingEnd="8dp"
+                android:textStyle="bold"
+                />
+        </LinearLayout>
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:dividerThickness="1dp"
+            app:dividerInsetStart="16dp"
+            app:dividerInsetEnd="16dp"/>
         <Switch
             android:id="@+id/oktoconsumetoggleswitch"
             android:layout_width="match_parent"
             android:layout_height="38dp"
             android:layout_marginBottom="10sp"
             android:background="#FFFFFF"
-            android:paddingLeft="8dp"
-            android:paddingRight="8dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
             android:showText="true"
             android:splitTrack="true"
             android:text="@string/oktoconsume"
@@ -180,6 +229,20 @@
             android:thumb="@drawable/pill_toggle_thumb"
             android:thumbTextPadding="10dp"
             android:track="@drawable/pill_toggle_track" />
+<!--        <com.google.android.material.materialswitch.MaterialSwitch-->
+<!--            android:id="@+id/oktoconsumetoggleswitch"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="38dp"-->
+<!--            android:layout_marginBottom="10sp"-->
+<!--            android:background="#FFFFFF"-->
+<!--            android:paddingLeft="8dp"-->
+<!--            android:paddingRight="8dp"-->
+<!--            android:showText="true"-->
+<!--            android:splitTrack="true"-->
+<!--            android:textOff="@string/okno"-->
+<!--            android:textOn="@string/okyes"-->
+<!--            app:thumbDrawable="@drawable/pill_toggle_thumb"-->
+<!--            app:trackDrawable="@drawable/pill_toggle_track" />-->
 
         <TextView
             android:layout_width="match_parent"
@@ -194,7 +257,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="0"
             android:paddingStart="8dp"
-
+            android:background="#FFFFFF"
             android:text="@string/stored_drug_string" />
 
         <Spinner
@@ -211,7 +274,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="0"
             android:paddingStart="8dp"
-
+            android:background="#FFFFFF"
             android:text="@string/stated_concentration" />
 
         <Spinner
@@ -229,7 +292,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="0"
             android:paddingStart="8dp"
-
+            android:background="#FFFFFF"
             android:text="@string/notes" />
 
         <EditText
