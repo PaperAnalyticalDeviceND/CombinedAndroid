@@ -174,10 +174,10 @@ public class PredictionModel extends AndroidViewModel implements SharedPreferenc
                     }
                     if(i == 1) {
                         output_string.append("%");
-                        List<String> concList = new ArrayList<>(Arrays.asList(MainActivity.concentrations));
-                        if (concList.contains(results.get(i).Label)) {
-                            retVal.Concentration = Integer.valueOf(results.get(i).Label);
-                        }
+                        //List<String> concList = new ArrayList<>(Arrays.asList(MainActivity.concentrations));
+                        //if (concList.contains(results.get(i).Label)) {
+                        retVal.Concentration = Integer.valueOf(results.get(i).Label);
+                        //}
                     }
                 }
 

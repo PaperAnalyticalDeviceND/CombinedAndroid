@@ -115,20 +115,55 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="0"
-            android:paddingLeft="8dp"
-
+            android:paddingStart="8dp"
+            android:textAlignment="center"
+            android:textStyle="bold"
             android:text="@string/batch_string" />
 
-
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="8dp"
+            android:text="@string/drug_found"/>
         <TextView
             android:id="@+id/predicteddrugtext"
             android:layout_width="match_parent"
             android:layout_height="37dp"
             android:layout_marginBottom="10sp"
-
+            android:textStyle="bold"
             android:background="#FFFFFF"
-            android:paddingLeft="8dp" />
+            android:paddingStart="8dp" />
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="8dp"
+
+            android:text="@string/drug_concentration"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:id="@+id/nn_concentration_textview"
+            android:background="#FFFFFF"
+            android:layout_height="37dp"
+            android:paddingStart="8dp"
+            android:textStyle="bold"
+            android:layout_marginBottom="10sp"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="8dp"
+            android:text="@string/pls_concentration"/>
+        <TextView
+            android:id="@+id/pls_concentration_textview"
+            android:layout_width="match_parent"
+            android:background="#FFFFFF"
+            android:layout_height="37dp"
+            android:layout_marginBottom="10sp"
+            android:paddingStart="8dp"
+            android:textStyle="bold"
+            />
         <Switch
             android:id="@+id/oktoconsumetoggleswitch"
             android:layout_width="match_parent"
@@ -147,11 +182,18 @@
             android:track="@drawable/pill_toggle_track" />
 
         <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:textStyle="bold"
+            android:text="@string/stated_drug_title"
+            />
+        <TextView
             android:id="@+id/drugView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="0"
-            android:paddingLeft="8dp"
+            android:paddingStart="8dp"
 
             android:text="@string/stored_drug_string" />
 
@@ -168,9 +210,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="0"
-            android:paddingLeft="8dp"
+            android:paddingStart="8dp"
 
-            android:text="@string/brand_string" />
+            android:text="@string/stated_concentration" />
 
         <Spinner
             android:id="@+id/brandSpinner"
