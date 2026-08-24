@@ -37,6 +37,8 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
 
+//import com.google.android.material.materialswitch.MaterialSwitch;
+
 import org.json.JSONObject;
 
 import java.io.File;
@@ -107,6 +109,7 @@ public class ResultActivity extends AppCompatActivity {
         //Toolbar myToolbar = findViewById(R.id.my_toolbar);
         //setSupportActionBar(myToolbar);
 
+        //MaterialSwitch okToConsumeSwitch = findViewById(R.id.oktoconsumetoggleswitch);
         Switch okToConsumeSwitch = findViewById(R.id.oktoconsumetoggleswitch);
         //set up toggle switch "Suspected unsafe?"
         //send this value to the API in the Notes
@@ -132,8 +135,18 @@ public class ResultActivity extends AppCompatActivity {
 
         String sPredicted = "";
         //check exists first to avoid exception when passing it to the array adapter
-        if (intent.hasExtra(MainActivity.EXTRA_PREDICTED)) {
-            sPredicted = intent.getStringExtra(MainActivity.EXTRA_PREDICTED);
+        if (intent.hasExtra(MainActivity.EXTRA_PREDICTED_DRUG)) {
+            sPredicted = intent.getStringExtra(MainActivity.EXTRA_PREDICTED_DRUG);
+        }
+        String sPredictedConcentration = "";
+        if(intent.hasExtra(MainActivity.EXTRA_NN_CONC)){
+            int conc = intent.getIntExtra(MainActivity.EXTRA_NN_CONC, 0);
+            sPredictedConcentration = Integer.toString(conc) + "%";
+        }
+        String sPredictedPLSConcentration = "";
+        if(intent.hasExtra(MainActivity.EXTRA_PLS_CONC)){
+            int plcConc = intent.getIntExtra(MainActivity.EXTRA_PLS_CONC, 0);
+            sPredictedPLSConcentration = Integer.toString(plcConc) + "%";
         }
   /*
         Spinner sResult = findViewById(R.id.batchSpinner);
@@ -145,7 +158,11 @@ public class ResultActivity extends AppCompatActivity {
 
         TextView predictedTextView = findViewById(R.id.predicteddrugtext);
         predictedTextView.setText(sPredicted);
-        predictedTextView.setTextColor(Color.RED);
+        //predictedTextView.setTextColor(Color.RED);
+        TextView nnConcTextView = findViewById(R.id.nn_concentration_textview);
+        TextView plsConcTextView = findViewById(R.id.pls_concentration_textview);
+        nnConcTextView.setText(sPredictedConcentration);
+        plsConcTextView.setText(sPredictedPLSConcentration);
 
         if (intent.hasExtra(MainActivity.EXTRA_SAMPLEID)) {
             qr = intent.getStringExtra(MainActivity.EXTRA_SAMPLEID);

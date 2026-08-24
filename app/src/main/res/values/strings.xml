@@ -1,9 +1,15 @@
 <resources>
     <string name="app_name">PADReader</string>
     <string name="app_description">Paper analytical devices (PADs) are test cards that can quickly determine whether a drug tablet contains the correct medicines. They are cheap and easy to use. They don\'t require power, chemicals, solvents, or any expensive instruments, so they can be deployed rapidly at large scale whereever a problem with pharmaceutical quality is suspected.</string>
-    <string name="stored_drug_string">Stated Drug</string>
+    <string name="stored_drug_string">Drug name (tap to enter):</string>
+    <string name="drug_wheel_label">Drug Name</string>
+    <string name="stated_drug_title">Stated Drug</string>
     <string name="brand_string">Concentration</string>
+    <string name="stated_concentration">Concentration:</string>
     <string name="batch_string">Predicted Drug</string>
+    <string name="drug_found">Drug Found:</string>
+    <string name="drug_concentration">Drug Concentration (NN model):</string>
+    <string name="pls_concentration">Drug Concentration (PLS model):</string>
     <string name="upload">Upload</string>
     <string name="cancel">Discard</string>
     <string name="cont">Continue</string>
@@ -51,6 +57,9 @@
     <string name="project">Project:</string>
     <string name="neuralnet">Neural Net</string>
     <string name="neural_net_label">Classifier:</string>
+    <string name="concentration_classifier_label">Conc. Classifier:</string>
+    <string name="pls_classifier_label">PLS File:</string>
+    <string name="marker_type_label">Marker Type</string>
     <string name="category">Category</string>
     <string name="title_activity_queue">Upload Queue</string>
     <string name="button_label_queue">Queue</string>
@@ -62,7 +71,7 @@
     <string name="oktoconsume">Suspicious?</string>
     <string name="safetoconsume">Suspected Safe</string>
     <string name="unsafetoconsume">Suspected Unsafe</string>
-    <string name="notes">Notes</string>
+    <string name="notes">Notes (brand + lot #):</string>
     <string name="camera">Camera</string>
     <string name="torchonwithcamera">Flashlight</string>
     <string name="pleasewaitdownload">Please wait for neural net download to complete.</string>
